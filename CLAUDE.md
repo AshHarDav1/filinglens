@@ -116,6 +116,7 @@ uv run python -m filinglens.ingestion.run --from-subset eval/financebench_subset
 uv run python -m filinglens.ingestion.run --filings MSFT:2023,AMD:2022  # [--download-only] [--rechunk]
 uv run python eval/run_eval.py --mode baseline --name baseline          # closed-book LLM
 uv run python eval/run_eval.py --mode rag --name rag-poc                # [--k 6] [--limit 2]
+uv run python eval/retrieval_hit.py --name hit-poc                      # hit@6/10/20/40, no LLM [--limit 3]
 # later:
 uv run uvicorn filinglens.api.main:app --reload
 uv run streamlit run ui/app.py
@@ -142,13 +143,15 @@ uv run streamlit run ui/app.py
 
 ## Milestones and status
 
-- [ ] **M0 PoC:** repo skeleton, FinanceBench subset (about 20 questions from about 10 companies), Postgres+pgvector in Docker, EDGAR client, no-retrieval baseline, then a plain-RAG PoC → go/no-go
+- [x] **M0 PoC:** repo skeleton, FinanceBench subset (about 20 questions from about 10 companies), Postgres+pgvector in Docker, EDGAR client, no-retrieval baseline, then a plain-RAG PoC → go/no-go
   - [x] 1a repo skeleton + config
   - [x] 1b FinanceBench subset → `eval/financebench_subset.jsonl` (20 questions, 10 companies, 12 filings)
   - [x] 2 Postgres + pgvector in Docker, Alembic migration (company, filing, chunk, embedding_cache)
-  - [ ] 3 EDGAR client (rate limit, retries, disk cache): built + unit-tested; live download not yet run
-  - [ ] 4 no-retrieval baseline eval: runner built; not yet run (needs API keys)
-  - [ ] 5 plain-RAG PoC eval → go/no-go: ingestion + vector search + runner built; not yet run
+  - [x] 3 EDGAR client (rate limit, retries, disk cache): all 12 subset 10-Ks downloaded to `data/raw/` (52 MB)
+  - [x] 4 no-retrieval baseline eval: 11/20 with gpt-6-luna answering, both with a Luna judge and a Haiku judge
+    (`eval/results/2026-10-27-baseline.json`, `2026-10-28-baseline-haiku-judge.json`); 6/20 questions flip between runs
+  - [x] 5 plain-RAG PoC eval → **GO**: 6/20 (`2026-10-28-rag-poc.json`); retrieval hit@6 6/20, hit@20 14/20
+    (`2026-10-29-hit-poc.json`); 12 of 14 wrong answers are retrieval misses. Write-up: `docs/m0-results.md`
 - [ ] **M1 Data:** full ingestion of filings (sections → chunks → embeddings) and XBRL facts
 - [ ] **M2 RAG:** hybrid search (vector + full-text) with ticker/year/section filters, citations
 - [ ] **M3 Agent:** LangGraph with 3 tools, round limit, refuse and not-found paths
@@ -158,7 +161,8 @@ uv run streamlit run ui/app.py
 
 Update the checkboxes and the "Current step" line as we go.
 
-**Current step:** M0, steps 3–5: fill `.env`, run ingestion, the baseline and the RAG PoC evals, then decide go/no-go.
+**Current step:** M1 start: plan the steps (XBRL facts → `financial_fact`, section-aware parsing, table-aware text),
+measure each with `eval/retrieval_hit.py` against hit@6 6/20.
 
 ## Architecture decisions (record new ones in docs/adr/)
 

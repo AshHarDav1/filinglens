@@ -1,0 +1,106 @@
+{
+  "name": "smoke-haiku-judge",
+  "mode": "baseline",
+  "created_at": "2026-10-28T11:28:27+00:00",
+  "config": {
+    "llm_provider": "openai",
+    "llm_model": "gpt-6-luna",
+    "llm_temperature": null,
+    "judge_provider": "anthropic",
+    "judge_model": "claude-haiku-5-5",
+    "judge_temperature": null,
+    "embedding_model": null,
+    "k": null,
+    "chunk_size_chars": null,
+    "chunk_overlap_chars": null,
+    "prompt_versions": {
+      "baseline": "v1",
+      "rag": "v1",
+      "judge": "v1"
+    },
+    "subset": "eval/financebench_subset.jsonl"
+  },
+  "summary": {
+    "correct": 2,
+    "total": 3,
+    "accuracy": 0.667,
+    "latency_s": {
+      "mean": 10.75,
+      "median": 10.21,
+      "max": 14.71
+    },
+    "answer_tokens": {
+      "input": 246,
+      "output": 2433
+    },
+    "judge_tokens": {
+      "input": 2945,
+      "output": 655
+    }
+  },
+  "items": [
+    {
+      "id": "financebench_id_01198",
+      "ticker": "AMD",
+      "fiscal_year": 2022,
+      "question_type": "domain-relevant",
+      "question": "What drove revenue change as of the FY22 for AMD?",
+      "reference": "In 2022, AMD reported Higher sales of their EPYC server processors, higher semi-custom product sales, and the inclusion of Xilinx embedded product sales",
+      "answer": "AMD’s FY2022 revenue rose **44% to $23.6 billion** from $16.4 billion. The increase was driven mainly by **Embedded** revenue (up sharply to $4.6 billion, primarily reflecting the Xilinx acquisition), plus growth in **Data Center** (up 64% to $6.0 billion) and **Gaming** (up 21% to $6.8 billion). **Client** revenue fell 10% to $6.2 billion, partially offsetting those gains.",
+      "latency_s": 7.34,
+      "tokens": {
+        "input": 72,
+        "output": 457
+      },
+      "sources": [],
+      "correct": false,
+      "judge_reason": "The reference cites higher EPYC server processor sales, higher semi-custom product sales, and Xilinx embedded inclusion. The candidate cites Embedded (Xilinx), Data Center growth, and Gaming growth, which broadly overlap on Xilinx and data center/EPYC, but it attributes gaming growth to semi-custom-type sales only implicitly and frames the drivers by segment rather than by product line. The key drivers largely agree, but the candidate's Data Center/Gaming framing is not the same as the reference's EPYC/semi-custom/Xilinx framing; the Data Center figure ($6.0B up 64%) and Gaming figure are the candidate's own detail. Given the reference names specific drivers, the candidate captures Xilinx and EPYC-driven Data Center growth but does not explicitly state semi-custom product sales as a driver, so it is only partially aligned.",
+      "judge_tokens": {
+        "input": 1003,
+        "output": 350
+      }
+    },
+    {
+      "id": "financebench_id_00222",
+      "ticker": "AMD",
+      "fiscal_year": 2022,
+      "question_type": "domain-relevant",
+      "question": "Does AMD have a reasonably healthy liquidity profile based on its quick ratio for FY22? If the quick ratio is not relevant to measure liquidity, please state that and explain why.",
+      "reference": "Yes. The quick ratio is 1.57, calculated as (cash and cash equivalents+Short term investments+Accounts receivable, net+receivables from related parties)/ (current liabilities).",
+      "answer": "**Yes. AMD’s FY22 quick ratio was approximately 1.6×**, indicating its cash, short-term investments, and receivables exceeded current liabilities at year-end—a reasonably healthy liquidity position.\n\nThe quick ratio is relevant here: it gives a conservative short-term liquidity measure because it excludes inventory and other less-liquid current assets. It is not a complete picture of liquidity, but it is useful alongside cash flow and other measures.",
+      "latency_s": 14.71,
+      "tokens": {
+        "input": 95,
+        "output": 1189
+      },
+      "sources": [],
+      "correct": true,
+      "judge_reason": "The candidate answers \"Yes\" and gives a quick ratio of approximately 1.6×, which matches the reference's 1.57 when rounded to the stated precision. Its qualitative conclusion of a healthy liquidity position agrees with the reference.",
+      "judge_tokens": {
+        "input": 1045,
+        "output": 135
+      }
+    },
+    {
+      "id": "financebench_id_00552",
+      "ticker": "MSFT",
+      "fiscal_year": 2023,
+      "question_type": "domain-relevant",
+      "question": "Has Microsoft increased its debt on balance sheet between FY2023 and the FY2022 period?",
+      "reference": "No. Microsoft decreased its debt by $2.5bn in FY 2023 vs FY 2022.",
+      "answer": "No. Microsoft’s on-balance-sheet debt decreased from about **$49.8 billion in FY2022** to about **$47 billion in FY2023**, counting current and long-term debt.",
+      "latency_s": 10.21,
+      "tokens": {
+        "input": 79,
+        "output": 787
+      },
+      "sources": [],
+      "correct": true,
+      "judge_reason": "The candidate answers \"No\" and states debt decreased, consistent with the reference. Its figures (~$49.8B to ~$47B) imply a ~$2.8B decrease versus the reference's $2.5B; this gap is within a reasonable range given differing debt definitions (e.g., current vs. long-term inclusion), and the core conclusion and direction match.",
+      "judge_tokens": {
+        "input": 897,
+        "output": 170
+      }
+    }
+  ]
+}

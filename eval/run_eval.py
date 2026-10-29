@@ -21,7 +21,7 @@ from filinglens.agent import prompts
 from filinglens.config import get_settings
 from filinglens.db.session import get_session
 from filinglens.ingestion.chunk_embed import CHUNK_OVERLAP, CHUNK_SIZE
-from filinglens.llm import get_chat_model, get_embeddings
+from filinglens.llm import get_chat_model, get_embeddings, get_judge_model
 from filinglens.retrieval.vector import RetrievedChunk, search
 
 RESULTS_DIR = Path(__file__).parent / "results"
@@ -115,7 +115,7 @@ def main() -> None:
 
     settings = get_settings()
     llm = get_chat_model(settings)
-    judge_llm = llm.with_structured_output(JudgeVerdict, include_raw=True)
+    judge_llm = get_judge_model(settings).with_structured_output(JudgeVerdict, include_raw=True)
     embedder = get_embeddings(settings) if args.mode == "rag" else None
     session = get_session() if args.mode == "rag" else None
 
@@ -173,7 +173,9 @@ def main() -> None:
             "llm_provider": settings.llm_provider,
             "llm_model": settings.llm_model,
             "llm_temperature": settings.llm_temperature,
-            "judge_model": settings.llm_model,
+            "judge_provider": settings.judge_provider,
+            "judge_model": settings.judge_model,
+            "judge_temperature": settings.judge_temperature,
             "embedding_model": settings.embedding_model if args.mode == "rag" else None,
             "k": args.k if args.mode == "rag" else None,
             "chunk_size_chars": CHUNK_SIZE if args.mode == "rag" else None,

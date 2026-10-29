@@ -42,3 +42,14 @@ def test_secrets_are_not_printed():
     settings = make_settings(openai_api_key="sk-very-secret")
     assert "sk-very-secret" not in repr(settings)
     assert settings.openai_api_key.get_secret_value() == "sk-very-secret"
+
+
+def test_judge_defaults_to_a_separate_model():
+    settings = make_settings()
+    assert (settings.judge_provider, settings.judge_model) == ("anthropic", "claude-haiku-5-5")
+    assert settings.judge_temperature is None  # Claude Haiku 5.5 rejects a temperature
+
+
+def test_empty_judge_temperature_means_not_set(monkeypatch):
+    monkeypatch.setenv("JUDGE_TEMPERATURE", "")
+    assert Settings(_env_file=None).judge_temperature is None

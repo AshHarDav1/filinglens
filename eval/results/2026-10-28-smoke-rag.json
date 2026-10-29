@@ -1,0 +1,199 @@
+{
+  "name": "smoke-rag",
+  "mode": "rag",
+  "created_at": "2026-10-28T12:05:26+00:00",
+  "config": {
+    "llm_provider": "openai",
+    "llm_model": "gpt-6-luna",
+    "llm_temperature": null,
+    "judge_provider": "anthropic",
+    "judge_model": "claude-haiku-5-5",
+    "judge_temperature": null,
+    "embedding_model": "text-embedding-3-small",
+    "k": 6,
+    "chunk_size_chars": 2000,
+    "chunk_overlap_chars": 200,
+    "prompt_versions": {
+      "baseline": "v1",
+      "rag": "v1",
+      "judge": "v1"
+    },
+    "subset": "eval/financebench_subset.jsonl"
+  },
+  "summary": {
+    "correct": 1,
+    "total": 3,
+    "accuracy": 0.333,
+    "latency_s": {
+      "mean": 2.48,
+      "median": 2.15,
+      "max": 3.67
+    },
+    "answer_tokens": {
+      "input": 7514,
+      "output": 366
+    },
+    "judge_tokens": {
+      "input": 2740,
+      "output": 389
+    }
+  },
+  "items": [
+    {
+      "id": "financebench_id_01198",
+      "ticker": "AMD",
+      "fiscal_year": 2022,
+      "question_type": "domain-relevant",
+      "question": "What drove revenue change as of the FY22 for AMD?",
+      "reference": "In 2022, AMD reported Higher sales of their EPYC server processors, higher semi-custom product sales, and the inclusion of Xilinx embedded product sales",
+      "answer": "AMD’s FY2022 revenue increased 44% to $23.6 billion from $16.4 billion. Growth was driven by Data Center revenue (+64%, mainly higher EPYC processor sales), Gaming revenue (+21%, mainly higher semi-custom sales), and a significant increase in Embedded revenue from Xilinx product sales; this was partly offset by a 10% decline in Client revenue amid weak PC demand and supply-chain inventory corrections. [5]",
+      "latency_s": 3.67,
+      "tokens": {
+        "input": 2450,
+        "output": 221
+      },
+      "sources": [
+        {
+          "chunk_id": 276,
+          "url": "https://www.sec.gov/Archives/edgar/data/2488/000000248823000047/amd-20221231.htm",
+          "distance": 0.3381
+        },
+        {
+          "chunk_id": 395,
+          "url": "https://www.sec.gov/Archives/edgar/data/2488/000000248823000047/amd-20221231.htm",
+          "distance": 0.3489
+        },
+        {
+          "chunk_id": 277,
+          "url": "https://www.sec.gov/Archives/edgar/data/2488/000000248823000047/amd-20221231.htm",
+          "distance": 0.3544
+        },
+        {
+          "chunk_id": 398,
+          "url": "https://www.sec.gov/Archives/edgar/data/2488/000000248823000047/amd-20221231.htm",
+          "distance": 0.3808
+        },
+        {
+          "chunk_id": 396,
+          "url": "https://www.sec.gov/Archives/edgar/data/2488/000000248823000047/amd-20221231.htm",
+          "distance": 0.3971
+        },
+        {
+          "chunk_id": 400,
+          "url": "https://www.sec.gov/Archives/edgar/data/2488/000000248823000047/amd-20221231.htm",
+          "distance": 0.4032
+        }
+      ],
+      "correct": true,
+      "judge_reason": "The candidate identifies the same drivers as the reference: higher EPYC server processor sales, higher semi-custom (Gaming) sales, and the inclusion of Xilinx embedded product sales. The extra details (revenue figures, Client decline) are consistent with AMD's FY2022 results and do not contradict the reference.",
+      "judge_tokens": {
+        "input": 999,
+        "output": 159
+      }
+    },
+    {
+      "id": "financebench_id_00222",
+      "ticker": "AMD",
+      "fiscal_year": 2022,
+      "question_type": "domain-relevant",
+      "question": "Does AMD have a reasonably healthy liquidity profile based on its quick ratio for FY22? If the quick ratio is not relevant to measure liquidity, please state that and explain why.",
+      "reference": "Yes. The quick ratio is 1.57, calculated as (cash and cash equivalents+Short term investments+Accounts receivable, net+receivables from related parties)/ (current liabilities).",
+      "answer": "Not found in the filings.",
+      "latency_s": 2.15,
+      "tokens": {
+        "input": 2608,
+        "output": 100
+      },
+      "sources": [
+        {
+          "chunk_id": 391,
+          "url": "https://www.sec.gov/Archives/edgar/data/2488/000000248823000047/amd-20221231.htm",
+          "distance": 0.4562
+        },
+        {
+          "chunk_id": 276,
+          "url": "https://www.sec.gov/Archives/edgar/data/2488/000000248823000047/amd-20221231.htm",
+          "distance": 0.4697
+        },
+        {
+          "chunk_id": 511,
+          "url": "https://www.sec.gov/Archives/edgar/data/2488/000000248823000047/amd-20221231.htm",
+          "distance": 0.4783
+        },
+        {
+          "chunk_id": 275,
+          "url": "https://www.sec.gov/Archives/edgar/data/2488/000000248823000047/amd-20221231.htm",
+          "distance": 0.4789
+        },
+        {
+          "chunk_id": 427,
+          "url": "https://www.sec.gov/Archives/edgar/data/2488/000000248823000047/amd-20221231.htm",
+          "distance": 0.485
+        },
+        {
+          "chunk_id": 521,
+          "url": "https://www.sec.gov/Archives/edgar/data/2488/000000248823000047/amd-20221231.htm",
+          "distance": 0.4901
+        }
+      ],
+      "correct": false,
+      "judge_reason": "The candidate says the information was not found and gives no quick ratio or conclusion. The reference answer concludes yes, with a quick ratio of 1.57, so the candidate is missing the required answer.",
+      "judge_tokens": {
+        "input": 899,
+        "output": 116
+      }
+    },
+    {
+      "id": "financebench_id_00552",
+      "ticker": "MSFT",
+      "fiscal_year": 2023,
+      "question_type": "domain-relevant",
+      "question": "Has Microsoft increased its debt on balance sheet between FY2023 and the FY2022 period?",
+      "reference": "No. Microsoft decreased its debt by $2.5bn in FY 2023 vs FY 2022.",
+      "answer": "Not found in the filings.",
+      "latency_s": 1.62,
+      "tokens": {
+        "input": 2456,
+        "output": 45
+      },
+      "sources": [
+        {
+          "chunk_id": 1968,
+          "url": "https://www.sec.gov/Archives/edgar/data/789019/000095017023035122/msft-20230630.htm",
+          "distance": 0.3586
+        },
+        {
+          "chunk_id": 1977,
+          "url": "https://www.sec.gov/Archives/edgar/data/789019/000095017023035122/msft-20230630.htm",
+          "distance": 0.3587
+        },
+        {
+          "chunk_id": 2064,
+          "url": "https://www.sec.gov/Archives/edgar/data/789019/000095017023035122/msft-20230630.htm",
+          "distance": 0.3833
+        },
+        {
+          "chunk_id": 1979,
+          "url": "https://www.sec.gov/Archives/edgar/data/789019/000095017023035122/msft-20230630.htm",
+          "distance": 0.4015
+        },
+        {
+          "chunk_id": 1981,
+          "url": "https://www.sec.gov/Archives/edgar/data/789019/000095017023035122/msft-20230630.htm",
+          "distance": 0.4099
+        },
+        {
+          "chunk_id": 2054,
+          "url": "https://www.sec.gov/Archives/edgar/data/789019/000095017023035122/msft-20230630.htm",
+          "distance": 0.4225
+        }
+      ],
+      "correct": false,
+      "judge_reason": "The candidate says the information was not found, which is a refusal/missing answer. The reference answers 'No' (debt decreased by $2.5bn), so the candidate does not agree with the reference.",
+      "judge_tokens": {
+        "input": 842,
+        "output": 114
+      }
+    }
+  ]
+}

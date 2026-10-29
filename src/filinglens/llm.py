@@ -11,21 +11,36 @@ def _secret(value) -> str | None:
     return value.get_secret_value() if value else None
 
 
-def get_chat_model(settings: Settings | None = None) -> BaseChatModel:
-    settings = settings or get_settings()
-    extra = {} if settings.llm_temperature is None else {"temperature": settings.llm_temperature}
-    if settings.llm_provider == "anthropic":
+def _chat_model(
+    settings: Settings, provider: str, model: str, temperature: float | None
+) -> BaseChatModel:
+    extra = {} if temperature is None else {"temperature": temperature}
+    if provider == "anthropic":
         from langchain_anthropic import ChatAnthropic
 
         return ChatAnthropic(
-            model=settings.llm_model,
+            model=model,
             api_key=_secret(settings.anthropic_api_key),
             max_tokens=2048,
             **extra,
         )
     from langchain_openai import ChatOpenAI
 
-    return ChatOpenAI(model=settings.llm_model, api_key=_secret(settings.openai_api_key), **extra)
+    return ChatOpenAI(model=model, api_key=_secret(settings.openai_api_key), **extra)
+
+
+def get_chat_model(settings: Settings | None = None) -> BaseChatModel:
+    settings = settings or get_settings()
+    return _chat_model(
+        settings, settings.llm_provider, settings.llm_model, settings.llm_temperature
+    )
+
+
+def get_judge_model(settings: Settings | None = None) -> BaseChatModel:
+    settings = settings or get_settings()
+    return _chat_model(
+        settings, settings.judge_provider, settings.judge_model, settings.judge_temperature
+    )
 
 
 def get_embeddings(settings: Settings | None = None) -> Embeddings:

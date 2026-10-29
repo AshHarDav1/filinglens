@@ -1,0 +1,83 @@
+{
+  "name": "smoke-baseline",
+  "mode": "baseline",
+  "created_at": "2026-10-27T14:44:06+00:00",
+  "config": {
+    "llm_provider": "openai",
+    "llm_model": "gpt-6-luna",
+    "llm_temperature": null,
+    "judge_model": "gpt-6-luna",
+    "embedding_model": null,
+    "k": null,
+    "chunk_size_chars": null,
+    "chunk_overlap_chars": null,
+    "prompt_versions": {
+      "baseline": "v1",
+      "rag": "v1",
+      "judge": "v1"
+    },
+    "subset": "eval/financebench_subset.jsonl"
+  },
+  "summary": {
+    "correct": 1,
+    "total": 2,
+    "accuracy": 0.5,
+    "latency_s": {
+      "mean": 13.75,
+      "median": 13.75,
+      "max": 18.96
+    },
+    "answer_tokens": {
+      "input": 167,
+      "output": 1947
+    },
+    "judge_tokens": {
+      "input": 723,
+      "output": 605
+    }
+  },
+  "items": [
+    {
+      "id": "financebench_id_01198",
+      "ticker": "AMD",
+      "fiscal_year": 2022,
+      "question_type": "domain-relevant",
+      "question": "What drove revenue change as of the FY22 for AMD?",
+      "reference": "In 2022, AMD reported Higher sales of their EPYC server processors, higher semi-custom product sales, and the inclusion of Xilinx embedded product sales",
+      "answer": "AMD’s FY22 revenue rose **44% to $23.6 billion**, up **$7.2 billion** from FY21. The increase was driven mainly by **Embedded revenue** (up about **$3.2 billion**, largely reflecting the Xilinx acquisition) and **Data Center revenue** (up about **$2.3 billion**, supported by EPYC processor sales), with Gaming also growing. **Client revenue declined**, partly offsetting those gains.",
+      "latency_s": 8.53,
+      "tokens": {
+        "input": 72,
+        "output": 459
+      },
+      "sources": [],
+      "correct": true,
+      "judge_reason": "The answer identifies higher EPYC/Data Center sales and Xilinx-related Embedded sales as major drivers, consistent with the reference. It does not explicitly name higher semi-custom product sales, though it notes Gaming growth, which is consistent with that segment contributing.",
+      "judge_tokens": {
+        "input": 358,
+        "output": 492
+      }
+    },
+    {
+      "id": "financebench_id_00222",
+      "ticker": "AMD",
+      "fiscal_year": 2022,
+      "question_type": "domain-relevant",
+      "question": "Does AMD have a reasonably healthy liquidity profile based on its quick ratio for FY22? If the quick ratio is not relevant to measure liquidity, please state that and explain why.",
+      "reference": "Yes. The quick ratio is 1.57, calculated as (cash and cash equivalents+Short term investments+Accounts receivable, net+receivables from related parties)/ (current liabilities).",
+      "answer": "**Yes—AMD’s FY22 quick ratio was approximately 1.7×**, indicating a reasonably healthy liquidity position. The quick ratio is relevant here: it compares cash, short-term investments, and receivables with current liabilities, excluding inventory and other less-liquid current assets; a ratio above 1× suggests liquid assets exceeded near-term obligations.",
+      "latency_s": 18.96,
+      "tokens": {
+        "input": 95,
+        "output": 1488
+      },
+      "sources": [],
+      "correct": false,
+      "judge_reason": "The candidate reaches the same conclusion and correctly describes the quick ratio, but gives approximately 1.7× rather than the reference value of 1.57. That difference exceeds the allowed rounding tolerance.",
+      "judge_tokens": {
+        "input": 365,
+        "output": 113
+      }
+    }
+  ]
+}

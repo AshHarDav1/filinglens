@@ -29,8 +29,15 @@ class Settings(BaseSettings):
     # LLM
     llm_provider: Literal["openai", "anthropic"] = "anthropic"
     llm_model: str = "claude-sonnet-5-5"
-    # 0 for reproducible evals; set empty for models that reject a temperature (reasoning models)
-    llm_temperature: float | None = 0.0
+    # None = don't send one: reasoning models and current Claude models reject a temperature
+    llm_temperature: float | None = None
+
+    # Eval judge: a different model family from the answerer, so it doesn't grade its own answers
+    judge_provider: Literal["openai", "anthropic"] = "anthropic"
+    judge_model: str = "claude-haiku-5-5"
+    # None: current Claude models reject any non-default temperature (400)
+    judge_temperature: float | None = None
+
     openai_api_key: SecretStr | None = None
     anthropic_api_key: SecretStr | None = None
 

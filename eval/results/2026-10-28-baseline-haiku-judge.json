@@ -1,0 +1,463 @@
+{
+  "name": "baseline-haiku-judge",
+  "mode": "baseline",
+  "created_at": "2026-10-28T11:34:56+00:00",
+  "config": {
+    "llm_provider": "openai",
+    "llm_model": "gpt-6-luna",
+    "llm_temperature": null,
+    "judge_provider": "anthropic",
+    "judge_model": "claude-haiku-5-5",
+    "judge_temperature": null,
+    "embedding_model": null,
+    "k": null,
+    "chunk_size_chars": null,
+    "chunk_overlap_chars": null,
+    "prompt_versions": {
+      "baseline": "v1",
+      "rag": "v1",
+      "judge": "v1"
+    },
+    "subset": "eval/financebench_subset.jsonl"
+  },
+  "summary": {
+    "correct": 11,
+    "total": 20,
+    "accuracy": 0.55,
+    "latency_s": {
+      "mean": 9.45,
+      "median": 7.52,
+      "max": 25.79
+    },
+    "answer_tokens": {
+      "input": 1841,
+      "output": 14982
+    },
+    "judge_tokens": {
+      "input": 19051,
+      "output": 3255
+    }
+  },
+  "items": [
+    {
+      "id": "financebench_id_01198",
+      "ticker": "AMD",
+      "fiscal_year": 2022,
+      "question_type": "domain-relevant",
+      "question": "What drove revenue change as of the FY22 for AMD?",
+      "reference": "In 2022, AMD reported Higher sales of their EPYC server processors, higher semi-custom product sales, and the inclusion of Xilinx embedded product sales",
+      "answer": "AMD’s FY2022 revenue rose **44% to $23.6 billion**, from **$16.4 billion** in FY2021. The increase was driven mainly by the Xilinx acquisition and higher Data Center and Gaming revenue; lower Client revenue partially offset the growth.",
+      "latency_s": 9.43,
+      "tokens": {
+        "input": 72,
+        "output": 613
+      },
+      "sources": [],
+      "correct": true,
+      "judge_reason": "The candidate attributes FY2022 revenue growth to the Xilinx acquisition and higher Data Center and Gaming revenue, with lower Client revenue offsetting. The reference cites higher EPYC server processor sales, higher semi-custom product sales, and inclusion of Xilinx embedded product sales. The Xilinx inclusion matches, and higher Data Center (EPYC) and Gaming (semi-custom) align in substance, though the candidate omits the explicit semi-custom/EPYC specificity and adds a Client decline detail that is consistent with AMD's reported results.",
+      "judge_tokens": {
+        "input": 934,
+        "output": 248
+      }
+    },
+    {
+      "id": "financebench_id_00222",
+      "ticker": "AMD",
+      "fiscal_year": 2022,
+      "question_type": "domain-relevant",
+      "question": "Does AMD have a reasonably healthy liquidity profile based on its quick ratio for FY22? If the quick ratio is not relevant to measure liquidity, please state that and explain why.",
+      "reference": "Yes. The quick ratio is 1.57, calculated as (cash and cash equivalents+Short term investments+Accounts receivable, net+receivables from related parties)/ (current liabilities).",
+      "answer": "**Yes—AMD’s FY22 quick ratio was approximately 1.6×**, indicating a reasonably healthy liquidity position: cash, short-term investments, and receivables exceeded current liabilities.\n\nThe quick ratio is relevant as a conservative liquidity measure because it excludes inventory, which may take time to sell. It is not a complete assessment on its own, but AMD’s result suggests it could cover near-term obligations without relying on inventory sales.",
+      "latency_s": 12.68,
+      "tokens": {
+        "input": 95,
+        "output": 1126
+      },
+      "sources": [],
+      "correct": true,
+      "judge_reason": "Candidate states FY22 quick ratio of approximately 1.6×, which matches the reference value of 1.57 (rounds to 1.6), and concludes yes, a reasonably healthy liquidity position, consistent with the reference. The candidate's explanation of the formula components (cash, short-term investments, receivables over current liabilities) matches the reference's calculation.",
+      "judge_tokens": {
+        "input": 1043,
+        "output": 173
+      }
+    },
+    {
+      "id": "financebench_id_00552",
+      "ticker": "MSFT",
+      "fiscal_year": 2023,
+      "question_type": "domain-relevant",
+      "question": "Has Microsoft increased its debt on balance sheet between FY2023 and the FY2022 period?",
+      "reference": "No. Microsoft decreased its debt by $2.5bn in FY 2023 vs FY 2022.",
+      "answer": "No. Microsoft’s balance-sheet debt decreased from about **$49.8 billion in FY2022** to **$47.2 billion in FY2023**—a decline of roughly **$2.5 billion**. This adds the current portion of long-term debt and long-term debt.",
+      "latency_s": 5.22,
+      "tokens": {
+        "input": 79,
+        "output": 435
+      },
+      "sources": [],
+      "correct": true,
+      "judge_reason": "The candidate answers \"No\" and states debt decreased by roughly $2.5 billion from FY2022 to FY2023, matching the reference's conclusion and magnitude. The component figures ($49.8bn to $47.2bn) are consistent with the reference's $2.5bn decrease.",
+      "judge_tokens": {
+        "input": 923,
+        "output": 147
+      }
+    },
+    {
+      "id": "financebench_id_04700",
+      "ticker": "MSFT",
+      "fiscal_year": 2016,
+      "question_type": "metrics-generated",
+      "question": "What is the FY2016 COGS for Microsoft? Please state answer in USD millions. Provide a response to the question by primarily using the statement of income.",
+      "reference": "$32780.00",
+      "answer": "Microsoft’s FY2016 cost of revenue (COGS) was **$32,780 million**. The statement of income reports this as “Cost of revenue.”",
+      "latency_s": 3.11,
+      "tokens": {
+        "input": 93,
+        "output": 172
+      },
+      "sources": [],
+      "correct": true,
+      "judge_reason": "The candidate's answer of $32,780 million matches the reference answer of $32,780.00 million exactly, and correctly identifies it as cost of revenue from the income statement.",
+      "judge_tokens": {
+        "input": 871,
+        "output": 109
+      }
+    },
+    {
+      "id": "financebench_id_08135",
+      "ticker": "AMZN",
+      "fiscal_year": 2017,
+      "question_type": "metrics-generated",
+      "question": "What is Amazon's year-over-year change in revenue from FY2016 to FY2017 (in units of percents and round to one decimal place)? Calculate what was asked by utilizing the line items clearly shown in the statement of income.",
+      "reference": "30.8%",
+      "answer": "Amazon’s revenue increased **30.8%** from FY2016 to FY2017. Using the statement of income’s “Net sales” line: \\((\\$177{,}866\\text{ million} - \\$135{,}987\\text{ million}) \\div \\$135{,}987\\text{ million} \\times 100 = 30.8\\%\\).",
+      "latency_s": 3.22,
+      "tokens": {
+        "input": 108,
+        "output": 162
+      },
+      "sources": [],
+      "correct": true,
+      "judge_reason": "The candidate's final answer of 30.8% matches the reference answer of 30.8%. Its calculation uses Amazon's net sales figures ($177,866M in 2017 vs $135,987M in 2016), which correctly yields (177,866-135,987)/135,987 ≈ 30.8%.",
+      "judge_tokens": {
+        "input": 949,
+        "output": 152
+      }
+    },
+    {
+      "id": "financebench_id_06655",
+      "ticker": "AMZN",
+      "fiscal_year": 2017,
+      "question_type": "metrics-generated",
+      "question": "What is Amazon's FY2017 days payable outstanding (DPO)? DPO is defined as: 365 * (average accounts payable between FY2016 and FY2017) / (FY2017 COGS + change in inventory between FY2016 and FY2017). Round your answer to two decimal places. Address the question by using the line items and information shown within the balance sheet and the P&L statement.",
+      "reference": "93.86",
+      "answer": "**Amazon’s FY2017 DPO was 93.86 days.** Using amounts in millions: average accounts payable = (25,309 + 34,616) / 2 = 29,962.5; the denominator is FY2017 cost of sales of 111,934 plus the inventory increase of (16,047 − 11,461) = 116,520. Thus, DPO = 365 × 29,962.5 / 116,520 = **93.86 days**.",
+      "latency_s": 7.16,
+      "tokens": {
+        "input": 147,
+        "output": 629
+      },
+      "sources": [],
+      "correct": true,
+      "judge_reason": "The candidate's final answer of 93.86 days matches the reference answer of 93.86 exactly, and its calculation inputs (average AP of 29,962.5, COGS of 111,934, inventory change of 4,586) are consistent with the defined formula.",
+      "judge_tokens": {
+        "input": 1038,
+        "output": 136
+      }
+    },
+    {
+      "id": "financebench_id_00438",
+      "ticker": "ADBE",
+      "fiscal_year": 2022,
+      "question_type": "domain-relevant",
+      "question": "Does Adobe have an improving operating margin profile as of FY2022? If operating margin is not a useful metric for a company like this, then state that and explain why.",
+      "reference": "No the operating margins of Adobe have recently declined from 36.8% in FY 2021 to 34.6% in FY2022. A drop by 2.2% in a year.",
+      "answer": "**No—not in FY2022.** Adobe’s GAAP operating margin was **34.6%** in FY2022, down from **36.8%** in FY2021, though above **32.9%** in FY2020. Operating margin is a useful metric for Adobe’s software business; the figures show strong margins overall, but not improvement in the latest year.",
+      "latency_s": 6.86,
+      "tokens": {
+        "input": 95,
+        "output": 572
+      },
+      "sources": [],
+      "correct": true,
+      "judge_reason": "The candidate answers \"No\" and reports the same key figures as the reference: operating margin fell from 36.8% in FY2021 to 34.6% in FY2022. The added FY2020 comparison (32.9%) is extra context and does not contradict the reference.",
+      "judge_tokens": {
+        "input": 978,
+        "output": 136
+      }
+    },
+    {
+      "id": "financebench_id_00591",
+      "ticker": "ADBE",
+      "fiscal_year": 2022,
+      "question_type": "novel-generated",
+      "question": "Does Adobe have an improving Free cashflow conversion as of FY2022?",
+      "reference": "Yes, the FCF conversion (using net income as the denominator) for Adobe has improved by ~13% from 143% in 2021 to 156% in 2022",
+      "answer": "**Yes—using free cash flow as a percentage of net income.** Adobe’s FCF was about **$7.6 billion** in FY2022, roughly **160% of net income**, up from about **145%** in FY2021. Its FCF margin as a share of revenue, however, declined slightly.",
+      "latency_s": 5.9,
+      "tokens": {
+        "input": 75,
+        "output": 376
+      },
+      "sources": [],
+      "correct": false,
+      "judge_reason": "The reference says FCF conversion (FCF/net income) improved from 143% in 2021 to 156% in 2022. The candidate gives ~160% for 2022 and ~145% for 2021, which differ by more than rounding tolerance for the 2021 figure (145% vs 143%) and the 2022 figure (160% vs 156%). Direction (yes, improving) matches, but the specific numbers do not agree with the reference.",
+      "judge_tokens": {
+        "input": 937,
+        "output": 193
+      }
+    },
+    {
+      "id": "financebench_id_04458",
+      "ticker": "NFLX",
+      "fiscal_year": 2015,
+      "question_type": "metrics-generated",
+      "question": "We want to calculate a financial metric. Please help us compute it by basing your answers off of the statement of income and the statement of cash flows. Here's the question: what is the FY2015 unadjusted EBITDA % margin for Netflix? Calculate unadjusted EBITDA using unadjusted operating income and D&A (from cash flow statement).",
+      "reference": "5.4%",
+      "answer": "**FY2015 unadjusted EBITDA margin: approximately 8.9%.** Using revenue of **$6.78 billion**, operating income of **$305.8 million**, and cash-flow-statement D&A of approximately **$299 million**, unadjusted EBITDA is approximately **$605 million**; divided by revenue, that is about **8.9%**.",
+      "latency_s": 19.24,
+      "tokens": {
+        "input": 130,
+        "output": 1634
+      },
+      "sources": [],
+      "correct": false,
+      "judge_reason": "Reference answer is 5.4%, while the candidate computed 8.9% using operating income of $305.8M and D&A of about $299M. The candidate's margin does not match the reference, so it is incorrect.",
+      "judge_tokens": {
+        "input": 1001,
+        "output": 120
+      }
+    },
+    {
+      "id": "financebench_id_03282",
+      "ticker": "NFLX",
+      "fiscal_year": 2017,
+      "question_type": "metrics-generated",
+      "question": "What is Netflix's year end FY2017 total current liabilities (in USD millions)? Base your judgments on the information provided primarily in the balance sheet.",
+      "reference": "$5466.00",
+      "answer": "Netflix reported **approximately $6,487 million** in total current liabilities at FY2017 year-end.",
+      "latency_s": 14.62,
+      "tokens": {
+        "input": 90,
+        "output": 1079
+      },
+      "sources": [],
+      "correct": false,
+      "judge_reason": "The reference answer is $5,466 million for Netflix's FY2017 total current liabilities, while the candidate states approximately $6,487 million. These differ by about $1 billion (about 19%), well beyond rounding tolerance, so the candidate is incorrect.",
+      "judge_tokens": {
+        "input": 855,
+        "output": 139
+      }
+    },
+    {
+      "id": "financebench_id_00215",
+      "ticker": "VZ",
+      "fiscal_year": 2022,
+      "question_type": "domain-relevant",
+      "question": "Is Verizon a capital intensive business based on FY 2022 data?",
+      "reference": "Yes. Verizon's capital intensity ratio was approximately 2.774729. This means that it took approximately $2.77 of assets to generate $1 of revenue and thus, Verizon can be considered capital intensive.",
+      "answer": "**Yes.** Verizon spent approximately **$22.7 billion on capital expenditures in FY2022**, about **16.6% of its $136.8 billion in revenue**—a substantial, ongoing investment in network infrastructure.",
+      "latency_s": 6.86,
+      "tokens": {
+        "input": 74,
+        "output": 444
+      },
+      "sources": [],
+      "correct": true,
+      "judge_reason": "Both answers conclude Verizon is capital intensive (Yes). The reference measures capital intensity as assets/revenue (~2.77), while the candidate uses capex/revenue (16.6%); the metric differs but the conclusion and supporting reasoning about heavy infrastructure investment agree in substance.",
+      "judge_tokens": {
+        "input": 937,
+        "output": 154
+      }
+    },
+    {
+      "id": "financebench_id_00566",
+      "ticker": "VZ",
+      "fiscal_year": 2022,
+      "question_type": "domain-relevant",
+      "question": "Has Verizon increased its debt on balance sheet between 2022 and the 2021 fiscal period?",
+      "reference": "No. Verizon's debt decreased by $229 million.",
+      "answer": "No. Verizon’s total debt was essentially flat, declining slightly from about **$150.7 billion at year-end 2021** to **$150.6 billion at year-end 2022**.",
+      "latency_s": 14.75,
+      "tokens": {
+        "input": 80,
+        "output": 1254
+      },
+      "sources": [],
+      "correct": true,
+      "judge_reason": "The candidate correctly answers \"No\" and states debt declined slightly, which matches the reference. However, the candidate's implied decline is about $0.1 billion ($150.7B to $150.6B), while the reference states a $229 million decrease. The candidate's figures are approximately consistent (a ~$0.1B difference is within the rounding of the stated values), but it does not give the precise $229 million decrease the reference specifies, and its totals are rounded so the magnitude is not exact.",
+      "judge_tokens": {
+        "input": 877,
+        "output": 208
+      }
+    },
+    {
+      "id": "financebench_id_01226",
+      "ticker": "MMM",
+      "fiscal_year": 2022,
+      "question_type": "domain-relevant",
+      "question": "What drove operating margin change as of FY2022 for 3M? If operating margin is not a useful metric for a company like this, then please state that and explain why.",
+      "reference": "Operating Margin for 3M in FY2022 has decreased by 1.7% primarily due to: \n-Decrease in gross Margin\n-mostly one-off charges including Combat Arms Earplugs litigation, impairment related to exiting PFAS manufacturing, costs related to exiting Russia and divestiture-related restructuring\ncharges",
+      "answer": "**3M’s GAAP operating margin fell to about 17.3% in FY2022 from 20.0% in FY2021—a decline of roughly 2.7 percentage points.** Operating income dropped about 16%, while sales fell about 3%; inflation in materials, labor and logistics, unfavorable foreign-exchange effects and product mix weighed on results, with special legal/environmental and other charges also affecting reported profit.\n\nOperating margin is a useful measure for 3M’s industrial businesses, but the GAAP figure can be distorted by sizable one-time or unusual charges. Comparing it with the company’s adjusted margin helps separate underlying operating performance from those items.",
+      "latency_s": 25.79,
+      "tokens": {
+        "input": 97,
+        "output": 2132
+      },
+      "sources": [],
+      "correct": false,
+      "judge_reason": "The reference says 3M's FY2022 operating margin decreased by about 1.7 points, driven by lower gross margin and one-off charges (Combat Arms Earplugs litigation, PFAS exit impairment, Russia exit costs, divestiture restructuring). The candidate instead reports a 2.7-point decline (17.3% vs 20.0%) and attributes it mainly to inflation, FX, and mix, mentioning special charges only vaguely. The magnitude and the key drivers do not match the reference.",
+      "judge_tokens": {
+        "input": 1148,
+        "output": 222
+      }
+    },
+    {
+      "id": "financebench_id_01865",
+      "ticker": "MMM",
+      "fiscal_year": 2022,
+      "question_type": "novel-generated",
+      "question": "If we exclude the impact of M&A, which segment has dragged down 3M's overall growth in 2022?",
+      "reference": "The consumer segment shrunk by 0.9% organically.",
+      "answer": "**Transportation & Electronics** was the main drag on 3M’s 2022 growth excluding M&A, as its organic sales declined.",
+      "latency_s": 9.07,
+      "tokens": {
+        "input": 85,
+        "output": 693
+      },
+      "sources": [],
+      "correct": false,
+      "judge_reason": "The reference says the Consumer segment was the drag (shrinking 0.9% organically), while the candidate names Transportation & Electronics. These segments differ, so the candidate's answer contradicts the reference.",
+      "judge_tokens": {
+        "input": 863,
+        "output": 120
+      }
+    },
+    {
+      "id": "financebench_id_01091",
+      "ticker": "BA",
+      "fiscal_year": 2022,
+      "question_type": "domain-relevant",
+      "question": "Has Boeing reported any materially important ongoing legal battles from FY2022?",
+      "reference": "Yes. Multiple lawsuits have been filed against Boeing resulting from a 2018 Lion Air crash and a 2019 Ethiopian Airlines crash.",
+      "answer": "**Yes.** In its FY2022 filing, Boeing disclosed ongoing litigation stemming from the 737 MAX crashes, including claims by victims’ families and related proceedings; it also reported other shareholder and commercial disputes. Boeing noted that the timing and outcomes of legal matters were uncertain, and it did not identify every case as individually material.",
+      "latency_s": 9.75,
+      "tokens": {
+        "input": 74,
+        "output": 771
+      },
+      "sources": [],
+      "correct": true,
+      "judge_reason": "The candidate answers \"Yes\" and identifies ongoing litigation from the 737 MAX crashes, including claims by victims' families, which matches the reference's Lion Air (2018) and Ethiopian Airlines (2019) lawsuits. It does not name the specific crashes, but the substance agrees.",
+      "judge_tokens": {
+        "input": 967,
+        "output": 153
+      }
+    },
+    {
+      "id": "financebench_id_00494",
+      "ticker": "BA",
+      "fiscal_year": 2022,
+      "question_type": "novel-generated",
+      "question": "What production rate changes is Boeing forecasting for FY2023?",
+      "reference": "Boeing forecasts an increase in the production rates for the 737, 777X and 787 aircrafts in 2023.",
+      "answer": "Boeing forecast increasing 737 production from **31 to 38 aircraft per month** and 787 production from **3 to 5 per month** during FY2023. These were planned rate increases, not guaranteed outcomes.",
+      "latency_s": 5.53,
+      "tokens": {
+        "input": 72,
+        "output": 455
+      },
+      "sources": [],
+      "correct": false,
+      "judge_reason": "The reference says Boeing forecasts production rate increases for the 737, 777X and 787 in 2023. The candidate mentions increases for the 737 and 787 with specific rates, but omits the 777X. It is not contradictory, but it is incomplete relative to the reference's list of three aircraft programs.",
+      "judge_tokens": {
+        "input": 896,
+        "output": 152
+      }
+    },
+    {
+      "id": "financebench_id_04481",
+      "ticker": "PEP",
+      "fiscal_year": 2022,
+      "question_type": "metrics-generated",
+      "question": "What is the FY2022 unadjusted EBITDA % margin for PepsiCo? Calculate unadjusted EBITDA using unadjusted operating income and D&A (from cash flow statement). Give a response to the question by relying on the details shown in the statement of cash flows and the P&L statement.",
+      "reference": "16.5%",
+      "answer": "**FY2022 unadjusted EBITDA margin: approximately 16.5%.** PepsiCo reported operating income of **$11.512 billion**, net revenue of **$86.392 billion**, and cash-flow-statement depreciation and amortization of approximately **$2.8 billion**. Thus, unadjusted EBITDA was about **$14.3 billion** ($11.512 billion + D&A), or **$14.3 billion ÷ $86.392 billion ≈ 16.5%**.",
+      "latency_s": 12.76,
+      "tokens": {
+        "input": 121,
+        "output": 1145
+      },
+      "sources": [],
+      "correct": true,
+      "judge_reason": "The candidate's final answer of approximately 16.5% matches the reference answer of 16.5%. Its inputs (operating income $11.512B, revenue $86.392B, D&A ~$2.8B giving EBITDA ~$14.3B) are consistent with the calculation method requested.",
+      "judge_tokens": {
+        "input": 1034,
+        "output": 147
+      }
+    },
+    {
+      "id": "financebench_id_01009",
+      "ticker": "PEP",
+      "fiscal_year": 2022,
+      "question_type": "domain-relevant",
+      "question": "What are the geographies that Pepsico primarily operates in as of FY2022?",
+      "reference": "As of FY2022, Pepsico primarily operates in the following geographies: North America, Latin America, Europe, Africa, Middle East, South Asia, Asia Pacific, Australia, New Zealand and China.",
+      "answer": "As of FY2022, PepsiCo primarily operated in the **United States, Mexico, Russia, Canada, the United Kingdom, Brazil, South Africa, and other countries**. Its products were sold in more than 200 countries and territories.",
+      "latency_s": 5.21,
+      "tokens": {
+        "input": 78,
+        "output": 376
+      },
+      "sources": [],
+      "correct": false,
+      "judge_reason": "The candidate lists specific countries (US, Mexico, Russia, Canada, UK, Brazil, South Africa) rather than the reference's geographic regions (North America, Latin America, Europe, Africa, Middle East, South Asia, Asia Pacific, Australia/New Zealand, China). It omits several reference regions such as Asia Pacific, China, and the Middle East, so it does not agree in substance with the reference.",
+      "judge_tokens": {
+        "input": 940,
+        "output": 193
+      }
+    },
+    {
+      "id": "financebench_id_00723",
+      "ticker": "AXP",
+      "fiscal_year": 2022,
+      "question_type": "domain-relevant",
+      "question": "Does AMEX have an improving operating margin profile as of 2022? If operating margin is not a useful metric for a company like this, then state that and explain why.",
+      "reference": "Performance is not measured through operating margin",
+      "answer": "**Yes—on a more relevant pre-tax margin basis, AMEX’s profile improved slightly in 2022:** about **20.5%**, versus **20.3% in 2021** (and **16.3% in 2020**). Conventional operating margin is not especially useful for a card issuer: interest income and expense, credit-loss provisions, and related costs are central to its business, so “operating income” is not comparable to that of a typical nonfinancial company.",
+      "latency_s": 7.88,
+      "tokens": {
+        "input": 96,
+        "output": 623
+      },
+      "sources": [],
+      "correct": false,
+      "judge_reason": "The reference says performance is not measured through operating margin and the metric is not useful for AMEX. The candidate instead answers \"Yes\" with a pre-tax margin trend, though it does note operating margin is not especially useful. The candidate's headline conclusion (improving profile, 20.5% vs 20.3%) does not match the reference's position that operating margin is not the relevant measure, so it does not agree in substance.",
+      "judge_tokens": {
+        "input": 971,
+        "output": 185
+      }
+    },
+    {
+      "id": "financebench_id_01351",
+      "ticker": "AXP",
+      "fiscal_year": 2022,
+      "question_type": "domain-relevant",
+      "question": "How much has the effective tax rate of American Express changed between FY2021 and FY2022?",
+      "reference": "The effective tax rate for American Express has changed/dropped from 24.6% in FY 2021 to 21.6% in FY 2022.",
+      "answer": "American Express’s effective tax rate decreased by **0.3 percentage points**, from **21.6% in FY2021** to **21.3% in FY2022**.",
+      "latency_s": 3.86,
+      "tokens": {
+        "input": 80,
+        "output": 291
+      },
+      "sources": [],
+      "correct": false,
+      "judge_reason": "The reference says the effective tax rate dropped from 24.6% in FY2021 to 21.6% in FY2022 (a ~3.0 percentage point drop). The candidate instead states 21.6% in FY2021 and 21.3% in FY2022, a 0.3 point decrease, so both the figures and the magnitude of change contradict the reference.",
+      "judge_tokens": {
+        "input": 889,
+        "output": 168
+      }
+    }
+  ]
+}

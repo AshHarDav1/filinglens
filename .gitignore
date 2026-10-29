@@ -24,5 +24,7 @@ data/
 # Jupyter
 .ipynb_checkpoints/
 
-# Personal scratch notebook
+# Personal scratch files (may contain keys: never commit)
 PracticeLearningAI.ipynb
+practive.py
+docs/claude/
