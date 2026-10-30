@@ -36,3 +36,30 @@ def test_prefers_line_breaks():
 def test_rejects_bad_overlap():
     with pytest.raises(ValueError):
         chunk_text("x", size=10, overlap=10)
+
+
+def _section(item: str, text: str):
+    from filinglens.ingestion.parse_10k import ITEM_TITLES, Section
+
+    title = "Cover page" if item == "cover" else ITEM_TITLES[item]
+    return Section(item=item, title=title, start=0, end=len(text), text=text)
+
+
+def test_build_chunks_never_crosses_items():
+    from filinglens.ingestion.chunk_embed import build_chunks
+
+    var_text = "Value at risk. " * 300  # ~4,500 chars: Item 7A
+    statements = "Total cost of revenue | 32,780 | 33,038 | 27,078\n" * 100  # ~5,000 chars
+    sections = [
+        _section("cover", "FORM 10-K MICROSOFT CORP Table of Contents " * 10),
+        _section("7A", var_text),
+        _section("8", statements),
+        _section("9B", "None."),
+    ]
+    drafts = build_chunks(sections)
+
+    assert {d.section for d in drafts} == {"cover", "7A", "8"}  # tiny 9B skipped
+    for d in drafts:
+        # one Item per chunk: VaR text never shares a chunk with the income statement
+        if d.section != "cover":
+            assert ("Value at risk" in d.content) != ("Total cost of revenue" in d.content)

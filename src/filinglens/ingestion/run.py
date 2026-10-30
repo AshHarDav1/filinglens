@@ -1,4 +1,4 @@
-"""Ingest 10-K filings: EDGAR -> raw cache on disk -> text -> chunks -> embeddings -> Postgres.
+"""Ingest 10-Ks: EDGAR -> raw cache -> text -> Item sections -> chunks -> embeddings -> Postgres.
 
     uv run python -m filinglens.ingestion.run --from-subset eval/financebench_subset.jsonl
     uv run python -m filinglens.ingestion.run --filings MSFT:2023,AMD:2022
@@ -17,9 +17,10 @@ from sqlalchemy.orm import Session
 from filinglens.config import get_settings
 from filinglens.db.models import Chunk, Company, Filing
 from filinglens.db.session import get_session
-from filinglens.ingestion.chunk_embed import chunk_text, embed_with_cache
+from filinglens.ingestion.chunk_embed import build_chunks, embed_with_cache
 from filinglens.ingestion.edgar_client import EdgarClient, FilingRef
 from filinglens.ingestion.html_text import html_to_text
+from filinglens.ingestion.parse_10k import split_sections
 from filinglens.llm import get_embeddings
 
 # Some companies put Item 7/8 in an exhibit (EX-13) instead of the main document; a short main
@@ -40,12 +41,17 @@ def parse_targets(args: argparse.Namespace) -> list[tuple[str, int]]:
     return sorted(targets)
 
 
-def upsert_filing(session: Session, ref: FilingRef) -> Filing:
-    company = session.scalar(select(Company).where(Company.cik == ref.cik))
+def upsert_company(session: Session, cik: int, ticker: str, name: str) -> Company:
+    company = session.scalar(select(Company).where(Company.cik == cik))
     if company is None:
-        company = Company(cik=ref.cik, ticker=ref.ticker, name=ref.company_name)
+        company = Company(cik=cik, ticker=ticker, name=name)
         session.add(company)
         session.flush()
+    return company
+
+
+def upsert_filing(session: Session, ref: FilingRef) -> Filing:
+    company = upsert_company(session, ref.cik, ref.ticker, ref.company_name)
     filing = session.scalar(select(Filing).where(Filing.accession_no == ref.accession_no))
     if filing is None:
         filing = Filing(
@@ -82,17 +88,31 @@ def ingest_one(
         return
     session.execute(delete(Chunk).where(Chunk.filing_id == filing.id))
 
+    sections = split_sections(text)
+    items = [s.item for s in sections]
+    missing = [item for item in ("1A", "7", "8") if item not in items]
+    if missing:
+        print(f"  WARNING {label}: no Item {', '.join(missing)} found")
+    drafts = build_chunks(sections)
+
     settings = get_settings()
-    pieces = chunk_text(text)
     vectors, new = embed_with_cache(
-        session, get_embeddings(settings), settings.embedding_model, pieces
+        session, get_embeddings(settings), settings.embedding_model, [d.content for d in drafts]
     )
     session.add_all(
-        Chunk(filing_id=filing.id, chunk_index=i, content=piece, embedding=vector)
-        for i, (piece, vector) in enumerate(zip(pieces, vectors, strict=True))
+        Chunk(
+            filing_id=filing.id,
+            chunk_index=i,
+            section=draft.section,
+            content=draft.content,
+            embedding=vector,
+        )
+        for i, (draft, vector) in enumerate(zip(drafts, vectors, strict=True))
     )
     session.commit()
-    print(f"  ingested {label}: {len(pieces)} chunks ({new} newly embedded)")
+    print(
+        f"  ingested {label}: {len(sections)} sections, {len(drafts)} chunks ({new} newly embedded)"
+    )
 
 
 def main() -> None:

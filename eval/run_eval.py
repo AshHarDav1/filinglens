@@ -39,7 +39,8 @@ def usage(message) -> dict:
 
 def format_excerpts(chunks: list[RetrievedChunk]) -> str:
     return "\n\n".join(
-        f"[{i}] {c.ticker} {c.form} FY{c.fiscal_year} (chunk {c.chunk_index})\n{c.content}"
+        f"[{i}] {c.ticker} {c.form} FY{c.fiscal_year}"
+        f"{f' · Item {c.section}' if c.section else ''} (chunk {c.chunk_index})\n{c.content}"
         for i, c in enumerate(chunks, start=1)
     )
 
