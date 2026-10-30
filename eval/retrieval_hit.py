@@ -1,9 +1,14 @@
 """Retrieval hit rate: for each question, is the FinanceBench evidence passage in the top-k chunks?
 
-No LLM is involved, only the embedding of each question, so this is fast and almost free.
+No LLM is involved (except the optional LLM section router), only the embedding of each
+question, so this is fast and almost free.
 
-    uv run python eval/retrieval_hit.py --name hit-poc
-    uv run python eval/retrieval_hit.py --name smoke-hit --limit 3
+    uv run python eval/retrieval_hit.py --name hit-x --subset eval/financebench_10k.jsonl
+    uv run python eval/retrieval_hit.py --name hit-x --subset eval/financebench_10k.jsonl \
+        --method hybrid --router llm --section-mode boost --split dev
+
+--split dev/test: the 51-question set minus / restricted to the 20-question set. Choose between
+variants on dev (31 questions), confirm the winner once on test (20).
 
 Results go to eval/results/<date>-<name>.json. Existing results are never overwritten.
 """
@@ -17,10 +22,13 @@ from pathlib import Path
 from filinglens.config import get_settings
 from filinglens.db.session import get_session
 from filinglens.ingestion.chunk_embed import CHUNK_OVERLAP, CHUNK_SIZE
-from filinglens.llm import get_embeddings
-from filinglens.retrieval.vector import RetrievedChunk, search
+from filinglens.llm import get_embeddings, get_router_model
+from filinglens.retrieval.hybrid import retrieve
+from filinglens.retrieval.routing import llm_sections, rule_sections
+from filinglens.retrieval.vector import RetrievedChunk
 
 RESULTS_DIR = Path(__file__).parent / "results"
+TEST_SET = Path(__file__).parent / "financebench_subset.jsonl"
 KS = (6, 10, 20, 40)
 # A window long enough to identify a passage, short enough to fit inside one chunk's overlap
 PREFIX_CHARS = 150
@@ -67,6 +75,15 @@ def main() -> None:
     parser.add_argument("--name", required=True)
     parser.add_argument("--subset", type=Path, default=Path("eval/financebench_subset.jsonl"))
     parser.add_argument("--limit", type=int, help="only the first N questions (smoke test)")
+    parser.add_argument("--method", choices=["vector", "keyword", "hybrid"], default="vector")
+    parser.add_argument(
+        "--router",
+        choices=["none", "rules", "llm", "oracle"],
+        default="none",
+        help="oracle: the Items that hold the evidence (a ceiling, not a router)",
+    )
+    parser.add_argument("--section-mode", choices=["filter", "boost"], default="filter")
+    parser.add_argument("--split", choices=["all", "dev", "test"], default="all")
     args = parser.parse_args()
 
     out = RESULTS_DIR / f"{date.today().isoformat()}-{args.name}.json"
@@ -74,20 +91,39 @@ def main() -> None:
         raise SystemExit(f"{out} already exists; choose another --name")
 
     items = [json.loads(line) for line in args.subset.read_text(encoding="utf-8").splitlines()]
+    if args.split != "all":
+        test_ids = {json.loads(line)["id"] for line in TEST_SET.read_text().splitlines()}
+        items = [i for i in items if (i["id"] in test_ids) == (args.split == "test")]
     items = items[: args.limit] if args.limit else items
 
     settings = get_settings()
     embedder = get_embeddings(settings)
     vectors = embedder.embed_documents([item["question"] for item in items])
+    router = get_router_model(settings) if args.router == "llm" else None
 
     results = []
     with get_session() as session:
         for i, (item, vector) in enumerate(zip(items, vectors, strict=True), start=1):
-            hits = search(session, vector, item["ticker"], item["fiscal_year"], k=max(KS))
+            ticker, year = item["ticker"], item["fiscal_year"]
+            if args.router == "rules":
+                sections = rule_sections(item["question"])
+            elif args.router == "llm":
+                sections = llm_sections(item["question"], router)
+            elif args.router == "oracle":
+                everything = retrieve(session, item["question"], vector, ticker, year, k=10_000)
+                sections = sorted(
+                    {c.section for c in everything if first_hit_rank(item["evidence"], [c])}
+                )
+            else:
+                sections = None
+            hits = retrieve(
+                session, item["question"], vector, ticker, year, k=max(KS),
+                method=args.method, sections=sections, section_mode=args.section_mode,
+            )  # fmt: skip
             rank = first_hit_rank(item["evidence"], hits)
             shown = f"rank {rank}" if rank else f"not in top {max(KS)}"
-            print(f"[{i}/{len(items)}] {item['ticker']:<5} {item['id'][-5:]}  {shown}")
-            results.append({"id": item["id"], "ticker": item["ticker"], "rank": rank})
+            print(f"[{i}/{len(items)}] {ticker:<5} {item['id'][-5:]}  {shown}  sections={sections}")
+            results.append({"id": item["id"], "ticker": ticker, "rank": rank, "sections": sections})
 
     n = len(results)
     hit_rate = {k: sum(1 for r in results if r["rank"] and r["rank"] <= k) for k in KS}
@@ -103,6 +139,12 @@ def main() -> None:
             "chunk_size": CHUNK_SIZE,
             "chunk_overlap": CHUNK_OVERLAP,
             "ks": list(KS),
+            "subset": str(args.subset),
+            "split": args.split,
+            "method": args.method,
+            "router": args.router,
+            "router_model": settings.router_model if args.router == "llm" else None,
+            "section_mode": args.section_mode if args.router != "none" else None,
         },
         "summary": {"n": n, **{f"hit@{k}": f"{hit}/{n}" for k, hit in hit_rate.items()}},
         "items": results,

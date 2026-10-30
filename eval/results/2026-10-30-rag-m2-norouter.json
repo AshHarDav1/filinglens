@@ -1,0 +1,1348 @@
+{
+  "name": "rag-m2-norouter",
+  "mode": "rag",
+  "created_at": "2026-10-30T14:35:42+00:00",
+  "config": {
+    "llm_provider": "openai",
+    "llm_model": "gpt-6-luna",
+    "llm_temperature": null,
+    "judge_provider": "anthropic",
+    "judge_model": "claude-haiku-5-5",
+    "judge_temperature": null,
+    "embedding_model": "text-embedding-3-small",
+    "k": 6,
+    "retrieval_method": "vector",
+    "router": "none",
+    "router_model": null,
+    "section_mode": null,
+    "chunk_size_chars": 2000,
+    "chunk_overlap_chars": 200,
+    "prompt_versions": {
+      "baseline": "v1",
+      "rag": "v2",
+      "judge": "v1",
+      "router": "v1"
+    },
+    "subset": "eval/financebench_subset.jsonl"
+  },
+  "summary": {
+    "correct": 13,
+    "total": 20,
+    "accuracy": 0.65,
+    "latency_s": {
+      "mean": 3.81,
+      "median": 2.63,
+      "max": 15.11
+    },
+    "answer_tokens": {
+      "input": 57159,
+      "output": 5836
+    },
+    "judge_tokens": {
+      "input": 18706,
+      "output": 2940
+    }
+  },
+  "items": [
+    {
+      "id": "financebench_id_01198",
+      "ticker": "AMD",
+      "fiscal_year": 2022,
+      "question_type": "domain-relevant",
+      "question": "What drove revenue change as of the FY22 for AMD?",
+      "reference": "In 2022, AMD reported Higher sales of their EPYC server processors, higher semi-custom product sales, and the inclusion of Xilinx embedded product sales",
+      "answer": "AMD’s FY2022 revenue rose 44% to $23.6 billion from $16.4 billion, driven by Data Center growth (up 64%, mainly higher EPYC sales), Gaming growth (up 21%, mainly higher semi-custom sales), and a significant increase in Embedded revenue from Xilinx product sales. These gains were partially offset by a 10% decline in Client revenue amid a weak PC market and inventory corrections across the PC supply chain. [4]",
+      "latency_s": 2.61,
+      "tokens": {
+        "input": 2371,
+        "output": 201
+      },
+      "sections": null,
+      "sources": [
+        {
+          "ref": "[1]",
+          "label": "AMD 10-K FY2022 · Item 7",
+          "url": "https://www.sec.gov/Archives/edgar/data/2488/000000248823000047/amd-20221231.htm",
+          "chunk_id": 12788,
+          "distance": 0.32
+        },
+        {
+          "ref": "[2]",
+          "label": "AMD 10-K FY2022 · Item 1",
+          "url": "https://www.sec.gov/Archives/edgar/data/2488/000000248823000047/amd-20221231.htm",
+          "chunk_id": 12668,
+          "distance": 0.3409
+        },
+        {
+          "ref": "[3]",
+          "label": "AMD 10-K FY2022 · Item 1",
+          "url": "https://www.sec.gov/Archives/edgar/data/2488/000000248823000047/amd-20221231.htm",
+          "chunk_id": 12669,
+          "distance": 0.3528
+        },
+        {
+          "ref": "[4]",
+          "label": "AMD 10-K FY2022 · Item 7",
+          "url": "https://www.sec.gov/Archives/edgar/data/2488/000000248823000047/amd-20221231.htm",
+          "chunk_id": 12789,
+          "distance": 0.3805
+        },
+        {
+          "ref": "[5]",
+          "label": "AMD 10-K FY2022 · Item 7",
+          "url": "https://www.sec.gov/Archives/edgar/data/2488/000000248823000047/amd-20221231.htm",
+          "chunk_id": 12791,
+          "distance": 0.3808
+        },
+        {
+          "ref": "[6]",
+          "label": "AMD 10-K FY2022 · Item 7",
+          "url": "https://www.sec.gov/Archives/edgar/data/2488/000000248823000047/amd-20221231.htm",
+          "chunk_id": 12787,
+          "distance": 0.381
+        }
+      ],
+      "correct": true,
+      "judge_reason": "The candidate names the same three drivers as the reference: higher EPYC server processor sales (Data Center), higher semi-custom product sales (Gaming), and Xilinx embedded product sales included in Embedded. Its extra details (revenue figures, Client decline) are consistent with AMD's reported FY2022 results and do not contradict the reference.",
+      "judge_tokens": {
+        "input": 998,
+        "output": 166
+      }
+    },
+    {
+      "id": "financebench_id_00222",
+      "ticker": "AMD",
+      "fiscal_year": 2022,
+      "question_type": "domain-relevant",
+      "question": "Does AMD have a reasonably healthy liquidity profile based on its quick ratio for FY22? If the quick ratio is not relevant to measure liquidity, please state that and explain why.",
+      "reference": "Yes. The quick ratio is 1.57, calculated as (cash and cash equivalents+Short term investments+Accounts receivable, net+receivables from related parties)/ (current liabilities).",
+      "answer": "Not found in the filings.",
+      "latency_s": 1.49,
+      "tokens": {
+        "input": 2716,
+        "output": 84
+      },
+      "sections": null,
+      "sources": [
+        {
+          "ref": "[1]",
+          "label": "AMD 10-K FY2022 · Item 1",
+          "url": "https://www.sec.gov/Archives/edgar/data/2488/000000248823000047/amd-20221231.htm",
+          "chunk_id": 12667,
+          "distance": 0.4577
+        },
+        {
+          "ref": "[2]",
+          "label": "AMD 10-K FY2022 · Item 7",
+          "url": "https://www.sec.gov/Archives/edgar/data/2488/000000248823000047/amd-20221231.htm",
+          "chunk_id": 12787,
+          "distance": 0.4666
+        },
+        {
+          "ref": "[3]",
+          "label": "AMD 10-K FY2022 · Item 15",
+          "url": "https://www.sec.gov/Archives/edgar/data/2488/000000248823000047/amd-20221231.htm",
+          "chunk_id": 12911,
+          "distance": 0.4686
+        },
+        {
+          "ref": "[4]",
+          "label": "AMD 10-K FY2022 · Item 5",
+          "url": "https://www.sec.gov/Archives/edgar/data/2488/000000248823000047/amd-20221231.htm",
+          "chunk_id": 12784,
+          "distance": 0.4732
+        },
+        {
+          "ref": "[5]",
+          "label": "AMD 10-K FY2022 · Item 1",
+          "url": "https://www.sec.gov/Archives/edgar/data/2488/000000248823000047/amd-20221231.htm",
+          "chunk_id": 12668,
+          "distance": 0.4797
+        },
+        {
+          "ref": "[6]",
+          "label": "AMD 10-K FY2022 · Item 8",
+          "url": "https://www.sec.gov/Archives/edgar/data/2488/000000248823000047/amd-20221231.htm",
+          "chunk_id": 12821,
+          "distance": 0.4851
+        }
+      ],
+      "correct": false,
+      "judge_reason": "The reference concludes AMD has a healthy quick ratio of about 1.57 for FY22. The candidate gives no answer, stating only \"Not found in the filings,\" so it contradicts/omits the required conclusion and number.",
+      "judge_tokens": {
+        "input": 899,
+        "output": 125
+      }
+    },
+    {
+      "id": "financebench_id_00552",
+      "ticker": "MSFT",
+      "fiscal_year": 2023,
+      "question_type": "domain-relevant",
+      "question": "Has Microsoft increased its debt on balance sheet between FY2023 and the FY2022 period?",
+      "reference": "No. Microsoft decreased its debt by $2.5bn in FY 2023 vs FY 2022.",
+      "answer": "Not found in the filings.",
+      "latency_s": 1.46,
+      "tokens": {
+        "input": 2560,
+        "output": 28
+      },
+      "sections": null,
+      "sources": [
+        {
+          "ref": "[1]",
+          "label": "MSFT 10-K FY2023 · Item 7",
+          "url": "https://www.sec.gov/Archives/edgar/data/789019/000095017023035122/msft-20230630.htm",
+          "chunk_id": 15167,
+          "distance": 0.3586
+        },
+        {
+          "ref": "[2]",
+          "label": "MSFT 10-K FY2023 · Item 7",
+          "url": "https://www.sec.gov/Archives/edgar/data/789019/000095017023035122/msft-20230630.htm",
+          "chunk_id": 15176,
+          "distance": 0.3587
+        },
+        {
+          "ref": "[3]",
+          "label": "MSFT 10-K FY2023 · Item 8",
+          "url": "https://www.sec.gov/Archives/edgar/data/789019/000095017023035122/msft-20230630.htm",
+          "chunk_id": 15263,
+          "distance": 0.4009
+        },
+        {
+          "ref": "[4]",
+          "label": "MSFT 10-K FY2023 · Item 7",
+          "url": "https://www.sec.gov/Archives/edgar/data/789019/000095017023035122/msft-20230630.htm",
+          "chunk_id": 15178,
+          "distance": 0.4065
+        },
+        {
+          "ref": "[5]",
+          "label": "MSFT 10-K FY2023 · Item 7",
+          "url": "https://www.sec.gov/Archives/edgar/data/789019/000095017023035122/msft-20230630.htm",
+          "chunk_id": 15180,
+          "distance": 0.4117
+        },
+        {
+          "ref": "[6]",
+          "label": "MSFT 10-K FY2023 · Item 8",
+          "url": "https://www.sec.gov/Archives/edgar/data/789019/000095017023035122/msft-20230630.htm",
+          "chunk_id": 15253,
+          "distance": 0.4181
+        }
+      ],
+      "correct": false,
+      "judge_reason": "The candidate says the information was not found, which is a refusal/missing answer. The reference states Microsoft decreased its debt by $2.5bn in FY2023 vs FY2022 (answer: No), so the candidate does not agree with the reference.",
+      "judge_tokens": {
+        "input": 842,
+        "output": 132
+      }
+    },
+    {
+      "id": "financebench_id_04700",
+      "ticker": "MSFT",
+      "fiscal_year": 2016,
+      "question_type": "metrics-generated",
+      "question": "What is the FY2016 COGS for Microsoft? Please state answer in USD millions. Provide a response to the question by primarily using the statement of income.",
+      "reference": "$32780.00",
+      "answer": "**FY2016 COGS: $32,780 million.** Revenue of $85,320 million minus gross margin of $52,540 million equals **$32,780 million**. [3]",
+      "latency_s": 2.65,
+      "tokens": {
+        "input": 3369,
+        "output": 168
+      },
+      "sections": null,
+      "sources": [
+        {
+          "ref": "[1]",
+          "label": "MSFT 10-K FY2016 · Item 8",
+          "url": "https://www.sec.gov/Archives/edgar/data/789019/000119312516662209/d187868d10k.htm",
+          "chunk_id": 15043,
+          "distance": 0.3929
+        },
+        {
+          "ref": "[2]",
+          "label": "MSFT 10-K FY2016 · Item 8",
+          "url": "https://www.sec.gov/Archives/edgar/data/789019/000119312516662209/d187868d10k.htm",
+          "chunk_id": 15028,
+          "distance": 0.3947
+        },
+        {
+          "ref": "[3]",
+          "label": "MSFT 10-K FY2016 · Item 7",
+          "url": "https://www.sec.gov/Archives/edgar/data/789019/000119312516662209/d187868d10k.htm",
+          "chunk_id": 14930,
+          "distance": 0.3983
+        },
+        {
+          "ref": "[4]",
+          "label": "MSFT 10-K FY2016 · Item 8",
+          "url": "https://www.sec.gov/Archives/edgar/data/789019/000119312516662209/d187868d10k.htm",
+          "chunk_id": 15044,
+          "distance": 0.4054
+        },
+        {
+          "ref": "[5]",
+          "label": "MSFT 10-K FY2016 · Item 7",
+          "url": "https://www.sec.gov/Archives/edgar/data/789019/000119312516662209/d187868d10k.htm",
+          "chunk_id": 14951,
+          "distance": 0.4075
+        },
+        {
+          "ref": "[6]",
+          "label": "MSFT 10-K FY2016 · Item 7",
+          "url": "https://www.sec.gov/Archives/edgar/data/789019/000119312516662209/d187868d10k.htm",
+          "chunk_id": 14957,
+          "distance": 0.4087
+        }
+      ],
+      "correct": true,
+      "judge_reason": "The candidate's final answer of $32,780 million matches the reference answer of $32780.00. Its derivation (revenue $85,320M minus gross margin $52,540M) is consistent with Microsoft's FY2016 income statement figures.",
+      "judge_tokens": {
+        "input": 875,
+        "output": 131
+      }
+    },
+    {
+      "id": "financebench_id_08135",
+      "ticker": "AMZN",
+      "fiscal_year": 2017,
+      "question_type": "metrics-generated",
+      "question": "What is Amazon's year-over-year change in revenue from FY2016 to FY2017 (in units of percents and round to one decimal place)? Calculate what was asked by utilizing the line items clearly shown in the statement of income.",
+      "reference": "30.8%",
+      "answer": "Amazon’s revenue increased **30.8%** from FY2016 to FY2017. [3]\n\nCalculation (in millions):  \n\\((177{,}866 - 135{,}987) \\div 135{,}987 \\times 100 = 30.8\\%\\), using total net sales for FY2017 and FY2016, respectively. [3]",
+      "latency_s": 2.95,
+      "tokens": {
+        "input": 3421,
+        "output": 166
+      },
+      "sections": null,
+      "sources": [
+        {
+          "ref": "[1]",
+          "label": "AMZN 10-K FY2017 · Item 8",
+          "url": "https://www.sec.gov/Archives/edgar/data/1018724/000101872418000005/amzn-20171231x10k.htm",
+          "chunk_id": 13095,
+          "distance": 0.4139
+        },
+        {
+          "ref": "[2]",
+          "label": "AMZN 10-K FY2017 · Item 7",
+          "url": "https://www.sec.gov/Archives/edgar/data/1018724/000101872418000005/amzn-20171231x10k.htm",
+          "chunk_id": 12995,
+          "distance": 0.414
+        },
+        {
+          "ref": "[3]",
+          "label": "AMZN 10-K FY2017 · Item 8",
+          "url": "https://www.sec.gov/Archives/edgar/data/1018724/000101872418000005/amzn-20171231x10k.htm",
+          "chunk_id": 13020,
+          "distance": 0.417
+        },
+        {
+          "ref": "[4]",
+          "label": "AMZN 10-K FY2017 · Item 7",
+          "url": "https://www.sec.gov/Archives/edgar/data/1018724/000101872418000005/amzn-20171231x10k.htm",
+          "chunk_id": 12997,
+          "distance": 0.4273
+        },
+        {
+          "ref": "[5]",
+          "label": "AMZN 10-K FY2017 · Item 7",
+          "url": "https://www.sec.gov/Archives/edgar/data/1018724/000101872418000005/amzn-20171231x10k.htm",
+          "chunk_id": 12998,
+          "distance": 0.4432
+        },
+        {
+          "ref": "[6]",
+          "label": "AMZN 10-K FY2017 · Item 8",
+          "url": "https://www.sec.gov/Archives/edgar/data/1018724/000101872418000005/amzn-20171231x10k.htm",
+          "chunk_id": 13098,
+          "distance": 0.4437
+        }
+      ],
+      "correct": true,
+      "judge_reason": "The candidate's answer of 30.8% matches the reference answer exactly. Its calculation using total net sales (177,866 vs 135,987 million) correctly yields (177,866-135,987)/135,987 = 30.8%.",
+      "judge_tokens": {
+        "input": 951,
+        "output": 128
+      }
+    },
+    {
+      "id": "financebench_id_06655",
+      "ticker": "AMZN",
+      "fiscal_year": 2017,
+      "question_type": "metrics-generated",
+      "question": "What is Amazon's FY2017 days payable outstanding (DPO)? DPO is defined as: 365 * (average accounts payable between FY2016 and FY2017) / (FY2017 COGS + change in inventory between FY2016 and FY2017). Round your answer to two decimal places. Address the question by using the line items and information shown within the balance sheet and the P&L statement.",
+      "reference": "93.86",
+      "answer": "**Amazon’s FY2017 DPO was 93.86 days.**\n\nAverage accounts payable = (25,309 + 34,616) / 2 = 29,962.5 million; inventory change = 16,047 − 11,461 = 4,586 million. [5]  \nDPO = 365 × 29,962.5 / (111,934 + 4,586) = **93.86 days**. FY2017 cost of sales was 111,934 million. [3]",
+      "latency_s": 3.93,
+      "tokens": {
+        "input": 3310,
+        "output": 300
+      },
+      "sections": null,
+      "sources": [
+        {
+          "ref": "[1]",
+          "label": "AMZN 10-K FY2017 · Item 8",
+          "url": "https://www.sec.gov/Archives/edgar/data/1018724/000101872418000005/amzn-20171231x10k.htm",
+          "chunk_id": 13047,
+          "distance": 0.5531
+        },
+        {
+          "ref": "[2]",
+          "label": "AMZN 10-K FY2017 · Item 7A",
+          "url": "https://www.sec.gov/Archives/edgar/data/1018724/000101872418000005/amzn-20171231x10k.htm",
+          "chunk_id": 13015,
+          "distance": 0.5596
+        },
+        {
+          "ref": "[3]",
+          "label": "AMZN 10-K FY2017 · Item 8",
+          "url": "https://www.sec.gov/Archives/edgar/data/1018724/000101872418000005/amzn-20171231x10k.htm",
+          "chunk_id": 13020,
+          "distance": 0.5636
+        },
+        {
+          "ref": "[4]",
+          "label": "AMZN 10-K FY2017 · Item 7",
+          "url": "https://www.sec.gov/Archives/edgar/data/1018724/000101872418000005/amzn-20171231x10k.htm",
+          "chunk_id": 12988,
+          "distance": 0.5647
+        },
+        {
+          "ref": "[5]",
+          "label": "AMZN 10-K FY2017 · Item 8",
+          "url": "https://www.sec.gov/Archives/edgar/data/1018724/000101872418000005/amzn-20171231x10k.htm",
+          "chunk_id": 13021,
+          "distance": 0.5661
+        },
+        {
+          "ref": "[6]",
+          "label": "AMZN 10-K FY2017 · Item 8",
+          "url": "https://www.sec.gov/Archives/edgar/data/1018724/000101872418000005/amzn-20171231x10k.htm",
+          "chunk_id": 13063,
+          "distance": 0.5676
+        }
+      ],
+      "correct": true,
+      "judge_reason": "The candidate's final answer of 93.86 days matches the reference answer exactly, and its inputs (average AP of 29,962.5, inventory change of 4,586, COGS of 111,934) are consistent with the defined formula.",
+      "judge_tokens": {
+        "input": 1038,
+        "output": 127
+      }
+    },
+    {
+      "id": "financebench_id_00438",
+      "ticker": "ADBE",
+      "fiscal_year": 2022,
+      "question_type": "domain-relevant",
+      "question": "Does Adobe have an improving operating margin profile as of FY2022? If operating margin is not a useful metric for a company like this, then state that and explain why.",
+      "reference": "No the operating margins of Adobe have recently declined from 36.8% in FY 2021 to 34.6% in FY2022. A drop by 2.2% in a year.",
+      "answer": "Not found in the filings.",
+      "latency_s": 5.33,
+      "tokens": {
+        "input": 2639,
+        "output": 420
+      },
+      "sections": null,
+      "sources": [
+        {
+          "ref": "[1]",
+          "label": "ADBE 10-K FY2022 · Item 8",
+          "url": "https://www.sec.gov/Archives/edgar/data/796343/000079634323000007/adbe-20221202.htm",
+          "chunk_id": 12301,
+          "distance": 0.3914
+        },
+        {
+          "ref": "[2]",
+          "label": "ADBE 10-K FY2022 · Item 8",
+          "url": "https://www.sec.gov/Archives/edgar/data/796343/000079634323000007/adbe-20221202.htm",
+          "chunk_id": 12280,
+          "distance": 0.4024
+        },
+        {
+          "ref": "[3]",
+          "label": "ADBE 10-K FY2022 · Item 8",
+          "url": "https://www.sec.gov/Archives/edgar/data/796343/000079634323000007/adbe-20221202.htm",
+          "chunk_id": 12349,
+          "distance": 0.4058
+        },
+        {
+          "ref": "[4]",
+          "label": "ADBE 10-K FY2022 · Item 1",
+          "url": "https://www.sec.gov/Archives/edgar/data/796343/000079634323000007/adbe-20221202.htm",
+          "chunk_id": 12126,
+          "distance": 0.4149
+        },
+        {
+          "ref": "[5]",
+          "label": "ADBE 10-K FY2022 · Item 1",
+          "url": "https://www.sec.gov/Archives/edgar/data/796343/000079634323000007/adbe-20221202.htm",
+          "chunk_id": 12143,
+          "distance": 0.4261
+        },
+        {
+          "ref": "[6]",
+          "label": "ADBE 10-K FY2022 · Item 8",
+          "url": "https://www.sec.gov/Archives/edgar/data/796343/000079634323000007/adbe-20221202.htm",
+          "chunk_id": 12279,
+          "distance": 0.4308
+        }
+      ],
+      "correct": false,
+      "judge_reason": "The candidate says \"Not found in the filings,\" which is a refusal to answer. The reference answer states operating margin declined from 36.8% in FY2021 to 34.6% in FY2022, so the candidate fails to give the required conclusion.",
+      "judge_tokens": {
+        "input": 877,
+        "output": 130
+      }
+    },
+    {
+      "id": "financebench_id_00591",
+      "ticker": "ADBE",
+      "fiscal_year": 2022,
+      "question_type": "novel-generated",
+      "question": "Does Adobe have an improving Free cashflow conversion as of FY2022?",
+      "reference": "Yes, the FCF conversion (using net income as the denominator) for Adobe has improved by ~13% from 143% in 2021 to 156% in 2022",
+      "answer": "Yes—using free cash flow divided by net income as the conversion measure, Adobe’s conversion improved from **1.43× in FY2021 to 1.55× in FY2022**. [5]\n\nFY2021: ($7,230M operating cash flow − $348M property and equipment purchases) ÷ $4,822M net income = **1.43×**. FY2022: ($7,838M − $442M) ÷ $4,756M = **1.55×**. [5]",
+      "latency_s": 5.08,
+      "tokens": {
+        "input": 2938,
+        "output": 417
+      },
+      "sections": null,
+      "sources": [
+        {
+          "ref": "[1]",
+          "label": "ADBE 10-K FY2022 · Item 8",
+          "url": "https://www.sec.gov/Archives/edgar/data/796343/000079634323000007/adbe-20221202.htm",
+          "chunk_id": 12301,
+          "distance": 0.367
+        },
+        {
+          "ref": "[2]",
+          "label": "ADBE 10-K FY2022 · Item 8",
+          "url": "https://www.sec.gov/Archives/edgar/data/796343/000079634323000007/adbe-20221202.htm",
+          "chunk_id": 12279,
+          "distance": 0.3857
+        },
+        {
+          "ref": "[3]",
+          "label": "ADBE 10-K FY2022 · Item 8",
+          "url": "https://www.sec.gov/Archives/edgar/data/796343/000079634323000007/adbe-20221202.htm",
+          "chunk_id": 12302,
+          "distance": 0.3918
+        },
+        {
+          "ref": "[4]",
+          "label": "ADBE 10-K FY2022 · Item 8",
+          "url": "https://www.sec.gov/Archives/edgar/data/796343/000079634323000007/adbe-20221202.htm",
+          "chunk_id": 12280,
+          "distance": 0.3978
+        },
+        {
+          "ref": "[5]",
+          "label": "ADBE 10-K FY2022 · Item 8",
+          "url": "https://www.sec.gov/Archives/edgar/data/796343/000079634323000007/adbe-20221202.htm",
+          "chunk_id": 12278,
+          "distance": 0.4144
+        },
+        {
+          "ref": "[6]",
+          "label": "ADBE 10-K FY2022 · Item 1",
+          "url": "https://www.sec.gov/Archives/edgar/data/796343/000079634323000007/adbe-20221202.htm",
+          "chunk_id": 12143,
+          "distance": 0.4156
+        }
+      ],
+      "correct": true,
+      "judge_reason": "The candidate concludes yes, with FCF conversion improving from 1.43x (FY2021) to 1.55x (FY2022), matching the reference's 143% to 156% trend. The 156% vs 155% gap is small: (7,838-442)/4,756 = 1.5565, which rounds to 156%, so the candidate's 1.55x is a rounding-level discrepancy within the allowed tolerance. The direction and key figures agree with the reference.",
+      "judge_tokens": {
+        "input": 991,
+        "output": 202
+      }
+    },
+    {
+      "id": "financebench_id_04458",
+      "ticker": "NFLX",
+      "fiscal_year": 2015,
+      "question_type": "metrics-generated",
+      "question": "We want to calculate a financial metric. Please help us compute it by basing your answers off of the statement of income and the statement of cash flows. Here's the question: what is the FY2015 unadjusted EBITDA % margin for Netflix? Calculate unadjusted EBITDA using unadjusted operating income and D&A (from cash flow statement).",
+      "reference": "5.4%",
+      "answer": "Not found in the filings.",
+      "latency_s": 2.61,
+      "tokens": {
+        "input": 3305,
+        "output": 121
+      },
+      "sections": null,
+      "sources": [
+        {
+          "ref": "[1]",
+          "label": "NFLX 10-K FY2015 · Item 15",
+          "url": "https://www.sec.gov/Archives/edgar/data/1065280/000106528016000047/nflx201510k.htm",
+          "chunk_id": 15387,
+          "distance": 0.4575
+        },
+        {
+          "ref": "[2]",
+          "label": "NFLX 10-K FY2015 · Item 15",
+          "url": "https://www.sec.gov/Archives/edgar/data/1065280/000106528016000047/nflx201510k.htm",
+          "chunk_id": 15385,
+          "distance": 0.4619
+        },
+        {
+          "ref": "[3]",
+          "label": "NFLX 10-K FY2015 · Item 7",
+          "url": "https://www.sec.gov/Archives/edgar/data/1065280/000106528016000047/nflx201510k.htm",
+          "chunk_id": 15354,
+          "distance": 0.4737
+        },
+        {
+          "ref": "[4]",
+          "label": "NFLX 10-K FY2015 · Item 7",
+          "url": "https://www.sec.gov/Archives/edgar/data/1065280/000106528016000047/nflx201510k.htm",
+          "chunk_id": 15355,
+          "distance": 0.4762
+        },
+        {
+          "ref": "[5]",
+          "label": "NFLX 10-K FY2015 · Item 15",
+          "url": "https://www.sec.gov/Archives/edgar/data/1065280/000106528016000047/nflx201510k.htm",
+          "chunk_id": 15384,
+          "distance": 0.4811
+        },
+        {
+          "ref": "[6]",
+          "label": "NFLX 10-K FY2015 · Item 15",
+          "url": "https://www.sec.gov/Archives/edgar/data/1065280/000106528016000047/nflx201510k.htm",
+          "chunk_id": 15388,
+          "distance": 0.4906
+        }
+      ],
+      "correct": false,
+      "judge_reason": "The reference answer is an EBITDA margin of 5.4%, but the candidate says the information was not found in the filings, providing no numeric answer. This is a refusal/missing answer, so it does not match the reference.",
+      "judge_tokens": {
+        "input": 890,
+        "output": 121
+      }
+    },
+    {
+      "id": "financebench_id_03282",
+      "ticker": "NFLX",
+      "fiscal_year": 2017,
+      "question_type": "metrics-generated",
+      "question": "What is Netflix's year end FY2017 total current liabilities (in USD millions)? Base your judgments on the information provided primarily in the balance sheet.",
+      "reference": "$5466.00",
+      "answer": "Netflix’s FY2017 year-end total current liabilities were **$5,466.312 million**. [1]  \nCalculation: $5,466,312 thousand ÷ 1,000 = $5,466.312 million. [1]",
+      "latency_s": 2.04,
+      "tokens": {
+        "input": 3464,
+        "output": 115
+      },
+      "sections": null,
+      "sources": [
+        {
+          "ref": "[1]",
+          "label": "NFLX 10-K FY2017 · Item 16",
+          "url": "https://www.sec.gov/Archives/edgar/data/1065280/000106528018000069/q4nflx201710k.htm",
+          "chunk_id": 15547,
+          "distance": 0.3413
+        },
+        {
+          "ref": "[2]",
+          "label": "NFLX 10-K FY2017 · Item 16",
+          "url": "https://www.sec.gov/Archives/edgar/data/1065280/000106528018000069/q4nflx201710k.htm",
+          "chunk_id": 15548,
+          "distance": 0.3864
+        },
+        {
+          "ref": "[3]",
+          "label": "NFLX 10-K FY2017 · Item 16",
+          "url": "https://www.sec.gov/Archives/edgar/data/1065280/000106528018000069/q4nflx201710k.htm",
+          "chunk_id": 15549,
+          "distance": 0.3957
+        },
+        {
+          "ref": "[4]",
+          "label": "NFLX 10-K FY2017 · Item 16",
+          "url": "https://www.sec.gov/Archives/edgar/data/1065280/000106528018000069/q4nflx201710k.htm",
+          "chunk_id": 15544,
+          "distance": 0.4049
+        },
+        {
+          "ref": "[5]",
+          "label": "NFLX 10-K FY2017 · Item 7",
+          "url": "https://www.sec.gov/Archives/edgar/data/1065280/000106528018000069/q4nflx201710k.htm",
+          "chunk_id": 15518,
+          "distance": 0.4114
+        },
+        {
+          "ref": "[6]",
+          "label": "NFLX 10-K FY2017 · Item 16",
+          "url": "https://www.sec.gov/Archives/edgar/data/1065280/000106528018000069/q4nflx201710k.htm",
+          "chunk_id": 15569,
+          "distance": 0.4134
+        }
+      ],
+      "correct": true,
+      "judge_reason": "The candidate's figure of $5,466.312 million matches the reference answer of $5466.00 million within rounding precision (about 0.006%). The candidate's answer agrees in substance with the reference.",
+      "judge_tokens": {
+        "input": 895,
+        "output": 117
+      }
+    },
+    {
+      "id": "financebench_id_00215",
+      "ticker": "VZ",
+      "fiscal_year": 2022,
+      "question_type": "domain-relevant",
+      "question": "Is Verizon a capital intensive business based on FY 2022 data?",
+      "reference": "Yes. Verizon's capital intensity ratio was approximately 2.774729. This means that it took approximately $2.77 of assets to generate $1 of revenue and thus, Verizon can be considered capital intensive.",
+      "answer": "Yes. Verizon described its strategy as requiring significant capital investments in spectrum, network capacity, fiber, and IT systems, and said 2022 was a peak year for capital investment as it rapidly deployed C-Band spectrum. [1]",
+      "latency_s": 2.28,
+      "tokens": {
+        "input": 2296,
+        "output": 135
+      },
+      "sections": null,
+      "sources": [
+        {
+          "ref": "[1]",
+          "label": "VZ 10-K FY2022 · Item 7",
+          "url": "https://www.sec.gov/Archives/edgar/data/732712/000073271223000012/vz-20221231.htm",
+          "chunk_id": 16525,
+          "distance": 0.2921
+        },
+        {
+          "ref": "[2]",
+          "label": "VZ 10-K FY2022 · Item 7",
+          "url": "https://www.sec.gov/Archives/edgar/data/732712/000073271223000012/vz-20221231.htm",
+          "chunk_id": 16526,
+          "distance": 0.3246
+        },
+        {
+          "ref": "[3]",
+          "label": "VZ 10-K FY2022 · Item 7",
+          "url": "https://www.sec.gov/Archives/edgar/data/732712/000073271223000012/vz-20221231.htm",
+          "chunk_id": 16568,
+          "distance": 0.3253
+        },
+        {
+          "ref": "[4]",
+          "label": "VZ 10-K FY2022 · Item 1",
+          "url": "https://www.sec.gov/Archives/edgar/data/732712/000073271223000012/vz-20221231.htm",
+          "chunk_id": 16466,
+          "distance": 0.3308
+        },
+        {
+          "ref": "[5]",
+          "label": "VZ 10-K FY2022 · Item 7",
+          "url": "https://www.sec.gov/Archives/edgar/data/732712/000073271223000012/vz-20221231.htm",
+          "chunk_id": 16546,
+          "distance": 0.3392
+        },
+        {
+          "ref": "[6]",
+          "label": "VZ 10-K FY2022 · Item 7",
+          "url": "https://www.sec.gov/Archives/edgar/data/732712/000073271223000012/vz-20221231.htm",
+          "chunk_id": 16567,
+          "distance": 0.3516
+        }
+      ],
+      "correct": true,
+      "judge_reason": "The candidate answers \"Yes,\" matching the reference's conclusion that Verizon is capital intensive in FY2022. It does not give the ~2.77 assets-to-revenue ratio, but the question is qualitative and the candidate's supporting reasoning (heavy capex in spectrum, fiber, networks) is consistent with the reference's conclusion.",
+      "judge_tokens": {
+        "input": 941,
+        "output": 169
+      }
+    },
+    {
+      "id": "financebench_id_00566",
+      "ticker": "VZ",
+      "fiscal_year": 2022,
+      "question_type": "domain-relevant",
+      "question": "Has Verizon increased its debt on balance sheet between 2022 and the 2021 fiscal period?",
+      "reference": "No. Verizon's debt decreased by $229 million.",
+      "answer": "No. Verizon’s total debt decreased to $150.6 billion at December 31, 2022, from $150.9 billion at December 31, 2021—a decrease of $0.3 billion [1].",
+      "latency_s": 1.78,
+      "tokens": {
+        "input": 2710,
+        "output": 90
+      },
+      "sections": null,
+      "sources": [
+        {
+          "ref": "[1]",
+          "label": "VZ 10-K FY2022 · Item 7",
+          "url": "https://www.sec.gov/Archives/edgar/data/732712/000073271223000012/vz-20221231.htm",
+          "chunk_id": 16577,
+          "distance": 0.2605
+        },
+        {
+          "ref": "[2]",
+          "label": "VZ 10-K FY2022 · Item 8",
+          "url": "https://www.sec.gov/Archives/edgar/data/732712/000073271223000012/vz-20221231.htm",
+          "chunk_id": 16686,
+          "distance": 0.2844
+        },
+        {
+          "ref": "[3]",
+          "label": "VZ 10-K FY2022 · Item 8",
+          "url": "https://www.sec.gov/Archives/edgar/data/732712/000073271223000012/vz-20221231.htm",
+          "chunk_id": 16693,
+          "distance": 0.3137
+        },
+        {
+          "ref": "[4]",
+          "label": "VZ 10-K FY2022 · Item 7",
+          "url": "https://www.sec.gov/Archives/edgar/data/732712/000073271223000012/vz-20221231.htm",
+          "chunk_id": 16582,
+          "distance": 0.3239
+        },
+        {
+          "ref": "[5]",
+          "label": "VZ 10-K FY2022 · Item 7",
+          "url": "https://www.sec.gov/Archives/edgar/data/732712/000073271223000012/vz-20221231.htm",
+          "chunk_id": 16536,
+          "distance": 0.3306
+        },
+        {
+          "ref": "[6]",
+          "label": "VZ 10-K FY2022 · Item 7",
+          "url": "https://www.sec.gov/Archives/edgar/data/732712/000073271223000012/vz-20221231.htm",
+          "chunk_id": 16570,
+          "distance": 0.3325
+        }
+      ],
+      "correct": true,
+      "judge_reason": "The candidate answers \"No\" and the debt decreased, matching the reference. Its figures ($150.9B to $150.6B, a $0.3B decrease) are consistent with the reference's $229 million decrease, since $0.3B is a rounded version of that amount.",
+      "judge_tokens": {
+        "input": 881,
+        "output": 138
+      }
+    },
+    {
+      "id": "financebench_id_01226",
+      "ticker": "MMM",
+      "fiscal_year": 2022,
+      "question_type": "domain-relevant",
+      "question": "What drove operating margin change as of FY2022 for 3M? If operating margin is not a useful metric for a company like this, then please state that and explain why.",
+      "reference": "Operating Margin for 3M in FY2022 has decreased by 1.7% primarily due to: \n-Decrease in gross Margin\n-mostly one-off charges including Combat Arms Earplugs litigation, impairment related to exiting PFAS manufacturing, costs related to exiting Russia and divestiture-related restructuring\ncharges",
+      "answer": "3M’s operating margin **excluding special items fell 1.4 percentage points**, from **22.2% to 20.8%** in FY2022. The bridge was: **22.2% − 2.4 points** from raw-material impacts **+ 1.0 point** from organic growth/productivity and other factors **= 20.8%**; foreign-exchange impact was shown as zero. [3]\n\nOperating margin is a useful metric here: 3M reports it and provides a bridge explaining its year-over-year change. Significant litigation costs and gains on business divestitures also affected reported results, so the adjusted comparison helps separate those special items from the underlying drivers. [3]",
+      "latency_s": 15.11,
+      "tokens": {
+        "input": 2929,
+        "output": 1618
+      },
+      "sections": null,
+      "sources": [
+        {
+          "ref": "[1]",
+          "label": "MMM 10-K FY2022 · Item 7",
+          "url": "https://www.sec.gov/Archives/edgar/data/66740/000006674023000014/mmm-20221231.htm",
+          "chunk_id": 14563,
+          "distance": 0.3767
+        },
+        {
+          "ref": "[2]",
+          "label": "MMM 10-K FY2022 · Item 7",
+          "url": "https://www.sec.gov/Archives/edgar/data/66740/000006674023000014/mmm-20221231.htm",
+          "chunk_id": 14588,
+          "distance": 0.3817
+        },
+        {
+          "ref": "[3]",
+          "label": "MMM 10-K FY2022 · Item 7",
+          "url": "https://www.sec.gov/Archives/edgar/data/66740/000006674023000014/mmm-20221231.htm",
+          "chunk_id": 14567,
+          "distance": 0.3836
+        },
+        {
+          "ref": "[4]",
+          "label": "MMM 10-K FY2022 · Item 7",
+          "url": "https://www.sec.gov/Archives/edgar/data/66740/000006674023000014/mmm-20221231.htm",
+          "chunk_id": 14575,
+          "distance": 0.3895
+        },
+        {
+          "ref": "[5]",
+          "label": "MMM 10-K FY2022 · Item 8",
+          "url": "https://www.sec.gov/Archives/edgar/data/66740/000006674023000014/mmm-20221231.htm",
+          "chunk_id": 14830,
+          "distance": 0.3939
+        },
+        {
+          "ref": "[6]",
+          "label": "MMM 10-K FY2022 · Item 7",
+          "url": "https://www.sec.gov/Archives/edgar/data/66740/000006674023000014/mmm-20221231.htm",
+          "chunk_id": 14564,
+          "distance": 0.3957
+        }
+      ],
+      "correct": false,
+      "judge_reason": "The reference says 3M's reported operating margin fell 1.7 points in FY2022, driven mainly by one-off charges (Combat Arms Earplugs litigation, PFAS exit impairment, Russia exit costs, divestiture restructuring) plus lower gross margin. The candidate instead reports an adjusted (excluding special items) decline of 1.4 points, attributes it to raw materials and organic growth, and does not identify the one-off charges as the drivers, so it contradicts the reference's key facts.",
+      "judge_tokens": {
+        "input": 1141,
+        "output": 221
+      }
+    },
+    {
+      "id": "financebench_id_01865",
+      "ticker": "MMM",
+      "fiscal_year": 2022,
+      "question_type": "novel-generated",
+      "question": "If we exclude the impact of M&A, which segment has dragged down 3M's overall growth in 2022?",
+      "reference": "The consumer segment shrunk by 0.9% organically.",
+      "answer": "Consumer: its organic sales fell 0.9% in 2022, while Safety and Industrial grew 1.0% and Health Care grew 3.2% [5][3][6]. Organic sales exclude acquisition and divestiture impacts [2]. The excerpts don’t provide Transportation and Electronics’ organic growth, so they don’t establish whether Consumer was the only segment weighing on growth.",
+      "latency_s": 6.61,
+      "tokens": {
+        "input": 2738,
+        "output": 589
+      },
+      "sections": null,
+      "sources": [
+        {
+          "ref": "[1]",
+          "label": "MMM 10-K FY2022 · Item 7",
+          "url": "https://www.sec.gov/Archives/edgar/data/66740/000006674023000014/mmm-20221231.htm",
+          "chunk_id": 14570,
+          "distance": 0.3007
+        },
+        {
+          "ref": "[2]",
+          "label": "MMM 10-K FY2022 · Item 7",
+          "url": "https://www.sec.gov/Archives/edgar/data/66740/000006674023000014/mmm-20221231.htm",
+          "chunk_id": 14564,
+          "distance": 0.3251
+        },
+        {
+          "ref": "[3]",
+          "label": "MMM 10-K FY2022 · Item 7",
+          "url": "https://www.sec.gov/Archives/edgar/data/66740/000006674023000014/mmm-20221231.htm",
+          "chunk_id": 14588,
+          "distance": 0.3359
+        },
+        {
+          "ref": "[4]",
+          "label": "MMM 10-K FY2022 · Item 7",
+          "url": "https://www.sec.gov/Archives/edgar/data/66740/000006674023000014/mmm-20221231.htm",
+          "chunk_id": 14583,
+          "distance": 0.3383
+        },
+        {
+          "ref": "[5]",
+          "label": "MMM 10-K FY2022 · Item 7",
+          "url": "https://www.sec.gov/Archives/edgar/data/66740/000006674023000014/mmm-20221231.htm",
+          "chunk_id": 14594,
+          "distance": 0.3454
+        },
+        {
+          "ref": "[6]",
+          "label": "MMM 10-K FY2022 · Item 7",
+          "url": "https://www.sec.gov/Archives/edgar/data/66740/000006674023000014/mmm-20221231.htm",
+          "chunk_id": 14593,
+          "distance": 0.3464
+        }
+      ],
+      "correct": true,
+      "judge_reason": "The candidate identifies Consumer as the segment dragging down growth, with organic sales falling 0.9% in 2022, matching the reference answer. The extra caveat about Transportation and Electronics does not contradict the reference and the core conclusion agrees.",
+      "judge_tokens": {
+        "input": 952,
+        "output": 136
+      }
+    },
+    {
+      "id": "financebench_id_01091",
+      "ticker": "BA",
+      "fiscal_year": 2022,
+      "question_type": "domain-relevant",
+      "question": "Has Boeing reported any materially important ongoing legal battles from FY2022?",
+      "reference": "Yes. Multiple lawsuits have been filed against Boeing resulting from a 2018 Lion Air crash and a 2019 Ethiopian Airlines crash.",
+      "answer": "Not found in the filings.",
+      "latency_s": 1.47,
+      "tokens": {
+        "input": 2776,
+        "output": 75
+      },
+      "sections": null,
+      "sources": [
+        {
+          "ref": "[1]",
+          "label": "BA 10-K FY2022 · Item 7",
+          "url": "https://www.sec.gov/Archives/edgar/data/12927/000001292723000007/ba-20221231.htm",
+          "chunk_id": 13973,
+          "distance": 0.378
+        },
+        {
+          "ref": "[2]",
+          "label": "BA 10-K FY2022 · Item 7",
+          "url": "https://www.sec.gov/Archives/edgar/data/12927/000001292723000007/ba-20221231.htm",
+          "chunk_id": 14012,
+          "distance": 0.3846
+        },
+        {
+          "ref": "[3]",
+          "label": "BA 10-K FY2022 · Item 7",
+          "url": "https://www.sec.gov/Archives/edgar/data/12927/000001292723000007/ba-20221231.htm",
+          "chunk_id": 13979,
+          "distance": 0.3859
+        },
+        {
+          "ref": "[4]",
+          "label": "BA 10-K FY2022 · Item 1",
+          "url": "https://www.sec.gov/Archives/edgar/data/12927/000001292723000007/ba-20221231.htm",
+          "chunk_id": 13922,
+          "distance": 0.389
+        },
+        {
+          "ref": "[5]",
+          "label": "BA 10-K FY2022 · Item 1",
+          "url": "https://www.sec.gov/Archives/edgar/data/12927/000001292723000007/ba-20221231.htm",
+          "chunk_id": 13925,
+          "distance": 0.3922
+        },
+        {
+          "ref": "[6]",
+          "label": "BA 10-K FY2022 · Item 7",
+          "url": "https://www.sec.gov/Archives/edgar/data/12927/000001292723000007/ba-20221231.htm",
+          "chunk_id": 13974,
+          "distance": 0.3923
+        }
+      ],
+      "correct": false,
+      "judge_reason": "The reference says Yes, citing multiple lawsuits from the 2018 Lion Air and 2019 Ethiopian Airlines crashes. The candidate says \"Not found in the filings,\" which is a refusal/not-found answer that contradicts the reference's affirmative conclusion and omits its key facts.",
+      "judge_tokens": {
+        "input": 857,
+        "output": 153
+      }
+    },
+    {
+      "id": "financebench_id_00494",
+      "ticker": "BA",
+      "fiscal_year": 2022,
+      "question_type": "novel-generated",
+      "question": "What production rate changes is Boeing forecasting for FY2023?",
+      "reference": "Boeing forecasts an increase in the production rates for the 737, 777X and 787 aircrafts in 2023.",
+      "answer": "Boeing expected to gradually increase 787 production to 5 aircraft per month in 2023, resume 777X production in 2023, and make gradual 737 production increases based on market demand and supply-chain capacity; it gave no specific 737 rate target. [1][2][3]",
+      "latency_s": 3.02,
+      "tokens": {
+        "input": 2359,
+        "output": 193
+      },
+      "sections": null,
+      "sources": [
+        {
+          "ref": "[1]",
+          "label": "BA 10-K FY2022 · Item 1A",
+          "url": "https://www.sec.gov/Archives/edgar/data/12927/000001292723000007/ba-20221231.htm",
+          "chunk_id": 13937,
+          "distance": 0.3448
+        },
+        {
+          "ref": "[2]",
+          "label": "BA 10-K FY2022 · Item 7",
+          "url": "https://www.sec.gov/Archives/edgar/data/12927/000001292723000007/ba-20221231.htm",
+          "chunk_id": 13996,
+          "distance": 0.3871
+        },
+        {
+          "ref": "[3]",
+          "label": "BA 10-K FY2022 · Item 7",
+          "url": "https://www.sec.gov/Archives/edgar/data/12927/000001292723000007/ba-20221231.htm",
+          "chunk_id": 13991,
+          "distance": 0.4032
+        },
+        {
+          "ref": "[4]",
+          "label": "BA 10-K FY2022 · Item 7",
+          "url": "https://www.sec.gov/Archives/edgar/data/12927/000001292723000007/ba-20221231.htm",
+          "chunk_id": 13999,
+          "distance": 0.4154
+        },
+        {
+          "ref": "[5]",
+          "label": "BA 10-K FY2022 · Item 7",
+          "url": "https://www.sec.gov/Archives/edgar/data/12927/000001292723000007/ba-20221231.htm",
+          "chunk_id": 13985,
+          "distance": 0.425
+        },
+        {
+          "ref": "[6]",
+          "label": "BA 10-K FY2022 · Item 1A",
+          "url": "https://www.sec.gov/Archives/edgar/data/12927/000001292723000007/ba-20221231.htm",
+          "chunk_id": 13939,
+          "distance": 0.4261
+        }
+      ],
+      "correct": true,
+      "judge_reason": "The candidate says Boeing will increase 787 production (to 5/month), resume/increase 777X production, and gradually increase 737 production, which matches the reference's forecast of production rate increases for the 737, 777X, and 787 in 2023. The extra detail (specific 787 rate, no 737 target) is additional context and does not contradict the reference.",
+      "judge_tokens": {
+        "input": 913,
+        "output": 166
+      }
+    },
+    {
+      "id": "financebench_id_04481",
+      "ticker": "PEP",
+      "fiscal_year": 2022,
+      "question_type": "metrics-generated",
+      "question": "What is the FY2022 unadjusted EBITDA % margin for PepsiCo? Calculate unadjusted EBITDA using unadjusted operating income and D&A (from cash flow statement). Give a response to the question by relying on the details shown in the statement of cash flows and the P&L statement.",
+      "reference": "16.5%",
+      "answer": "Not found in the filings.",
+      "latency_s": 2.16,
+      "tokens": {
+        "input": 3295,
+        "output": 101
+      },
+      "sections": null,
+      "sources": [
+        {
+          "ref": "[1]",
+          "label": "PEP 10-K FY2022 · Item 7",
+          "url": "https://www.sec.gov/Archives/edgar/data/77476/000007747623000007/pep-20221231.htm",
+          "chunk_id": 16008,
+          "distance": 0.3867
+        },
+        {
+          "ref": "[2]",
+          "label": "PEP 10-K FY2022 · Item 7",
+          "url": "https://www.sec.gov/Archives/edgar/data/77476/000007747623000007/pep-20221231.htm",
+          "chunk_id": 15980,
+          "distance": 0.3975
+        },
+        {
+          "ref": "[3]",
+          "label": "PEP 10-K FY2022 · Item 7",
+          "url": "https://www.sec.gov/Archives/edgar/data/77476/000007747623000007/pep-20221231.htm",
+          "chunk_id": 15999,
+          "distance": 0.4154
+        },
+        {
+          "ref": "[4]",
+          "label": "PEP 10-K FY2022 · Item 7",
+          "url": "https://www.sec.gov/Archives/edgar/data/77476/000007747623000007/pep-20221231.htm",
+          "chunk_id": 16100,
+          "distance": 0.4204
+        },
+        {
+          "ref": "[5]",
+          "label": "PEP 10-K FY2022 · Item 7",
+          "url": "https://www.sec.gov/Archives/edgar/data/77476/000007747623000007/pep-20221231.htm",
+          "chunk_id": 15998,
+          "distance": 0.4219
+        },
+        {
+          "ref": "[6]",
+          "label": "PEP 10-K FY2022 · Item 7",
+          "url": "https://www.sec.gov/Archives/edgar/data/77476/000007747623000007/pep-20221231.htm",
+          "chunk_id": 16101,
+          "distance": 0.4265
+        }
+      ],
+      "correct": false,
+      "judge_reason": "The candidate says the information was not found, providing no margin figure. The reference answer is 16.5%, so the candidate's response is missing and incorrect.",
+      "judge_tokens": {
+        "input": 876,
+        "output": 101
+      }
+    },
+    {
+      "id": "financebench_id_01009",
+      "ticker": "PEP",
+      "fiscal_year": 2022,
+      "question_type": "domain-relevant",
+      "question": "What are the geographies that Pepsico primarily operates in as of FY2022?",
+      "reference": "As of FY2022, Pepsico primarily operates in the following geographies: North America, Latin America, Europe, Africa, Middle East, South Asia, Asia Pacific, Australia, New Zealand and China.",
+      "answer": "As of FY2022, PepsiCo primarily operated through seven geographic/reportable segments: **Frito-Lay North America, Quaker Foods North America, PepsiCo Beverages North America, Latin America, Europe, Africa, Middle East and South Asia, and Asia Pacific, Australia and New Zealand and China Region**. [1]",
+      "latency_s": 2.72,
+      "tokens": {
+        "input": 2611,
+        "output": 148
+      },
+      "sections": null,
+      "sources": [
+        {
+          "ref": "[1]",
+          "label": "PEP 10-K FY2022 · Item 1",
+          "url": "https://www.sec.gov/Archives/edgar/data/77476/000007747623000007/pep-20221231.htm",
+          "chunk_id": 15877,
+          "distance": 0.3432
+        },
+        {
+          "ref": "[2]",
+          "label": "PEP 10-K FY2022 · Item 7",
+          "url": "https://www.sec.gov/Archives/edgar/data/77476/000007747623000007/pep-20221231.htm",
+          "chunk_id": 15958,
+          "distance": 0.3739
+        },
+        {
+          "ref": "[3]",
+          "label": "PEP 10-K FY2022 · Item 7",
+          "url": "https://www.sec.gov/Archives/edgar/data/77476/000007747623000007/pep-20221231.htm",
+          "chunk_id": 15957,
+          "distance": 0.403
+        },
+        {
+          "ref": "[4]",
+          "label": "PEP 10-K FY2022 · Item 1",
+          "url": "https://www.sec.gov/Archives/edgar/data/77476/000007747623000007/pep-20221231.htm",
+          "chunk_id": 15879,
+          "distance": 0.4128
+        },
+        {
+          "ref": "[5]",
+          "label": "PEP 10-K FY2022 · Item 1",
+          "url": "https://www.sec.gov/Archives/edgar/data/77476/000007747623000007/pep-20221231.htm",
+          "chunk_id": 15901,
+          "distance": 0.4274
+        },
+        {
+          "ref": "[6]",
+          "label": "PEP 10-K FY2022 · Item 7",
+          "url": "https://www.sec.gov/Archives/edgar/data/77476/000007747623000007/pep-20221231.htm",
+          "chunk_id": 16039,
+          "distance": 0.4278
+        }
+      ],
+      "correct": true,
+      "judge_reason": "The candidate lists the same core geographies as the reference (North America, Latin America, Europe, Africa/Middle East/South Asia, Asia Pacific/Australia/New Zealand/China), framed as reportable segments rather than geographies. The regional coverage matches in substance, with extra segment detail (Frito-Lay, Quaker, Beverages North America) that is consistent with PepsiCo's reporting structure.",
+      "judge_tokens": {
+        "input": 976,
+        "output": 191
+      }
+    },
+    {
+      "id": "financebench_id_00723",
+      "ticker": "AXP",
+      "fiscal_year": 2022,
+      "question_type": "domain-relevant",
+      "question": "Does AMEX have an improving operating margin profile as of 2022? If operating margin is not a useful metric for a company like this, then state that and explain why.",
+      "reference": "Performance is not measured through operating margin",
+      "answer": "**Operating margin is not a useful standalone measure for AMEX, and these excerpts don’t establish an improving operating-margin profile.** AMEX’s revenue is driven primarily by card spending and secondarily by finance charges and fees, while several expenses vary with network volume and usage [4][2]. Also, 2022 net income was lower than in 2021, partly because of credit-reserve builds and Amex Ventures losses, but the excerpts provide no operating-margin figures or comparable margin trend [3].",
+      "latency_s": 8.58,
+      "tokens": {
+        "input": 2508,
+        "output": 770
+      },
+      "sections": null,
+      "sources": [
+        {
+          "ref": "[1]",
+          "label": "AXP 10-K FY2022 · Item 1",
+          "url": "https://www.sec.gov/Archives/edgar/data/4962/000000496223000006/axp-20221231.htm",
+          "chunk_id": 13305,
+          "distance": 0.3797
+        },
+        {
+          "ref": "[2]",
+          "label": "AXP 10-K FY2022 · Item 7",
+          "url": "https://www.sec.gov/Archives/edgar/data/4962/000000496223000006/axp-20221231.htm",
+          "chunk_id": 13440,
+          "distance": 0.3992
+        },
+        {
+          "ref": "[3]",
+          "label": "AXP 10-K FY2022 · Item 7",
+          "url": "https://www.sec.gov/Archives/edgar/data/4962/000000496223000006/axp-20221231.htm",
+          "chunk_id": 13437,
+          "distance": 0.4069
+        },
+        {
+          "ref": "[4]",
+          "label": "AXP 10-K FY2022 · Item 1",
+          "url": "https://www.sec.gov/Archives/edgar/data/4962/000000496223000006/axp-20221231.htm",
+          "chunk_id": 13312,
+          "distance": 0.422
+        },
+        {
+          "ref": "[5]",
+          "label": "AXP 10-K FY2022 · Item 7",
+          "url": "https://www.sec.gov/Archives/edgar/data/4962/000000496223000006/axp-20221231.htm",
+          "chunk_id": 13436,
+          "distance": 0.4291
+        },
+        {
+          "ref": "[6]",
+          "label": "AXP 10-K FY2022 · Item 7",
+          "url": "https://www.sec.gov/Archives/edgar/data/4962/000000496223000006/axp-20221231.htm",
+          "chunk_id": 13469,
+          "distance": 0.434
+        }
+      ],
+      "correct": true,
+      "judge_reason": "The reference says performance is not measured through operating margin for AMEX; the candidate concludes operating margin is not a useful standalone measure for AMEX, explaining it via card-spending-driven revenue and volume-linked expenses. This agrees in substance with the reference, though it adds that the excerpts lack margin data.",
+      "judge_tokens": {
+        "input": 992,
+        "output": 155
+      }
+    },
+    {
+      "id": "financebench_id_01351",
+      "ticker": "AXP",
+      "fiscal_year": 2022,
+      "question_type": "domain-relevant",
+      "question": "How much has the effective tax rate of American Express changed between FY2021 and FY2022?",
+      "reference": "The effective tax rate for American Express has changed/dropped from 24.6% in FY 2021 to 21.6% in FY 2022.",
+      "answer": "American Express’s effective tax rate decreased by **3.0 percentage points**, from 24.6% in FY2021 to 21.6% in FY2022. [1]\n\n**Calculation:** 21.6% − 24.6% = −3.0 percentage points.",
+      "latency_s": 2.34,
+      "tokens": {
+        "input": 2844,
+        "output": 97
+      },
+      "sections": null,
+      "sources": [
+        {
+          "ref": "[1]",
+          "label": "AXP 10-K FY2022 · Item 7",
+          "url": "https://www.sec.gov/Archives/edgar/data/4962/000000496223000006/axp-20221231.htm",
+          "chunk_id": 13447,
+          "distance": 0.3457
+        },
+        {
+          "ref": "[2]",
+          "label": "AXP 10-K FY2022 · Item 7",
+          "url": "https://www.sec.gov/Archives/edgar/data/4962/000000496223000006/axp-20221231.htm",
+          "chunk_id": 13446,
+          "distance": 0.3716
+        },
+        {
+          "ref": "[3]",
+          "label": "AXP 10-K FY2022 · Item 7",
+          "url": "https://www.sec.gov/Archives/edgar/data/4962/000000496223000006/axp-20221231.htm",
+          "chunk_id": 13440,
+          "distance": 0.3768
+        },
+        {
+          "ref": "[4]",
+          "label": "AXP 10-K FY2022 · Item 8",
+          "url": "https://www.sec.gov/Archives/edgar/data/4962/000000496223000006/axp-20221231.htm",
+          "chunk_id": 13651,
+          "distance": 0.3944
+        },
+        {
+          "ref": "[5]",
+          "label": "AXP 10-K FY2022 · Item 8",
+          "url": "https://www.sec.gov/Archives/edgar/data/4962/000000496223000006/axp-20221231.htm",
+          "chunk_id": 13549,
+          "distance": 0.3977
+        },
+        {
+          "ref": "[6]",
+          "label": "AXP 10-K FY2022 · Item 8",
+          "url": "https://www.sec.gov/Archives/edgar/data/4962/000000496223000006/axp-20221231.htm",
+          "chunk_id": 13536,
+          "distance": 0.4108
+        }
+      ],
+      "correct": true,
+      "judge_reason": "The candidate states the effective tax rate fell from 24.6% in FY2021 to 21.6% in FY2022, matching the reference values. The computed change of -3.0 percentage points is consistent with those figures and answers \"how much it changed.\"",
+      "judge_tokens": {
+        "input": 921,
+        "output": 131
+      }
+    }
+  ]
+}
