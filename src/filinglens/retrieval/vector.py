@@ -13,6 +13,7 @@ class RetrievedChunk(BaseModel):
     ticker: str
     fiscal_year: int
     form: str
+    section: str | None  # 10-K Item, e.g. "8" (None for chunks ingested before M1)
     url: str
     distance: float
     content: str
@@ -42,6 +43,7 @@ def search(
             ticker=company.ticker,
             fiscal_year=filing.fiscal_year,
             form=filing.form,
+            section=chunk.section,
             url=filing.url,
             distance=float(dist),
             content=chunk.content,

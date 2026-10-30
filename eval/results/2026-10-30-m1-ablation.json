@@ -1,0 +1,497 @@
+{
+  "name": "m1-ablation",
+  "run_at": "2026-10-30",
+  "config": {
+    "embedding_model": "text-embedding-3-small",
+    "chunk_size": 2000,
+    "chunk_overlap": 200,
+    "matcher": "retrieval_hit.py v2: any 150-char window of the evidence (step 50), letters+digits only",
+    "search": "cosine distance within the question's filing (ticker + fiscal year)"
+  },
+  "variants": {
+    "A_m0": "M0 text (one value per line), blind 2,000-char chunks over the whole document",
+    "B_rows": "M1 text (table rows on one line), blind 2,000-char chunks",
+    "C_rows_sections": "M1 text, chunked per 10-K Item (cover and Items < 200 chars skipped)  <- KEPT for M1",
+    "D_m1_long_header": "C + embedded header 'COMPANY \u00b7 Form 10-K for fiscal year Y (ended ...) \u00b7 Item N. Full title'",
+    "E_short_header": "C + embedded header 'COMPANY \u00b7 10-K FYY \u00b7 Item N'"
+  },
+  "summary": {
+    "A_m0": {
+      "hit@6": "8/20",
+      "hit@10": "10/20",
+      "hit@20": "15/20",
+      "hit@40": "16/20"
+    },
+    "B_rows": {
+      "hit@6": "6/20",
+      "hit@10": "9/20",
+      "hit@20": "14/20",
+      "hit@40": "16/20"
+    },
+    "C_rows_sections": {
+      "hit@6": "8/20",
+      "hit@10": "8/20",
+      "hit@20": "15/20",
+      "hit@40": "16/20"
+    },
+    "D_m1_long_header": {
+      "hit@6": "6/20",
+      "hit@10": "7/20",
+      "hit@20": "12/20",
+      "hit@40": "17/20"
+    },
+    "E_short_header": {
+      "hit@6": "7/20",
+      "hit@10": "8/20",
+      "hit@20": "14/20",
+      "hit@40": "18/20"
+    }
+  },
+  "notes": [
+    "Same 20 questions, same matcher for every variant. Under matcher v2, M0 scores hit@6 8/20 (2026-10-29-hit-poc.json reported 6/20 with matcher v1, which only matched the evidence's first 150 chars).",
+    "Embedded headers pull far misses closer (MSFT 04700 rank 73 -> 23, AXP 00723 67 -> 37) but push near hits down (ADBE 00438 9 -> 48, VZ 00215 14 -> 45): with search filtered to one filing, company and year are identical on every candidate chunk.",
+    "Decision: keep C. No regression vs M0 at hit@6; chunks never cross Items; section labels for M2 filters; readable table rows for the LLM. The header context goes into the prompt instead of the embedding."
+  ],
+  "items": {
+    "financebench_id_00438": {
+      "A_m0": {
+        "rank": 9,
+        "chunks": 242
+      },
+      "B_rows": {
+        "rank": 8,
+        "chunks": 244
+      },
+      "C_rows_sections": {
+        "rank": 16,
+        "chunks": 241
+      },
+      "D_m1_long_header": {
+        "rank": 48,
+        "chunks": 241
+      },
+      "E_short_header": {
+        "rank": 47,
+        "chunks": 241
+      }
+    },
+    "financebench_id_00591": {
+      "A_m0": {
+        "rank": 3,
+        "chunks": 242
+      },
+      "B_rows": {
+        "rank": 13,
+        "chunks": 244
+      },
+      "C_rows_sections": {
+        "rank": 5,
+        "chunks": 241
+      },
+      "D_m1_long_header": {
+        "rank": 36,
+        "chunks": 241
+      },
+      "E_short_header": {
+        "rank": 20,
+        "chunks": 241
+      }
+    },
+    "financebench_id_01198": {
+      "A_m0": {
+        "rank": 5,
+        "chunks": 255
+      },
+      "B_rows": {
+        "rank": 6,
+        "chunks": 257
+      },
+      "C_rows_sections": {
+        "rank": 4,
+        "chunks": 260
+      },
+      "D_m1_long_header": {
+        "rank": 7,
+        "chunks": 260
+      },
+      "E_short_header": {
+        "rank": 6,
+        "chunks": 260
+      }
+    },
+    "financebench_id_00222": {
+      "A_m0": {
+        "rank": 32,
+        "chunks": 255
+      },
+      "B_rows": {
+        "rank": 39,
+        "chunks": 257
+      },
+      "C_rows_sections": {
+        "rank": 18,
+        "chunks": 260
+      },
+      "D_m1_long_header": {
+        "rank": 72,
+        "chunks": 260
+      },
+      "E_short_header": {
+        "rank": 53,
+        "chunks": 260
+      }
+    },
+    "financebench_id_08135": {
+      "A_m0": {
+        "rank": 4,
+        "chunks": 183
+      },
+      "B_rows": {
+        "rank": 4,
+        "chunks": 184
+      },
+      "C_rows_sections": {
+        "rank": 3,
+        "chunks": 188
+      },
+      "D_m1_long_header": {
+        "rank": 3,
+        "chunks": 188
+      },
+      "E_short_header": {
+        "rank": 5,
+        "chunks": 188
+      }
+    },
+    "financebench_id_06655": {
+      "A_m0": {
+        "rank": 11,
+        "chunks": 183
+      },
+      "B_rows": {
+        "rank": 9,
+        "chunks": 184
+      },
+      "C_rows_sections": {
+        "rank": 3,
+        "chunks": 188
+      },
+      "D_m1_long_header": {
+        "rank": 16,
+        "chunks": 188
+      },
+      "E_short_header": {
+        "rank": 19,
+        "chunks": 188
+      }
+    },
+    "financebench_id_00723": {
+      "A_m0": {
+        "rank": 67,
+        "chunks": 373
+      },
+      "B_rows": {
+        "rank": 49,
+        "chunks": 376
+      },
+      "C_rows_sections": {
+        "rank": 45,
+        "chunks": 372
+      },
+      "D_m1_long_header": {
+        "rank": 37,
+        "chunks": 372
+      },
+      "E_short_header": {
+        "rank": 24,
+        "chunks": 372
+      }
+    },
+    "financebench_id_01351": {
+      "A_m0": {
+        "rank": 18,
+        "chunks": 373
+      },
+      "B_rows": {
+        "rank": 15,
+        "chunks": 376
+      },
+      "C_rows_sections": {
+        "rank": 14,
+        "chunks": 372
+      },
+      "D_m1_long_header": {
+        "rank": 12,
+        "chunks": 372
+      },
+      "E_short_header": {
+        "rank": 13,
+        "chunks": 372
+      }
+    },
+    "financebench_id_01091": {
+      "A_m0": {
+        "rank": 10,
+        "chunks": 253
+      },
+      "B_rows": {
+        "rank": 10,
+        "chunks": 254
+      },
+      "C_rows_sections": {
+        "rank": 11,
+        "chunks": 255
+      },
+      "D_m1_long_header": {
+        "rank": 2,
+        "chunks": 255
+      },
+      "E_short_header": {
+        "rank": 2,
+        "chunks": 255
+      }
+    },
+    "financebench_id_00494": {
+      "A_m0": {
+        "rank": 1,
+        "chunks": 253
+      },
+      "B_rows": {
+        "rank": 1,
+        "chunks": 254
+      },
+      "C_rows_sections": {
+        "rank": 1,
+        "chunks": 255
+      },
+      "D_m1_long_header": {
+        "rank": 1,
+        "chunks": 255
+      },
+      "E_short_header": {
+        "rank": 1,
+        "chunks": 255
+      }
+    },
+    "financebench_id_01226": {
+      "A_m0": {
+        "rank": 18,
+        "chunks": 329
+      },
+      "B_rows": {
+        "rank": 17,
+        "chunks": 333
+      },
+      "C_rows_sections": {
+        "rank": 17,
+        "chunks": 335
+      },
+      "D_m1_long_header": {
+        "rank": 20,
+        "chunks": 335
+      },
+      "E_short_header": {
+        "rank": 29,
+        "chunks": 335
+      }
+    },
+    "financebench_id_01865": {
+      "A_m0": {
+        "rank": 54,
+        "chunks": 329
+      },
+      "B_rows": {
+        "rank": 49,
+        "chunks": 333
+      },
+      "C_rows_sections": {
+        "rank": 50,
+        "chunks": 335
+      },
+      "D_m1_long_header": {
+        "rank": 33,
+        "chunks": 335
+      },
+      "E_short_header": {
+        "rank": 27,
+        "chunks": 335
+      }
+    },
+    "financebench_id_04700": {
+      "A_m0": {
+        "rank": 73,
+        "chunks": 203
+      },
+      "B_rows": {
+        "rank": 74,
+        "chunks": 205
+      },
+      "C_rows_sections": {
+        "rank": 54,
+        "chunks": 208
+      },
+      "D_m1_long_header": {
+        "rank": 23,
+        "chunks": 208
+      },
+      "E_short_header": {
+        "rank": 15,
+        "chunks": 208
+      }
+    },
+    "financebench_id_00552": {
+      "A_m0": {
+        "rank": 50,
+        "chunks": 218
+      },
+      "B_rows": {
+        "rank": 47,
+        "chunks": 218
+      },
+      "C_rows_sections": {
+        "rank": 50,
+        "chunks": 220
+      },
+      "D_m1_long_header": {
+        "rank": 21,
+        "chunks": 220
+      },
+      "E_short_header": {
+        "rank": 20,
+        "chunks": 220
+      }
+    },
+    "financebench_id_04458": {
+      "A_m0": {
+        "rank": 1,
+        "chunks": 146
+      },
+      "B_rows": {
+        "rank": 1,
+        "chunks": 146
+      },
+      "C_rows_sections": {
+        "rank": 1,
+        "chunks": 146
+      },
+      "D_m1_long_header": {
+        "rank": 6,
+        "chunks": 146
+      },
+      "E_short_header": {
+        "rank": 5,
+        "chunks": 146
+      }
+    },
+    "financebench_id_03282": {
+      "A_m0": {
+        "rank": 1,
+        "chunks": 150
+      },
+      "B_rows": {
+        "rank": 1,
+        "chunks": 151
+      },
+      "C_rows_sections": {
+        "rank": 1,
+        "chunks": 152
+      },
+      "D_m1_long_header": {
+        "rank": 3,
+        "chunks": 152
+      },
+      "E_short_header": {
+        "rank": 4,
+        "chunks": 152
+      }
+    },
+    "financebench_id_04481": {
+      "A_m0": {
+        "rank": 14,
+        "chunks": 269
+      },
+      "B_rows": {
+        "rank": 13,
+        "chunks": 273
+      },
+      "C_rows_sections": {
+        "rank": 12,
+        "chunks": 275
+      },
+      "D_m1_long_header": {
+        "rank": 16,
+        "chunks": 275
+      },
+      "E_short_header": {
+        "rank": 10,
+        "chunks": 275
+      }
+    },
+    "financebench_id_01009": {
+      "A_m0": {
+        "rank": 1,
+        "chunks": 269
+      },
+      "B_rows": {
+        "rank": 1,
+        "chunks": 273
+      },
+      "C_rows_sections": {
+        "rank": 1,
+        "chunks": 275
+      },
+      "D_m1_long_header": {
+        "rank": 1,
+        "chunks": 275
+      },
+      "E_short_header": {
+        "rank": 1,
+        "chunks": 275
+      }
+    },
+    "financebench_id_00215": {
+      "A_m0": {
+        "rank": 14,
+        "chunks": 301
+      },
+      "B_rows": {
+        "rank": 27,
+        "chunks": 303
+      },
+      "C_rows_sections": {
+        "rank": 26,
+        "chunks": 302
+      },
+      "D_m1_long_header": {
+        "rank": 45,
+        "chunks": 302
+      },
+      "E_short_header": {
+        "rank": 32,
+        "chunks": 302
+      }
+    },
+    "financebench_id_00566": {
+      "A_m0": {
+        "rank": 5,
+        "chunks": 301
+      },
+      "B_rows": {
+        "rank": 12,
+        "chunks": 303
+      },
+      "C_rows_sections": {
+        "rank": 11,
+        "chunks": 302
+      },
+      "D_m1_long_header": {
+        "rank": 11,
+        "chunks": 302
+      },
+      "E_short_header": {
+        "rank": 12,
+        "chunks": 302
+      }
+    }
+  }
+}

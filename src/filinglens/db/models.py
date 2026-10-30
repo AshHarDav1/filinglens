@@ -1,6 +1,7 @@
-"""Database models. financial_fact (XBRL numbers) arrives in M1; the tsvector column in M2."""
+"""Database models. The tsvector column for full-text search arrives in M2."""
 
 from datetime import date, datetime
+from decimal import Decimal
 
 from pgvector.sqlalchemy import Vector
 from sqlalchemy import (
@@ -8,7 +9,9 @@ from sqlalchemy import (
     Date,
     DateTime,
     ForeignKey,
+    Index,
     Integer,
+    Numeric,
     String,
     Text,
     UniqueConstraint,
@@ -64,6 +67,46 @@ class Chunk(Base):
     embedding: Mapped[list[float]] = mapped_column(Vector(EMBEDDING_DIM))
 
     filing: Mapped[Filing] = relationship(back_populates="chunks")
+
+
+class FinancialFact(Base):
+    """One XBRL fact exactly as a 10-K reported it (SEC companyfacts API).
+
+    Facts are stored as reported, duplicates included: each 10-K repeats the prior years as
+    comparison columns, so one period can have several rows. Picking the one right number is a
+    query-time decision (`financials.get_metric`), not a load-time one.
+    """
+
+    __tablename__ = "financial_fact"
+    __table_args__ = (
+        # NULLS NOT DISTINCT: instant facts have no period_start and must still dedupe on re-runs
+        UniqueConstraint(
+            "company_id",
+            "concept",
+            "unit",
+            "period_start",
+            "period_end",
+            "accession_no",
+            postgresql_nulls_not_distinct=True,
+        ),
+        Index("ix_financial_fact_lookup", "company_id", "concept", "fiscal_year"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    company_id: Mapped[int] = mapped_column(ForeignKey("company.id"))
+    concept: Mapped[str] = mapped_column(String(255))  # e.g. "CostOfRevenue" (us-gaap)
+    unit: Mapped[str] = mapped_column(String(32))  # "USD", "shares", "USD/shares", "pure"
+    value: Mapped[Decimal] = mapped_column(Numeric)  # exact decimal, never float
+    # None for instant facts (balance sheet: a value *at* period_end)
+    period_start: Mapped[date | None] = mapped_column(Date)
+    period_end: Mapped[date] = mapped_column(Date)
+    # Fiscal year of the period (from period_end, same rule as filing.fiscal_year), not SEC's
+    # `fy`, which is the year of the filing that reported the fact. Meaningful for annual and
+    # year-end facts, which is all get_metric asks for.
+    fiscal_year: Mapped[int] = mapped_column(Integer)
+    form: Mapped[str] = mapped_column(String(16))  # "10-K" or "10-K/A"
+    accession_no: Mapped[str] = mapped_column(String(32))  # the filing that reported it
+    filed_at: Mapped[date] = mapped_column(Date)
 
 
 class EmbeddingCache(Base):

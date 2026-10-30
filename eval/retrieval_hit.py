@@ -22,8 +22,9 @@ from filinglens.retrieval.vector import RetrievedChunk, search
 
 RESULTS_DIR = Path(__file__).parent / "results"
 KS = (6, 10, 20, 40)
-# Enough characters to identify a passage, and short enough to fit inside one chunk's overlap
+# A window long enough to identify a passage, short enough to fit inside one chunk's overlap
 PREFIX_CHARS = 150
+WINDOW_STEP = 50
 
 
 def normalize(text: str) -> str:
@@ -32,14 +33,25 @@ def normalize(text: str) -> str:
     return " ".join(re.findall(r"[a-z0-9]+", text.lower()))
 
 
-def evidence_hit(evidence: str, chunks: list[RetrievedChunk]) -> bool:
-    """True if any of `chunks` contains the `evidence` passage.
+def evidence_windows(evidence: str) -> list[str]:
+    """PREFIX_CHARS-long windows of the evidence, every WINDOW_STEP chars.
 
-    Only the start of the evidence is matched, because a long passage can span several chunks.
+    A long passage spans several chunks, and its first characters can fall on a section border
+    (page-header lines like "Table of Contents PART II Item 8"), so any window may prove the hit.
+    """
+    text = normalize(evidence)
+    if len(text) <= PREFIX_CHARS:
+        return [text]
+    return [text[i : i + PREFIX_CHARS] for i in range(0, len(text) - PREFIX_CHARS + 1, WINDOW_STEP)]
+
+
+def evidence_hit(evidence: str, chunks: list[RetrievedChunk]) -> bool:
+    """True if any of `chunks` contains a window of the `evidence` passage.
+
     This is a lower bound: a chunk that states the same fact elsewhere in the filing doesn't count.
     """
-    prefix = normalize(evidence)[:PREFIX_CHARS]
-    return any(prefix in normalize(chunk.content) for chunk in chunks)
+    windows = evidence_windows(evidence)
+    return any(w in normalize(chunk.content) for chunk in chunks for w in windows)
 
 
 def first_hit_rank(evidence: list[str], hits: list[RetrievedChunk]) -> int | None:
