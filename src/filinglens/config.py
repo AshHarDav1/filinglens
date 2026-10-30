@@ -38,6 +38,10 @@ class Settings(BaseSettings):
     # None: current Claude models reject any non-default temperature (400)
     judge_temperature: float | None = None
 
+    # Section router (M2): a small, cheap model that guesses which 10-K Items hold the answer
+    router_provider: Literal["openai", "anthropic"] = "anthropic"
+    router_model: str = "claude-haiku-5-5"
+
     openai_api_key: SecretStr | None = None
     anthropic_api_key: SecretStr | None = None
 
