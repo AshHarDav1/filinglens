@@ -5,7 +5,7 @@ data plus **management's explanations** from the 10-K text, with every claim lin
 
 > Portfolio project for learning AI engineering by building a production-style system. Not investment advice.
 
-**Status:** M0 (proof of concept) and M1 (data) are done. M2 (hybrid search) is next. See
+**Status:** M0 (proof of concept), M1 (data) and M2 (search) are done. M3 (the agent) is next. See
 [Roadmap](#roadmap).
 
 ## How it works
@@ -44,6 +44,7 @@ All numbers come from saved runs in `eval/results/`. Denominators are the questi
 | Closed-book LLM (gpt-6-luna, no retrieval), judged by claude-haiku-5-5 | 11/20 | `2026-10-28-baseline-haiku-judge` |
 | Plain RAG (M0: vector search, top 6) | 6/20 | `2026-10-28-rag-poc` |
 | Retrieval hit@6 / hit@20 (evidence in top k), M1 chunks | 23/51 / 39/51 | `2026-10-30-hit-m1-51q` |
+| RAG with M1 chunks and labelled excerpts (M2) | **13/20** | `2026-10-30-rag-m2-norouter` |
 
 What the numbers say:
 
@@ -54,6 +55,10 @@ What the numbers say:
   not move hit@6 (8/20 before and after on the original 20 questions), and an embedded contextual header made
   it worse (6/20). Retrieval gains have to come from ranking: hybrid search in M2
   ([docs/m1-results.md](docs/m1-results.md)).
+- **M2:** hybrid search (vector + Postgres full-text) and section routing were built and tested on 31 dev
+  questions, then checked on 20 held-out ones. None held up there, so vector search stays the default
+  ([ADR-008](docs/adr/008-retrieval-defaults.md)). End to end, RAG now scores 13/20, above the closed-book
+  model (11/20): the gain came from M1's readable chunks, not from M2's ranking ([docs/m2-results.md](docs/m2-results.md)).
 
 ## Quickstart
 
@@ -93,7 +98,8 @@ src/filinglens/
     parse_10k.py              split a 10-K into its Item sections
     chunk_embed.py            per-Item chunking, embeddings cached by content hash
     run.py, load_facts.py     ingestion CLIs: filings and XBRL facts
-  retrieval/vector.py         vector search within one filing
+  retrieval/                  vector.py (search within one filing), hybrid.py (keyword + RRF + sections),
+                              routing.py (rules and LLM section routers)
   agent/prompts.py            versioned prompts
 eval/                         question sets, eval runners, saved results
 docs/                         milestone results, ADRs, v2 ideas
@@ -104,7 +110,7 @@ tests/
 
 - [x] **M0 PoC:** EDGAR client, FinanceBench subset, closed-book baseline, plain RAG, go/no-go
 - [x] **M1 Data:** XBRL facts, Item sections, table rows, per-Item chunks, wider eval (51 questions)
-- [ ] **M2 RAG:** hybrid search (vector + Postgres full-text) with ticker, year and section filters, citations
+- [x] **M2 RAG:** full-text index, hybrid search, section routing (tested, optional), citations
 - [ ] **M3 Agent:** LangGraph with search, financials and calculator tools; refuse and not-found paths
 - [ ] **M4 Interfaces:** FastAPI with streaming, Streamlit UI
 - [ ] **M5 Quality:** full eval on 51 questions against the closed-book baseline, one measured improvement
