@@ -1,0 +1,279 @@
+{
+  "name": "hit-m1-51q",
+  "run_at": "2026-10-30T12:58:37.417143+00:00",
+  "config": {
+    "embedding_model": "text-embedding-3-small",
+    "chunk_size": 2000,
+    "chunk_overlap": 200,
+    "ks": [
+      6,
+      10,
+      20,
+      40
+    ]
+  },
+  "summary": {
+    "n": 51,
+    "hit@6": "23/51",
+    "hit@10": "26/51",
+    "hit@20": "39/51",
+    "hit@40": "42/51"
+  },
+  "items": [
+    {
+      "id": "financebench_id_00215",
+      "ticker": "VZ",
+      "rank": 26
+    },
+    {
+      "id": "financebench_id_00216",
+      "ticker": "VZ",
+      "rank": 31
+    },
+    {
+      "id": "financebench_id_00222",
+      "ticker": "AMD",
+      "rank": 18
+    },
+    {
+      "id": "financebench_id_00438",
+      "ticker": "ADBE",
+      "rank": 16
+    },
+    {
+      "id": "financebench_id_00464",
+      "ticker": "BA",
+      "rank": 19
+    },
+    {
+      "id": "financebench_id_00476",
+      "ticker": "AXP",
+      "rank": 4
+    },
+    {
+      "id": "financebench_id_00494",
+      "ticker": "BA",
+      "rank": 1
+    },
+    {
+      "id": "financebench_id_00499",
+      "ticker": "MMM",
+      "rank": null
+    },
+    {
+      "id": "financebench_id_00517",
+      "ticker": "BA",
+      "rank": 1
+    },
+    {
+      "id": "financebench_id_00552",
+      "ticker": "MSFT",
+      "rank": null
+    },
+    {
+      "id": "financebench_id_00563",
+      "ticker": "AMD",
+      "rank": 9
+    },
+    {
+      "id": "financebench_id_00566",
+      "ticker": "VZ",
+      "rank": 11
+    },
+    {
+      "id": "financebench_id_00585",
+      "ticker": "BA",
+      "rank": 5
+    },
+    {
+      "id": "financebench_id_00591",
+      "ticker": "ADBE",
+      "rank": 5
+    },
+    {
+      "id": "financebench_id_00678",
+      "ticker": "BA",
+      "rank": 15
+    },
+    {
+      "id": "financebench_id_00720",
+      "ticker": "AXP",
+      "rank": null
+    },
+    {
+      "id": "financebench_id_00723",
+      "ticker": "AXP",
+      "rank": null
+    },
+    {
+      "id": "financebench_id_00735",
+      "ticker": "PEP",
+      "rank": null
+    },
+    {
+      "id": "financebench_id_00757",
+      "ticker": "AMD",
+      "rank": null
+    },
+    {
+      "id": "financebench_id_00859",
+      "ticker": "VZ",
+      "rank": 1
+    },
+    {
+      "id": "financebench_id_00917",
+      "ticker": "AMD",
+      "rank": 13
+    },
+    {
+      "id": "financebench_id_00995",
+      "ticker": "AMD",
+      "rank": 1
+    },
+    {
+      "id": "financebench_id_01009",
+      "ticker": "PEP",
+      "rank": 1
+    },
+    {
+      "id": "financebench_id_01028",
+      "ticker": "AXP",
+      "rank": 20
+    },
+    {
+      "id": "financebench_id_01091",
+      "ticker": "BA",
+      "rank": 11
+    },
+    {
+      "id": "financebench_id_01198",
+      "ticker": "AMD",
+      "rank": 4
+    },
+    {
+      "id": "financebench_id_01226",
+      "ticker": "MMM",
+      "rank": 17
+    },
+    {
+      "id": "financebench_id_01279",
+      "ticker": "AMD",
+      "rank": 1
+    },
+    {
+      "id": "financebench_id_01290",
+      "ticker": "BA",
+      "rank": 3
+    },
+    {
+      "id": "financebench_id_01328",
+      "ticker": "PEP",
+      "rank": 1
+    },
+    {
+      "id": "financebench_id_01351",
+      "ticker": "AXP",
+      "rank": 14
+    },
+    {
+      "id": "financebench_id_01865",
+      "ticker": "MMM",
+      "rank": null
+    },
+    {
+      "id": "financebench_id_01964",
+      "ticker": "AXP",
+      "rank": null
+    },
+    {
+      "id": "financebench_id_01981",
+      "ticker": "AXP",
+      "rank": 12
+    },
+    {
+      "id": "financebench_id_02024",
+      "ticker": "VZ",
+      "rank": 7
+    },
+    {
+      "id": "financebench_id_03029",
+      "ticker": "MMM",
+      "rank": 21
+    },
+    {
+      "id": "financebench_id_03069",
+      "ticker": "AMD",
+      "rank": 1
+    },
+    {
+      "id": "financebench_id_03282",
+      "ticker": "NFLX",
+      "rank": 1
+    },
+    {
+      "id": "financebench_id_03620",
+      "ticker": "PEP",
+      "rank": 5
+    },
+    {
+      "id": "financebench_id_03856",
+      "ticker": "ADBE",
+      "rank": 3
+    },
+    {
+      "id": "financebench_id_04458",
+      "ticker": "NFLX",
+      "rank": 1
+    },
+    {
+      "id": "financebench_id_04481",
+      "ticker": "PEP",
+      "rank": 13
+    },
+    {
+      "id": "financebench_id_04672",
+      "ticker": "MMM",
+      "rank": 20
+    },
+    {
+      "id": "financebench_id_04700",
+      "ticker": "MSFT",
+      "rank": null
+    },
+    {
+      "id": "financebench_id_04735",
+      "ticker": "ADBE",
+      "rank": 8
+    },
+    {
+      "id": "financebench_id_04980",
+      "ticker": "PEP",
+      "rank": 2
+    },
+    {
+      "id": "financebench_id_06655",
+      "ticker": "AMZN",
+      "rank": 3
+    },
+    {
+      "id": "financebench_id_07507",
+      "ticker": "ADBE",
+      "rank": 1
+    },
+    {
+      "id": "financebench_id_08135",
+      "ticker": "AMZN",
+      "rank": 3
+    },
+    {
+      "id": "financebench_id_08286",
+      "ticker": "AMZN",
+      "rank": 1
+    },
+    {
+      "id": "financebench_id_10285",
+      "ticker": "BA",
+      "rank": 1
+    }
+  ]
+}
