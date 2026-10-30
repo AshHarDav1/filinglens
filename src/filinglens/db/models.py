@@ -1,4 +1,4 @@
-"""Database models. The tsvector column for full-text search arrives in M2."""
+"""Database models."""
 
 from datetime import date, datetime
 from decimal import Decimal
@@ -6,6 +6,7 @@ from decimal import Decimal
 from pgvector.sqlalchemy import Vector
 from sqlalchemy import (
     BigInteger,
+    Computed,
     Date,
     DateTime,
     ForeignKey,
@@ -17,6 +18,7 @@ from sqlalchemy import (
     UniqueConstraint,
     func,
 )
+from sqlalchemy.dialects.postgresql import TSVECTOR
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 # Dimension of the embedding model (text-embedding-3-small). Changing the model means a migration.
@@ -57,7 +59,10 @@ class Filing(Base):
 
 class Chunk(Base):
     __tablename__ = "chunk"
-    __table_args__ = (UniqueConstraint("filing_id", "chunk_index"),)
+    __table_args__ = (
+        UniqueConstraint("filing_id", "chunk_index"),
+        Index("ix_chunk_content_tsv", "content_tsv", postgresql_using="gin"),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True)
     filing_id: Mapped[int] = mapped_column(ForeignKey("filing.id", ondelete="CASCADE"), index=True)
@@ -65,6 +70,10 @@ class Chunk(Base):
     section: Mapped[str | None] = mapped_column(String(32))  # filled by section parsing in M1
     content: Mapped[str] = mapped_column(Text)
     embedding: Mapped[list[float]] = mapped_column(Vector(EMBEDDING_DIM))
+    # Stemmed words of `content` for full-text (keyword) search; Postgres fills it on every write
+    content_tsv: Mapped[str] = mapped_column(
+        TSVECTOR, Computed("to_tsvector('english', content)", persisted=True)
+    )
 
     filing: Mapped[Filing] = relationship(back_populates="chunks")
 

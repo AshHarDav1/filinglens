@@ -43,6 +43,11 @@ def get_judge_model(settings: Settings | None = None) -> BaseChatModel:
     )
 
 
+def get_router_model(settings: Settings | None = None) -> BaseChatModel:
+    settings = settings or get_settings()
+    return _chat_model(settings, settings.router_provider, settings.router_model, None)
+
+
 def get_embeddings(settings: Settings | None = None) -> Embeddings:
     # Anthropic has no embeddings API, so embeddings use OpenAI regardless of LLM_PROVIDER.
     settings = settings or get_settings()

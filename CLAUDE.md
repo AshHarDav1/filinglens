@@ -116,8 +116,9 @@ uv run python eval/build_subset.py --all-10k                            # all 51
 uv run python -m filinglens.ingestion.run --from-subset eval/financebench_subset.jsonl
 uv run python -m filinglens.ingestion.run --filings MSFT:2023,AMD:2022  # [--download-only] [--rechunk]
 uv run python eval/run_eval.py --mode baseline --name baseline          # closed-book LLM
-uv run python eval/run_eval.py --mode rag --name rag-poc                # [--k 6] [--limit 2]
+uv run python eval/run_eval.py --mode rag --name rag-x                  # [--k 6] [--limit 2] [--method hybrid] [--router llm]
 uv run python eval/retrieval_hit.py --name hit-x --subset eval/financebench_10k.jsonl  # hit@6/10/20/40, no LLM
+uv run python eval/retrieval_hit.py ... --split dev|test --method vector|keyword|hybrid --router none|rules|llm|oracle
 uv run python -m filinglens.ingestion.load_facts --from-subset eval/financebench_subset.jsonl  # XBRL -> financial_fact [--tickers MSFT]
 # later:
 uv run uvicorn filinglens.api.main:app --reload
@@ -167,7 +168,14 @@ uv run streamlit run ui/app.py
     `2026-10-30-hit-m1.json`: hit@6 8/20, hit@10 8/20, hit@20 15/20, hit@40 16/20
   - [x] eval widened to all 51 FinanceBench 10-K questions for the 10 companies (9 more filings ingested, cover page
     kept as a section): `2026-10-30-hit-m1-51q.json` hit@6 23/51, hit@10 26/51, hit@20 39/51, hit@40 42/51
-- [ ] **M2 RAG:** hybrid search (vector + full-text) with ticker/year/section filters, citations
+- [x] **M2 RAG:** hybrid search (vector + full-text) with ticker/year/section filters, citations (results: `docs/m2-results.md`)
+  - [x] `chunk.content_tsv` (generated tsvector + GIN index); `retrieval/hybrid.py` (keyword search, RRF, `retrieve()`
+    with section filter/boost, Item 15/16 fallback for pointer Item 8); `retrieval/routing.py` (rules + LLM router)
+  - [x] dev/test split (31/20): hybrid + LLM router won dev 19/31 vs 15/31 but lost test 7/20 vs 8/20; vector + LLM
+    router 24/51 vs 23/51 overall. Default stays vector (ADR-008); hybrid and routers are options
+  - [x] citations: sources carry company, form, FY, Item, URL; RAG prompt v2
+  - [x] full pipeline on 20: **13/20** (`rag-m2-norouter` and `rag-m2-router` both), vs M0 RAG 6/20 and closed-book 11/20;
+    the gain comes from M1's readable chunks + labelled excerpts, not routing
 - [ ] **M3 Agent:** LangGraph with 3 tools, round limit, refuse and not-found paths
 - [ ] **M4 Interfaces:** FastAPI (streaming), Streamlit UI, MCP server
 - [ ] **M5 Quality:** eval on the full subset, one measured improvement (e.g. hybrid vs vector-only, chunk size, reranking)
@@ -181,8 +189,9 @@ real values), plus interview questions. This overrides "AI parts: let me try fir
 
 Update the checkboxes and the "Current step" line as we go.
 
-**Current step:** M2: hybrid search (vector + Postgres full-text with a tsvector column) with ticker/year/section
-filters; measure with `eval/retrieval_hit.py --subset eval/financebench_10k.jsonl` against hit@6 23/51.
+**Current step:** M3: LangGraph agent with 3 tools (search_filings over `retrieve()`, get_financials over
+`get_metric()`, calculate), round limit, refuse and not-found paths; the plan step picks sections. Compare on the
+20 with rag-m2-norouter (13/20) and closed-book (11/20); then a full run on the 51.
 
 ## Architecture decisions (full text in docs/adr/; record new ones there)
 
@@ -193,3 +202,4 @@ filters; measure with `eval/retrieval_hit.py --subset eval/financebench_10k.json
 - ADR-005: XBRL facts stored as reported; `get_metric` chooses the value at query time (own 10-K first).
 - ADR-006: chunk per 10-K Item; no embedded contextual header (measured: it lowered hit@6).
 - ADR-007: retrieval hit rate (hit@k, no LLM) as the per-change metric; matcher v2.
+- ADR-008: vector search stays the default; hybrid search and section routers are tested options (held-out check).
