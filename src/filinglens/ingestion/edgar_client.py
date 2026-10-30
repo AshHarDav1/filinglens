@@ -21,6 +21,7 @@ from filinglens.config import Settings
 TICKERS_URL = "https://www.sec.gov/files/company_tickers.json"
 SUBMISSIONS_URL = "https://data.sec.gov/submissions/{name}"
 ARCHIVES_URL = "https://www.sec.gov/Archives/edgar/data/{cik}/{accession}/{document}"
+COMPANYFACTS_URL = "https://data.sec.gov/api/xbrl/companyfacts/CIK{cik:010d}.json"
 
 RETRY_STATUSES = {429, 500, 502, 503, 504}
 
@@ -192,6 +193,10 @@ class EdgarClient:
             filed_at=date.fromisoformat(row["filingDate"]),
             primary_document=row["primaryDocument"],
         )
+
+    def get_companyfacts(self, cik: int) -> dict:
+        """All XBRL facts a company ever reported (one JSON, several MB, cached on disk)."""
+        return self.get_json(COMPANYFACTS_URL.format(cik=cik))
 
     def download_filing(self, ref: FilingRef) -> Path:
         """Download the filing's primary document (cached) and return its local path."""
