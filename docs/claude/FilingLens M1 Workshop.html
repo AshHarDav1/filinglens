@@ -1,0 +1,912 @@
+<title>FilingLens M1 Workshop</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  /* Layout: same frame as Field Map and Engine Room (1120px, prose 68ch). Teal = exact numbers (XBRL), orange = text search. */
+  :root {
+    --bg: #f3f5f7;
+    --surface: #ffffff;
+    --sunk: #eaeef2;
+    --ink: #161b22;
+    --muted: #5b6673;
+    --line: #d8dee6;
+    --line-strong: #aeb8c4;
+    --num: #0f766e;
+    --nar: #b4530a;
+    --bad: #b42318;
+    --font-display: "Newsreader", Georgia, "Times New Roman", serif;
+    --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0d1117; --surface: #161b22; --sunk: #10151c; --ink: #e7ebf0; --muted: #96a1b0;
+      --line: #28303b; --line-strong: #46515f; --num: #35d0bd; --nar: #f0a94c; --bad: #f97066;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0d1117; --surface: #161b22; --sunk: #10151c; --ink: #e7ebf0; --muted: #96a1b0;
+    --line: #28303b; --line-strong: #46515f; --num: #35d0bd; --nar: #f0a94c; --bad: #f97066;
+    color-scheme: dark;
+  }
+
+  body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.6; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 40px 96px; }
+  h1, h2, h3 { font-family: var(--font-display); font-weight: 600; text-wrap: balance; margin: 0; }
+  h1 { font-size: clamp(2rem, 5.4vw, 3.1rem); line-height: 1.08; letter-spacing: -0.01em; max-width: 24ch; }
+  h2 { font-size: clamp(1.4rem, 3.4vw, 1.9rem); line-height: 1.2; }
+  h3 { font-size: 1.12rem; line-height: 1.3; }
+  p { margin: 0; max-width: 68ch; }
+  code, .mono { font-family: var(--font-mono); font-size: 0.88em; }
+  p code, li code, td code { background: var(--sunk); border: 1px solid var(--line); border-radius: 4px; padding: 0 4px; }
+  .eyebrow { font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+  .eyebrow.num { color: var(--num); } .eyebrow.nar { color: var(--nar); }
+  .lede { font-size: 1.12rem; color: var(--muted); }
+  .muted { color: var(--muted); }
+  section { display: flex; flex-direction: column; gap: 18px; margin-block-start: 80px; scroll-margin-top: 64px; }
+  .prose { display: flex; flex-direction: column; gap: 12px; }
+  :focus-visible { outline: 2px solid var(--nar); outline-offset: 2px; }
+  ul.plain { margin: 0; padding-left: 1.1em; display: flex; flex-direction: column; gap: 6px; max-width: 72ch; }
+
+  /* sticky contents bar */
+  body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+  nav.toc { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter: blur(6px); border-bottom: 1px solid var(--line); }
+  nav.toc .in { max-width: 1120px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 8px; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+  nav.toc a { font-family: var(--font-mono); font-size: 0.74rem; color: var(--muted); text-decoration: none; padding: 4px 10px; border-radius: 999px; white-space: nowrap; border: 1px solid transparent; }
+  nav.toc a:hover { color: var(--ink); border-color: var(--line); }
+  nav.toc a.on { color: var(--ink); background: var(--surface); border-color: var(--line); }
+
+  header.masthead { display: flex; flex-direction: column; gap: 16px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { font-family: var(--font-mono); font-size: 0.76rem; border: 1px solid var(--line); border-radius: 999px; padding: 4px 11px; color: var(--muted); background: var(--surface); font-variant-numeric: tabular-nums; }
+  .chip b { color: var(--ink); font-weight: 500; }
+
+  .split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+  .card h3 { font-size: 1.05rem; }
+  .card.num { border-top: 3px solid var(--num); }
+  .card.nar { border-top: 3px solid var(--nar); }
+  .big { font-family: var(--font-display); font-size: 2.3rem; line-height: 1; font-variant-numeric: tabular-nums; }
+  .note { font-size: 0.9rem; color: var(--muted); border-left: 2px solid var(--line-strong); padding-left: 12px; max-width: 80ch; }
+  .analogy { font-size: 0.95rem; border: 1px dashed var(--line-strong); border-radius: 8px; padding: 10px 14px; max-width: 80ch; }
+  .analogy b { font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; margin-right: 6px; }
+
+  /* segmented controls */
+  .seg { display: inline-flex; border: 1px solid var(--line-strong); border-radius: 8px; overflow: hidden; align-self: flex-start; flex-wrap: wrap; }
+  .seg button { font: 500 0.8rem var(--font-mono); background: var(--surface); color: var(--muted); border: 0; padding: 7px 14px; cursor: pointer; }
+  .seg button + button { border-left: 1px solid var(--line-strong); }
+  .seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+  .btn { font: 500 0.8rem var(--font-mono); background: var(--surface); color: var(--ink); border: 1px solid var(--line-strong); border-radius: 8px; padding: 7px 14px; cursor: pointer; }
+  .btn:hover { border-color: var(--ink); }
+
+  /* diagrams */
+  figure { margin: 0; display: flex; flex-direction: column; gap: 10px; }
+  .diagram { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px; overflow-x: auto; }
+  .diagram svg { display: block; width: 100%; height: auto; }
+  .diagram.wide svg { min-width: 860px; }
+  .diagram.mid svg { min-width: 600px; }
+  figcaption { font-size: 0.9rem; color: var(--muted); max-width: 84ch; }
+  svg.dg { color: var(--muted); font-family: var(--font-body); }
+  .dg text { fill: var(--ink); font-size: 13px; }
+  .dg .t { font-weight: 600; }
+  .dg .sub { fill: var(--muted); font-family: var(--font-mono); font-size: 11px; }
+  .dg .lane { fill: var(--muted); font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.12em; }
+  .dg .lbl { fill: var(--muted); font-family: var(--font-mono); font-size: 11px; }
+  .dg .lbl-num { fill: var(--num); font-family: var(--font-mono); font-size: 11px; font-weight: 500; }
+  .dg .lbl-nar { fill: var(--nar); font-family: var(--font-mono); font-size: 11px; font-weight: 500; }
+  .dg .box { fill: var(--surface); stroke: var(--line-strong); stroke-width: 1; }
+  .dg .box-num { fill: var(--surface); stroke: var(--num); stroke-width: 1.8; }
+  .dg .box-nar { fill: var(--surface); stroke: var(--nar); stroke-width: 1.8; }
+  .dg .box-dash { fill: var(--surface); stroke: var(--line-strong); stroke-dasharray: 4 3; }
+  .dg .db { fill: var(--sunk); stroke: var(--line-strong); stroke-width: 1; }
+  .dg .edge { stroke: var(--muted); stroke-width: 1.4; fill: none; }
+  .dg .edge-num { stroke: var(--num); stroke-width: 1.6; fill: none; }
+  .dg .edge-dash { stroke: var(--muted); stroke-width: 1.2; fill: none; stroke-dasharray: 4 3; }
+  .dg .ah { fill: var(--muted); } .dg .ah-num { fill: var(--num); }
+  .dg .axis { stroke: var(--line-strong); stroke-width: 1; }
+  .dg .grid { stroke: var(--line); stroke-width: 1; }
+  .dg .zone { fill: var(--num); opacity: 0.10; }
+  .dg .you { fill: var(--nar); font-family: var(--font-mono); font-size: 10px; font-weight: 600; letter-spacing: 0.08em; }
+  /* M0 / M1 toggle on the pipeline */
+  #pipe .m0only { display: none; }
+  #pipe.mode-m0 .m0only { display: inline; }
+  #pipe.mode-m0 .m1only { display: none; }
+  #pipe .ghost { opacity: 1; transition: opacity .25s; }
+  #pipe.mode-m0 .ghost { opacity: 0.16; }
+
+  /* plan stepper */
+  .stepper { display: grid; grid-template-columns: minmax(0, 300px) minmax(0, 1fr); gap: 14px; }
+  .steplist { display: flex; flex-direction: column; gap: 6px; }
+  .steplist button { text-align: left; display: grid; grid-template-columns: 26px minmax(0, 1fr) auto; gap: 10px; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; cursor: pointer; color: var(--ink); font: inherit; }
+  .steplist button[aria-selected="true"] { border-color: var(--ink); box-shadow: inset 3px 0 0 var(--ink); }
+  .steplist .n { font-family: var(--font-mono); font-size: 0.78rem; color: var(--muted); }
+  .steplist .nm { font-size: 0.93rem; line-height: 1.3; }
+  .who { font-family: var(--font-mono); font-size: 0.64rem; letter-spacing: 0.08em; padding: 2px 7px; border-radius: 999px; white-space: nowrap; }
+  .who.you { background: var(--nar); color: var(--bg); }
+  .who.me { border: 1px solid var(--line-strong); color: var(--muted); }
+  .who.both { border: 1px solid var(--nar); color: var(--nar); }
+  .stepdetail { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+  .stepdetail dl { margin: 0; display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 8px 14px; }
+  .stepdetail dt { font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); padding-top: 3px; }
+  .stepdetail dd { margin: 0; font-size: 0.95rem; }
+  .done-row { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; color: var(--muted); }
+  .steplist .tick { width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--line-strong); display: inline-block; }
+  .steplist button.done .tick { background: var(--num); border-color: var(--num); }
+
+  /* code */
+  pre { margin: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; overflow-x: auto; font-family: var(--font-mono); font-size: 0.8rem; line-height: 1.55; white-space: pre; }
+  pre .k { color: var(--nar); }
+  pre .c { color: var(--muted); }
+  pre .s { color: var(--num); }
+  pre .todo { background: color-mix(in srgb, var(--nar) 18%, transparent); border-radius: 3px; }
+  pre .hl { background: color-mix(in srgb, var(--num) 16%, transparent); border-radius: 3px; }
+  .codehead { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-family: var(--font-mono); font-size: 0.76rem; color: var(--muted); }
+
+  /* tables */
+  .tscroll { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+  table { border-collapse: collapse; width: 100%; font-size: 0.86rem; }
+  th, td { text-align: left; vertical-align: top; padding: 7px 12px; border-bottom: 1px solid var(--line); }
+  tr:last-child td { border-bottom: 0; }
+  th { font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; background: var(--sunk); white-space: nowrap; }
+  td.m { font-family: var(--font-mono); font-size: 0.8rem; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  td.r { text-align: right; }
+  td.col { font-family: var(--font-mono); font-weight: 500; white-space: nowrap; }
+  td.why { min-width: 240px; }
+  .facts tr.out td { opacity: 0.32; }
+  .facts tr.out td.reason { opacity: 1; color: var(--bad); }
+  .facts td.reason { font-family: var(--font-mono); font-size: 0.72rem; color: var(--num); white-space: nowrap; }
+  .facts tr.win td { background: color-mix(in srgb, var(--num) 12%, transparent); }
+
+  .picker { display: grid; grid-template-columns: minmax(0, 300px) minmax(0, 1fr); gap: 14px; align-items: start; }
+  .controls { display: flex; flex-direction: column; gap: 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px; }
+  .controls label { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 8px; font-size: 0.9rem; cursor: pointer; align-items: start; }
+  .controls input { margin-top: 4px; accent-color: var(--num); }
+  .controls .lab { font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+  .result { border-radius: 8px; padding: 10px 12px; font-size: 0.92rem; border: 1px solid var(--line); background: var(--sunk); }
+  .result.ok { border-color: var(--num); color: var(--num); background: color-mix(in srgb, var(--num) 9%, var(--surface)); }
+  .result.bad { border-color: var(--bad); color: var(--bad); background: color-mix(in srgb, var(--bad) 8%, var(--surface)); }
+  .result b { font-family: var(--font-mono); }
+
+  /* legend + tooltip */
+  .legend { display: flex; flex-wrap: wrap; gap: 6px; }
+  .legend button { display: inline-flex; align-items: center; gap: 6px; font: 0.76rem var(--font-mono); color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px; cursor: pointer; }
+  .legend button[aria-pressed="true"] { border-color: var(--ink); }
+  .legend i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+  .tip { position: fixed; pointer-events: none; z-index: 20; background: var(--ink); color: var(--bg); font: 0.76rem var(--font-mono); padding: 6px 9px; border-radius: 6px; max-width: 260px; }
+
+  /* walker */
+  .walker { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 300px); gap: 14px; }
+  .walkpanel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+  .walkpanel .state { font-family: var(--font-mono); font-size: 0.82rem; }
+  .dec { font-family: var(--font-mono); font-size: 0.72rem; padding: 2px 8px; border-radius: 999px; }
+  .dec.toc { border: 1px solid var(--line-strong); color: var(--muted); }
+  .dec.accept { background: var(--num); color: var(--bg); }
+  .dec.ignore { border: 1px solid var(--nar); color: var(--nar); }
+  input[type=range] { width: 100%; accent-color: var(--ink); }
+  .rowctl { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+  /* before/after */
+  .ba pre { max-height: 360px; overflow: auto; }
+  .ba .meta { font-family: var(--font-mono); font-size: 0.76rem; color: var(--muted); }
+
+  /* quiz */
+  details.q { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px; }
+  details.q summary { cursor: pointer; font-weight: 500; }
+  details.q[open] summary { margin-bottom: 8px; }
+  details.q p { font-size: 0.95rem; }
+  .quiz { display: flex; flex-direction: column; gap: 8px; }
+
+  @media (max-width: 860px) {
+    .split, .stepper, .picker, .walker { grid-template-columns: minmax(0, 1fr); }
+    .stepdetail dl { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+    .stepdetail dd { margin-bottom: 8px; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+
+<nav class="toc" aria-label="Sections"><div class="in">
+  <a href="#map">The change</a><a href="#plan">Six steps</a><a href="#xbrl">A · Numbers</a><a href="#sections">B · Sections</a><a href="#tables">C · Tables</a><a href="#headers">D · Headers</a><a href="#measure">E · Measure</a><a href="#quiz">Check yourself</a>
+</div></nav>
+
+<div class="wrap">
+
+<header class="masthead">
+  <span class="eyebrow">FilingLens · Milestone 1 · Data</span>
+  <h1>M0 showed the search fails on bad data. M1 fixes the data.</h1>
+  <p class="lede">Two moves. Numbers leave the text search entirely and go into a table of SEC-tagged facts. Text gets structure: it learns which section it came from, keeps table rows together, and carries a label saying what it is. Every chart on this page comes from your own filings and database.</p>
+  <div class="chips">
+    <span class="chip">today hit@6 <b>6/20</b></span>
+    <span class="chip">far misses <b>5</b>, all tables</span>
+    <span class="chip">MSFT us-gaap facts <b>32,880</b></span>
+    <span class="chip">filings to re-chunk <b>12</b></span>
+    <span class="chip">re-embed cost <b>≈ $0.03</b></span>
+  </div>
+</header>
+
+<!-- ============ MAP ============ -->
+<section id="map">
+  <span class="eyebrow">The change in one picture</span>
+  <h2>What the ingestion pipeline looks like before and after</h2>
+  <p>Flip between M0 and M1. Three boxes change on the text path and one whole lane appears for numbers. Orange labels mark the parts you write.</p>
+  <div class="seg" role="group" aria-label="Pipeline version">
+    <button type="button" data-mode="m0" aria-pressed="false">M0 · today</button>
+    <button type="button" data-mode="m1" aria-pressed="true">M1 · after</button>
+  </div>
+  <figure>
+    <div class="diagram wide">
+      <svg id="pipe" class="dg" viewBox="0 0 1000 300" role="img" aria-label="Ingestion pipeline. Text lane: 10-K HTML, to text, split into sections, chunk with header, embed, chunk table. Numbers lane in M1: companyfacts JSON, load_facts, financial_fact table, later the get_financials tool.">
+        <defs>
+          <marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ah"/></marker>
+          <marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ah-num"/></marker>
+        </defs>
+        <text x="20" y="34" class="lane">TEXT → CHUNKS → VECTOR SEARCH</text>
+        <!-- text lane -->
+        <rect x="20" y="52" width="130" height="62" rx="6" class="box"/>
+        <text x="85" y="78" text-anchor="middle" class="t">10-K HTML</text>
+        <text x="85" y="96" text-anchor="middle" class="sub">data/raw/ · cached</text>
+
+        <rect x="180" y="52" width="150" height="62" rx="6" class="box m0only"/>
+        <rect x="180" y="52" width="150" height="62" rx="6" class="box-nar m1only"/>
+        <text x="255" y="78" text-anchor="middle" class="t">html_to_text</text>
+        <text x="255" y="96" text-anchor="middle" class="sub m0only">tables → 1 value/line</text>
+        <text x="255" y="96" text-anchor="middle" class="sub m1only">rows → "a | b | c"</text>
+        <text x="255" y="130" text-anchor="middle" class="lbl m1only">step 4 · Claude</text>
+
+        <g class="ghost">
+          <rect x="360" y="52" width="150" height="62" rx="6" class="box-nar"/>
+          <text x="435" y="78" text-anchor="middle" class="t">split_sections</text>
+          <text x="435" y="96" text-anchor="middle" class="sub">Item 1A · 7 · 8 …</text>
+          <text x="435" y="130" text-anchor="middle" class="you">STEP 3 · YOU</text>
+        </g>
+
+        <rect x="540" y="52" width="150" height="62" rx="6" class="box m0only"/>
+        <rect x="540" y="52" width="150" height="62" rx="6" class="box-nar m1only"/>
+        <text x="615" y="78" text-anchor="middle" class="t">chunker</text>
+        <text x="615" y="96" text-anchor="middle" class="sub m0only">2,000 chars, whole doc</text>
+        <text x="615" y="96" text-anchor="middle" class="sub m1only">per section + header</text>
+        <text x="615" y="130" text-anchor="middle" class="you m1only">STEP 5 · YOU</text>
+
+        <rect x="720" y="52" width="110" height="62" rx="6" class="box"/>
+        <text x="775" y="78" text-anchor="middle" class="t">embed</text>
+        <text x="775" y="96" text-anchor="middle" class="sub">cache by sha256</text>
+
+        <path d="M860 58 h120 v52 h-120 z" class="db"/>
+        <text x="920" y="80" text-anchor="middle" class="t mono">chunk</text>
+        <text x="920" y="98" text-anchor="middle" class="sub m0only">section = NULL</text>
+        <text x="920" y="98" text-anchor="middle" class="sub m1only">section = 'Item 8'</text>
+
+        <line x1="150" y1="83" x2="178" y2="83" class="edge" marker-end="url(#a1)"/>
+        <line x1="330" y1="83" x2="358" y2="83" class="edge m1only" marker-end="url(#a1)"/>
+        <path d="M330 83 C 420 140, 460 140, 538 83" class="edge m0only" marker-end="url(#a1)"/>
+        <line x1="510" y1="83" x2="538" y2="83" class="edge m1only" marker-end="url(#a1)"/>
+        <line x1="690" y1="83" x2="718" y2="83" class="edge" marker-end="url(#a1)"/>
+        <line x1="830" y1="83" x2="858" y2="83" class="edge" marker-end="url(#a1)"/>
+
+        <!-- numbers lane -->
+        <g class="ghost">
+          <text x="20" y="182" class="lane">NUMBERS → TABLE → SQL</text>
+          <rect x="20" y="200" width="130" height="62" rx="6" class="box-num"/>
+          <text x="85" y="226" text-anchor="middle" class="t">companyfacts</text>
+          <text x="85" y="244" text-anchor="middle" class="sub">JSON · 1 per company</text>
+
+          <rect x="180" y="200" width="150" height="62" rx="6" class="box-num"/>
+          <text x="255" y="226" text-anchor="middle" class="t">load_facts</text>
+          <text x="255" y="244" text-anchor="middle" class="sub">10-K facts only</text>
+          <text x="255" y="278" text-anchor="middle" class="lbl">step 1 · Claude</text>
+
+          <path d="M360 206 h150 v52 h-150 z" class="db"/>
+          <text x="435" y="228" text-anchor="middle" class="t mono">financial_fact</text>
+          <text x="435" y="246" text-anchor="middle" class="sub">concept · period · value</text>
+
+          <rect x="540" y="200" width="150" height="62" rx="6" class="box-num"/>
+          <text x="615" y="226" text-anchor="middle" class="t">get_metric</text>
+          <text x="615" y="244" text-anchor="middle" class="sub">COGS → concepts</text>
+          <text x="615" y="278" text-anchor="middle" class="you">STEP 2 · YOU</text>
+
+          <rect x="720" y="200" width="260" height="62" rx="6" class="box-dash"/>
+          <text x="850" y="226" text-anchor="middle" class="t">get_financials tool</text>
+          <text x="850" y="244" text-anchor="middle" class="sub">the agent calls it · M3</text>
+
+          <line x1="150" y1="231" x2="178" y2="231" class="edge-num" marker-end="url(#a2)"/>
+          <line x1="330" y1="231" x2="358" y2="231" class="edge-num" marker-end="url(#a2)"/>
+          <line x1="510" y1="231" x2="538" y2="231" class="edge-num" marker-end="url(#a2)"/>
+          <line x1="690" y1="231" x2="718" y2="231" class="edge-dash" marker-end="url(#a1)"/>
+        </g>
+      </svg>
+    </div>
+    <figcaption>In M0 the text went straight from HTML into blind 2,000-character windows, and numbers had no path of their own. In M1 the numbers lane bypasses text entirely (ADR-002), and the text lane gains structure before anything is embedded.</figcaption>
+  </figure>
+  <div class="split">
+    <div class="card num"><span class="eyebrow num">Fixes the 5 far misses</span><h3>Numbers lane</h3><p>"What was Microsoft's FY2016 COGS?" stops being a search and becomes a lookup: <code>CostOfRevenue</code>, fiscal 2016, annual → <b>$32,780M</b>. No embeddings, no ranking, no chance of rank 73.</p></div>
+    <div class="card nar"><span class="eyebrow nar">Improves the 9 near misses</span><h3>Text lane</h3><p>Chunks that never straddle two sections, with table rows intact and a header naming company, year and section. The hit@k script measures whether it worked.</p></div>
+  </div>
+</section>
+
+<!-- ============ PLAN ============ -->
+<section id="plan">
+  <span class="eyebrow">The plan</span>
+  <h2>Six steps, and who writes each one</h2>
+  <p>Orange steps are AI-core work you write against a skeleton and tests I prepare. Grey steps are plumbing I write in one go. Tick a step off when it's done; the ticks stay in this browser.</p>
+  <div class="stepper">
+    <div class="steplist" role="tablist" aria-label="M1 steps" id="steplist"></div>
+    <div class="stepdetail" id="stepdetail" role="tabpanel" aria-live="polite"></div>
+  </div>
+</section>
+
+<!-- ============ A: XBRL ============ -->
+<section id="xbrl">
+  <span class="eyebrow num">Part A · Steps 1–2</span>
+  <h2>Numbers: stop searching for them, look them up</h2>
+  <div class="prose">
+    <p><b>XBRL</b> is a tagging standard: when a company files a 10-K, every number in its financial statements is also submitted as a machine-readable fact with a standard name (a <b>concept</b>, like <code>CostOfRevenue</code>), a period, a unit and a value. SEC publishes all of a company's facts as one JSON file, <code>companyfacts</code>.</p>
+    <p>So the number we failed to find with RAG has been sitting in a structured API the whole time.</p>
+  </div>
+  <div class="analogy"><b>Backend analogy</b>Scraping prices out of a shop's HTML versus calling the shop's JSON API. RAG on tables is the scraper. XBRL is the API.</div>
+
+  <div class="split">
+    <figure>
+      <div class="codehead">companyfacts/CIK0000789019.json · real excerpt</div>
+<pre>{
+  <span class="s">"entityName"</span>: "MICROSOFT CORPORATION",
+  <span class="s">"facts"</span>: {
+    <span class="s">"us-gaap"</span>: {                 <span class="c">// 562 concepts</span>
+      <span class="s">"CostOfRevenue"</span>: {
+        "label": "Cost of Revenue",
+        "units": { "USD": [
+          { "start": "2015-07-01", "end": "2016-06-30",
+            "val": <span class="hl">32780000000</span>,
+            "accn": "0001193125-16-662209",
+            "fy": 2016, "fp": "FY",
+            "form": "10-K", "filed": "2016-07-28" },
+          { "start": "2015-07-01", "end": "2016-06-30",
+            "val": <span class="hl">32780000000</span>,
+            "accn": "0001564590-17-014900",
+            "fy": <span class="todo">2017</span>, "fp": "FY", "form": "10-K",
+            "filed": "2017-08-02", "frame": "CY2016" },
+          …</pre>
+      <figcaption>Same period, same value, two rows: the FY2017 10-K repeats last year's number as a comparison column. And look at <code>fy</code>: it is 2017 on a fact about fiscal 2016.</figcaption>
+    </figure>
+    <div class="card">
+      <span class="eyebrow">Three traps in this data</span>
+      <ul class="plain">
+        <li><b>Duplicates.</b> Every number is reported again in the next one or two 10-Ks as a comparison column. One period can have 3 rows.</li>
+        <li><b><code>fy</code> lies.</b> It is the fiscal year of the <i>filing</i> that reported the fact, not of the period the fact describes. Filter on the period dates.</li>
+        <li><b>Concepts get renamed.</b> Microsoft tagged cost of revenue as <code>CostOfRevenue</code> until its FY2017 10-K, and as <code>CostOfGoodsAndServicesSold</code> from FY2018 on. A metric is a list of concepts, not one name.</li>
+      </ul>
+      <p class="note">Plus one more you'll meet: balance-sheet numbers (debt, current liabilities) are <b>instant</b> facts with only an <code>end</code> date. Income-statement numbers are <b>duration</b> facts with <code>start</code> and <code>end</code>.</p>
+    </div>
+  </div>
+
+  <h3>Try it: get one correct number out of 30 real rows</h3>
+  <p>These are all of Microsoft's cost-of-revenue facts for periods ending July 2015 to June 2017, straight from the JSON. The question is "Microsoft FY2016 COGS". Turn the rules on one at a time and watch the SQL and the answer change.</p>
+  <div class="picker">
+    <div class="controls" id="picker">
+      <span class="lab">Year filter</span>
+      <div class="seg" role="group" aria-label="Year filter">
+        <button type="button" data-year="fy" aria-pressed="true">fy = 2016</button>
+        <button type="button" data-year="period" aria-pressed="false">period in FY2016 (Jul 15–Jun 16)</button>
+      </div>
+      <span class="lab">Rules</span>
+      <label><input type="checkbox" id="r-annual"><span>Annual only: a 10-K and a ~365-day period (drops quarters and 6/9-month sums)</span></label>
+      <label><input type="checkbox" id="r-dedupe"><span>One row per period: prefer the 10-K for that fiscal year itself (as originally reported)</span></label>
+      <div class="result" id="pick-result"></div>
+<pre id="pick-sql"></pre>
+    </div>
+    <div class="tscroll"><table class="facts" id="facts"><thead><tr><th>concept</th><th>period</th><th>days</th><th class="r">value $M</th><th>form</th><th>fy</th><th>filed</th><th>status</th></tr></thead><tbody></tbody></table></div>
+  </div>
+
+  <h3>The new table: <code>financial_fact</code></h3>
+  <p>One row per fact, as reported. We keep the duplicates on purpose and resolve them at query time, so the table stays a faithful copy of the source and the choosing rule lives in one function you can test.</p>
+  <div class="tscroll"><table>
+    <thead><tr><th>column</th><th>type</th><th>example (MSFT FY2016 COGS)</th><th>why it exists</th></tr></thead>
+    <tbody>
+      <tr><td class="col">company_id</td><td class="m">FK → company</td><td class="m">21</td><td class="why">Same company row as the text side, so one ticker filter works for both.</td></tr>
+      <tr><td class="col">concept</td><td class="m">varchar</td><td class="m">CostOfRevenue</td><td class="why">The XBRL tag. Indexed: every lookup starts here.</td></tr>
+      <tr><td class="col">unit</td><td class="m">varchar</td><td class="m">USD</td><td class="why">USD, shares, USD/shares (EPS), pure (ratios). Never mix them in arithmetic.</td></tr>
+      <tr><td class="col">value</td><td class="m">numeric</td><td class="m">32780000000</td><td class="why">Exact decimal, never float: these numbers end up in a citation.</td></tr>
+      <tr><td class="col">period_start</td><td class="m">date, nullable</td><td class="m">2015-07-01</td><td class="why">NULL for instant (balance sheet) facts.</td></tr>
+      <tr><td class="col">period_end</td><td class="m">date</td><td class="m">2016-06-30</td><td class="why">With period_start, defines what the number is about.</td></tr>
+      <tr><td class="col">fiscal_year</td><td class="m">int</td><td class="m">2016</td><td class="why">Computed by us from period_end with the same rule as the filing table. Not SEC's <code>fy</code>.</td></tr>
+      <tr><td class="col">form</td><td class="m">varchar</td><td class="m">10-K</td><td class="why">We load 10-K and 10-K/A only; v1 has no 10-Qs.</td></tr>
+      <tr><td class="col">accession_no</td><td class="m">varchar</td><td class="m">0001193125-16-662209</td><td class="why">Which filing reported it. Links the number to a citation URL, and decides "as originally reported".</td></tr>
+      <tr><td class="col">filed_at</td><td class="m">date</td><td class="m">2016-07-28</td><td class="why">Tie-breaker: the latest filing wins when the year's own 10-K is missing.</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note">Unique key: (company_id, concept, unit, period_start, period_end, accession_no), so re-running the loader inserts nothing twice.</p>
+
+  <h3>Your code for step 2</h3>
+  <div class="split">
+    <figure>
+      <div class="codehead"><span class="who you">YOU</span> src/filinglens/financials.py · skeleton</div>
+<pre><span class="c"># metric name the agent uses → XBRL concepts, most common first.</span>
+<span class="c"># Look concepts up in the companyfacts JSON in data/raw/.</span>
+METRICS: dict[str, list[str]] = {
+    "revenue": [<span class="todo">...</span>],
+    "cost_of_revenue": [<span class="todo">"CostOfRevenue", ...</span>],
+    "operating_income": [<span class="todo">...</span>],
+    "net_income": [<span class="todo">...</span>],
+    "total_current_liabilities": [<span class="todo">...</span>],
+    "long_term_debt": [<span class="todo">...</span>],
+    "depreciation_amortization": [<span class="todo">...</span>],
+    "capex": [<span class="todo">...</span>],
+}
+
+<span class="k">def</span> get_metric(session, ticker: str, fiscal_year: int,
+               metric: str) -> Fact | <span class="k">None</span>:
+    <span class="c">"""The one number for this metric and year, or None."""</span>
+    <span class="todo"># TODO: try concepts in order; annual 10-K rows only;</span>
+    <span class="todo"># fiscal_year on the PERIOD; prefer that year's own 10-K</span></pre>
+    </figure>
+    <div class="card">
+      <span class="eyebrow">Hints</span>
+      <ul class="plain">
+        <li>The metric list comes from the 20 eval questions: COGS, current liabilities, debt, D&amp;A, capex, revenue, operating income.</li>
+        <li>To find concept names, open a company's JSON and search for a word like <code>Depreciation</code>. Different companies use different concepts for the same idea.</li>
+        <li>The query is plain SQLAlchemy, which you know well. The only new part is the rules you just played with above.</li>
+        <li>Instant facts have <code>period_start IS NULL</code>, so "annual" means different things for income-statement and balance-sheet metrics.</li>
+        <li>I write <code>tests/test_financials.py</code> first, with the MSFT FY2016 case from the picker. You're done when it's green.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ B: SECTIONS ============ -->
+<section id="sections">
+  <span class="eyebrow nar">Part B · Step 3</span>
+  <h2>Sections: teach the text where it came from</h2>
+  <div class="prose">
+    <p>Every 10-K follows the same legal outline: <b>Item 1</b> Business, <b>Item 1A</b> Risk Factors, <b>Item 7</b> MD&amp;A (management's explanation), <b>Item 7A</b> market risk, <b>Item 8</b> Financial Statements, and so on up to Item 16. The M0 chunk 115 failed partly because it was half Item 7A and half Item 8. If we split the document at Item boundaries first, no chunk can mix two sections, and every chunk gets a <code>section</code> label we can filter on in M2.</p>
+  </div>
+  <figure>
+    <div class="legend" id="seclegend"></div>
+    <div class="diagram mid"><svg id="secbars" class="dg" role="img" aria-label="Stacked bars of section sizes for the 12 filings."></svg></div>
+    <figcaption>Section sizes in characters for your 12 filings, found by the strategy below. Click a legend entry to highlight one section. Two real quirks: Netflix's Item 8 is 272 characters ("see Item 15"), and PepsiCo puts its financial statements inside Item 7, which is why its Item 7 is so long.</figcaption>
+  </figure>
+
+  <div class="split">
+    <div class="card">
+      <span class="eyebrow">Why a regex for "Item 8" is not enough</span>
+      <ul class="plain">
+        <li><b>The table of contents comes first.</b> Every heading appears once near the top, a few lines apart, before the real one.</li>
+        <li><b>Running page headers.</b> Microsoft prints "PART II Item 8" at the top of every page: 46 matches for Item 8 in the FY2016 10-K.</li>
+        <li><b>Cross-references.</b> Sentences like "see Item 7" mid-paragraph.</li>
+        <li><b>Odd layouts.</b> AmEx has no table of contents that looks like headings. Netflix and PepsiCo keep statements outside Item 8.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <span class="eyebrow">A strategy that works on all 12</span>
+      <ul class="plain">
+        <li><b>Rule 1.</b> Match heading lines (<code>^Item 7A.</code> at a line start), not words in sentences.</li>
+        <li><b>Rule 2.</b> Skip the table of contents: the body starts at the first "Item 1" whose next heading is at least ~400 characters away.</li>
+        <li><b>Rule 3.</b> Walk forward and accept a heading only if it comes <i>later</i> in the outline than the current one. A repeated "Item 8" while you're in Item 8 is a page header; ignore it.</li>
+        <li><b>Rule 4.</b> Label, don't drop. Keep every section; filtering is a query-time choice.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>Watch the rules run on Microsoft FY2016</h3>
+  <p>Each tick is a line that looks like an Item heading, placed at its real position in the 346,738-character document. Drag the slider to walk through them in order.</p>
+  <div class="walker">
+    <figure>
+      <div class="diagram"><svg id="walktrack" class="dg" viewBox="0 0 700 120" role="img" aria-label="Positions of 131 heading lines in the Microsoft FY2016 10-K: 20 in the table of contents, 20 accepted section starts, 91 ignored page headers."></svg></div>
+      <div class="rowctl">
+        <input type="range" id="walk" min="0" max="130" value="0" aria-label="Heading number">
+        <button type="button" class="btn" id="walkplay">Play</button>
+      </div>
+    </figure>
+    <div class="walkpanel" id="walkpanel" aria-live="polite"></div>
+  </div>
+
+  <figure>
+    <div class="codehead"><span class="who you">YOU</span> src/filinglens/ingestion/parse_10k.py · skeleton</div>
+<pre><span class="k">class</span> Section(BaseModel):
+    item: str          <span class="c"># "1A", "7", "8" …</span>
+    title: str         <span class="c"># "Risk Factors"</span>
+    text: str
+
+ITEM_ORDER = ["1", "1A", "1B", "1C", "2", "3", "4", "5", "6", "7", "7A", "8",
+              "9", "9A", "9B", "9C", "10", "11", "12", "13", "14", "15", "16"]
+
+<span class="k">def</span> split_sections(text: str) -> list[Section]:
+    <span class="c">"""Split 10-K plain text into Item sections, in order. Text before the
+    first section (cover page, table of contents) becomes item "cover"."""</span>
+    <span class="todo"># TODO rule 1: a multiline, case-insensitive regex for heading lines.</span>
+    <span class="todo">#   Careful: "Item 10" must not match as "Item 1" + "0".</span>
+    <span class="todo"># TODO rule 2: find where the body starts (skip the TOC cluster)</span>
+    <span class="todo"># TODO rule 3: walk forward; accept only headings later in ITEM_ORDER</span>
+    <span class="todo"># TODO: cut the text between accepted starts into Sections</span></pre>
+    <figcaption>Tests I prepare: a small fake 10-K with a TOC, a running header and a cross-reference, plus a check that all 12 real filings produce Items 1A, 7 and 8 in order.</figcaption>
+  </figure>
+</section>
+
+<!-- ============ C: TABLES ============ -->
+<section id="tables">
+  <span class="eyebrow nar">Part C · Step 4</span>
+  <h2>Tables: keep each row on one line</h2>
+  <p>In the 10-K's HTML, every table cell contains its own <code>&lt;p&gt;</code> or <code>&lt;div&gt;</code>, and our converter turns each of those into a line break. The fix: inside a table, join cells with <code>|</code> and end the line only at the end of a row. That's parsing plumbing, so I write it.</p>
+  <div class="seg" role="group" aria-label="Table text version">
+    <button type="button" data-tbl="flat" aria-pressed="true">M0 · flattened</button>
+    <button type="button" data-tbl="rows" aria-pressed="false">M1 · rows</button>
+  </div>
+  <div class="ba">
+    <pre id="tbltext"></pre>
+    <span class="meta" id="tblmeta"></span>
+  </div>
+  <p class="note">Rows alone barely change the embedding (see Part D). They matter because the LLM can now read "Total cost of revenue | 32,780" as one fact, and because M2's keyword search will match "cost of revenue" next to its number.</p>
+</section>
+
+<!-- ============ D: HEADERS ============ -->
+<section id="headers">
+  <span class="eyebrow nar">Part D · Step 5</span>
+  <h2>Chunks that say what they are</h2>
+  <div class="prose">
+    <p>A <b>contextual header</b> is one line glued to the top of every chunk before it is embedded: company, form, fiscal year, section. A table of numbers says almost nothing to an embedding model. The same table under "Microsoft · 10-K FY2016 · Item 8 · Income Statements" says exactly what it is. This technique is often called <b>contextual retrieval</b>.</p>
+  </div>
+  <div class="analogy"><b>Backend analogy</b>A log line with no context versus a structured log with service, request id and environment fields. Same message, but now you can find it.</div>
+<pre>Microsoft Corporation · 10-K for fiscal year 2016 (ended June 30, 2016) · Item 8. Financial Statements · Income Statements
+
+Total revenue | 85,320 | 93,580 | 86,833
+Cost of revenue:
+Product | 17,880 | 21,410 | 16,681
+…</pre>
+
+  <h3>The experiment: what each fix does to the Microsoft COGS chunk</h3>
+  <p>I re-embedded chunk 115 in four versions, each adding one M1 fix, and measured its rank among the other 202 chunks of the same filing. Switch between the original eval question and a cleaned-up query (the kind of rewrite the M3 agent will do).</p>
+  <div class="seg" role="group" aria-label="Query">
+    <button type="button" data-q="original" aria-pressed="true">original question</button>
+    <button type="button" data-q="rewritten" aria-pressed="false">rewritten query</button>
+  </div>
+  <figure>
+    <div class="diagram mid"><svg id="exp" class="dg" viewBox="0 0 760 270" role="img" aria-label="Rank of the answer chunk for four versions."></svg></div>
+    <figcaption id="expcap"></figcaption>
+  </figure>
+  <div class="result bad" style="max-width:84ch">
+    <b>Update after step 6: the full measurement overturned this.</b> With every chunk carrying a header, hit@6 dropped from 8/20 to 6/20. The header still pulled far misses closer (Microsoft COGS rank 73 → 23), but it pushed good hits down (Adobe 9 → 48, Verizon 14 → 45). The reason: search is already filtered to one filing, so "Microsoft · FY2016" is identical on every candidate chunk. It tells them apart from nothing and only makes them look alike. In this one-chunk test, only chunk 115 had the header, which made it look like a win.
+  </div>
+  <p class="note">The lesson worth repeating in an interview: an experiment on one item, with everything else held at the old version, can point the wrong way. Measure on the whole set.</p>
+
+  <figure>
+    <div class="codehead"><span class="who me">CLAUDE</span> src/filinglens/ingestion/chunk_embed.py · final</div>
+<pre><span class="k">class</span> ChunkDraft(BaseModel):
+    section: str        <span class="c"># the Item, e.g. "8"</span>
+    content: str
+
+<span class="k">def</span> build_chunks(sections: list[Section]) -> list[ChunkDraft]:
+    <span class="c">"""Chunk every Item on its own, so no chunk crosses two Items."""</span>
+    <span class="k">return</span> [
+        ChunkDraft(section=section.item, content=piece)
+        <span class="k">for</span> section <span class="k">in</span> sections
+        <span class="k">if</span> section.item != "cover" <span class="k">and</span> len(section.text.strip()) >= MIN_SECTION_CHARS
+        <span class="k">for</span> piece <span class="k">in</span> chunk_text(section.text)
+    ]</pre>
+    <figcaption>No header is embedded. The context goes into the prompt instead: each excerpt the LLM reads is labelled <code>[1] MSFT 10-K FY2016 · Item 8 (chunk 12)</code>, which helps the LLM and costs the search nothing.</figcaption>
+  </figure>
+</section>
+
+<!-- ============ E: MEASURE ============ -->
+<section id="measure">
+  <span class="eyebrow">Part E · Step 6</span>
+  <h2>Measure, or it didn't happen</h2>
+  <p>Same 20 questions, one matcher for every variant. I rebuilt the chunks three ways from the same filings and ranked the FinanceBench evidence under each. This is called an <b>ablation</b>: change one thing at a time and measure.</p>
+  <figure>
+    <div class="diagram mid"><svg class="dg" viewBox="0 0 760 262" role="img" aria-label="Hit rate at k equals 6, 10, 20, 40. M0: 8, 10, 15, 16. M1 kept (sections and table rows): 8, 8, 15, 16. M1 with embedded header: 6, 7, 12, 17. Out of 20.">
+      <text x="40" y="14" class="lbl">questions with evidence in the top k (of 20)</text>
+      <line x1="60" y1="200" x2="740" y2="200" class="axis"/>
+      <line x1="60" y1="150" x2="740" y2="150" class="grid"/><line x1="60" y1="100" x2="740" y2="100" class="grid"/><line x1="60" y1="50" x2="740" y2="50" class="grid"/>
+      <text x="50" y="204" text-anchor="end" class="lbl">0</text><text x="50" y="154" text-anchor="end" class="lbl">5</text><text x="50" y="104" text-anchor="end" class="lbl">10</text><text x="50" y="54" text-anchor="end" class="lbl">15</text>
+      <g>
+        <rect x="98" y="120" width="40" height="80" fill="var(--line-strong)"/><text x="118" y="114" text-anchor="middle" class="lbl">8</text>
+        <rect x="140" y="120" width="40" height="80" fill="var(--num)"/><text x="160" y="114" text-anchor="middle" class="lbl-num">8</text>
+        <rect x="182" y="140" width="40" height="60" fill="var(--nar)"/><text x="202" y="134" text-anchor="middle" class="lbl-nar">6</text>
+        <text x="160" y="222" text-anchor="middle" class="lbl">hit@6</text>
+      </g>
+      <g>
+        <rect x="268" y="100" width="40" height="100" fill="var(--line-strong)"/><text x="288" y="94" text-anchor="middle" class="lbl">10</text>
+        <rect x="310" y="120" width="40" height="80" fill="var(--num)"/><text x="330" y="114" text-anchor="middle" class="lbl-num">8</text>
+        <rect x="352" y="130" width="40" height="70" fill="var(--nar)"/><text x="372" y="124" text-anchor="middle" class="lbl-nar">7</text>
+        <text x="330" y="222" text-anchor="middle" class="lbl">hit@10</text>
+      </g>
+      <g>
+        <rect x="438" y="50" width="40" height="150" fill="var(--line-strong)"/><text x="458" y="44" text-anchor="middle" class="lbl">15</text>
+        <rect x="480" y="50" width="40" height="150" fill="var(--num)"/><text x="500" y="44" text-anchor="middle" class="lbl-num">15</text>
+        <rect x="522" y="80" width="40" height="120" fill="var(--nar)"/><text x="542" y="74" text-anchor="middle" class="lbl-nar">12</text>
+        <text x="500" y="222" text-anchor="middle" class="lbl">hit@20</text>
+      </g>
+      <g>
+        <rect x="608" y="40" width="40" height="160" fill="var(--line-strong)"/><text x="628" y="34" text-anchor="middle" class="lbl">16</text>
+        <rect x="650" y="40" width="40" height="160" fill="var(--num)"/><text x="670" y="34" text-anchor="middle" class="lbl-num">16</text>
+        <rect x="692" y="30" width="40" height="170" fill="var(--nar)"/><text x="712" y="24" text-anchor="middle" class="lbl-nar">17</text>
+        <text x="670" y="222" text-anchor="middle" class="lbl">hit@40</text>
+      </g>
+      <rect x="120" y="242" width="10" height="10" fill="var(--line-strong)"/><text x="136" y="251" class="lbl">M0 chunks</text>
+      <rect x="270" y="242" width="10" height="10" fill="var(--num)"/><text x="286" y="251" class="lbl">M1 kept: sections + table rows</text>
+      <rect x="520" y="242" width="10" height="10" fill="var(--nar)"/><text x="536" y="251" class="lbl">M1 + embedded header</text>
+    </svg></div>
+    <figcaption>From <code>eval/results/2026-10-30-m1-ablation.json</code> and <code>2026-10-30-hit-m1.json</code>. The M0 bars read 8/20, not the 6/20 reported in M0: step 6 also fixed the matcher (it now accepts any 150-character window of the evidence, not only the first one, which can straddle a section border), and every variant here uses the fixed one.</figcaption>
+  </figure>
+  <div class="split">
+    <div class="card num"><span class="eyebrow num">What the text work bought</span>
+      <p>No gain at hit@6 (8/20 → 8/20), and the reasons to keep it are structural: no chunk crosses two Items, every chunk carries its Item for M2's section filters, and the LLM reads <code>Total cost of revenue | 32,780</code> instead of loose numbers.</p>
+    </div>
+    <div class="card nar"><span class="eyebrow nar">Where the real retrieval gains must come from</span>
+      <p>The ranking itself. Four questions are still beyond rank 40. Two of them (Microsoft COGS and debt) are now answered by XBRL lookups. The rest is M2's work: keyword search next to vector search, and section filters.</p>
+    </div>
+  </div>
+  <div class="split">
+    <div class="card"><span class="eyebrow">M1 is done when</span>
+      <ul class="plain">
+        <li><code>financial_fact</code> holds the 10-K facts for all 10 companies, and <code>get_metric</code> returns $32,780M for MSFT FY2016 COGS.</li>
+        <li>Every chunk has a <code>section</code>, and no chunk crosses two sections.</li>
+        <li><code>hit-m1</code> is saved and compared with M0 under the same matcher, whatever the number is. Done: 8/20 vs 8/20.</li>
+        <li>Tests are green and CLAUDE.md is updated.</li>
+      </ul>
+    </div>
+    <div class="card"><span class="eyebrow">What hit@k can't show</span>
+      <p>The number questions move to XBRL, but hit@k still checks whether their evidence <i>text</i> is retrieved. Their real gain shows up in M3, when the agent calls <code>get_financials</code> and the full eval runs. So in step 6, expect the text fixes to move hit@k, and judge XBRL by its tests.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ QUIZ ============ -->
+<section id="quiz">
+  <span class="eyebrow">Check yourself</span>
+  <h2>Interview questions for M1</h2>
+  <p>Answer out loud before you open each one.</p>
+  <div class="quiz">
+    <details class="q"><summary>Why do numbers come from XBRL and not from RAG?</summary><p>Numbers in tables embed badly (rank 73 for the Microsoft income statement), and an LLM reading a number off a flattened table can misread the row or the column. XBRL gives the exact value with its period, unit and source filing. Lookup beats search when the data is structured; RAG is for the explanations around the numbers.</p></details>
+    <details class="q"><summary>A fact has fy = 2017 but covers July 2015 to June 2016. Why, and what do you filter on?</summary><p><code>fy</code> is the fiscal year of the filing that reported it: the FY2017 10-K repeats the prior year as a comparison column. Filter on the period dates (computing the fiscal year from period_end), and pick one row per period.</p></details>
+    <details class="q"><summary>Why can't you find sections with a simple regex for "Item 8"?</summary><p>The heading also appears in the table of contents, as a running page header on every page (46 times in Microsoft's FY2016 10-K), and in cross-references. You need structure: skip the TOC, and only accept headings that move forward through the outline.</p></details>
+    <details class="q"><summary>What is a contextual chunk header, and did it help here?</summary><p>A short line with company, year and section prepended to each chunk before embedding. On one chunk it looked like a big win (rank 73 to 2), but measured on all 20 questions it lowered hit@6 from 8/20 to 6/20. Our search is already filtered to one filing, so company and year are the same on every candidate chunk and only make them look alike. It helps when you search across many documents, where that context actually tells chunks apart. Here we show the context to the LLM in the prompt instead.</p></details>
+    <details class="q"><summary>Why label every section instead of dropping the ones you don't need?</summary><p>Because filings don't follow the outline perfectly: Netflix's statements sit after Item 15, PepsiCo's inside Item 7. Dropping by section would silently lose data. Labels let the query decide, and a wrong label costs ranking, not data.</p></details>
+    <details class="q"><summary>You changed the chunking. How do you know retrieval got better?</summary><p>Re-run the retrieval hit-rate metric on the same questions and compare it with the same metric on the old chunks: M0's hit@6, 8/20 with the current matcher. Both sides skip the LLM: embed the question, search the top 6, and check whether the FinanceBench evidence text is inside them. That makes it cheap enough to run after every change. Don't compare it with answer accuracy (RAG 6/20, closed-book 11/20), which is a different measurement: retrieval is necessary for a right answer but not sufficient, so confirm with the full judged eval at milestones.</p></details>
+  </div>
+</section>
+
+</div>
+<div class="tip" id="tip" hidden></div>
+
+<script>
+const DATA = {"bars": [{"name": "ADBE FY22", "len": 372184, "seg": {"cover": 7702, "1": 83904, "1A": 73808, "7": 54103, "7A": 7568, "8": 126794, "15": 6408, "other": 11897}}, {"name": "AMD FY22", "len": 395628, "seg": {"cover": 6077, "1": 55224, "1A": 116786, "7": 41812, "7A": 4143, "8": 130090, "15": 23910, "other": 17586}}, {"name": "AMZN FY17", "len": 284720, "seg": {"cover": 5534, "1": 12865, "1A": 47159, "7": 58258, "7A": 7178, "8": 127494, "15": 7508, "other": 18724}}, {"name": "AXP FY22", "len": 577465, "seg": {"cover": 8436, "1": 77213, "1A": 98107, "7": 160465, "7A": 174, "8": 187700, "15": 14035, "other": 31335}}, {"name": "BA FY22", "len": 387908, "seg": {"cover": 5280, "1": 18375, "1A": 48449, "7": 98735, "7A": 2743, "8": 183473, "15": 10451, "other": 20402}}, {"name": "MMM FY22", "len": 512770, "seg": {"cover": 8497, "1": 25014, "1A": 34584, "7": 87480, "7A": 5797, "8": 325621, "15": 9728, "other": 16049}}, {"name": "MSFT FY16", "len": 346738, "seg": {"cover": 4824, "1": 57125, "1A": 45576, "7": 76829, "7A": 3728, "8": 130305, "15": 10470, "other": 17881}}, {"name": "MSFT FY23", "len": 341930, "seg": {"cover": 5709, "1": 74962, "1A": 68677, "7": 56199, "7A": 1985, "8": 107747, "15": 11214, "other": 15437}}, {"name": "NFLX FY15", "len": 225448, "seg": {"cover": 7522, "1": 7364, "1A": 47298, "7": 52733, "7A": 6438, "8": 272, "15": 85482, "other": 18339}}, {"name": "NFLX FY17", "len": 228800, "seg": {"cover": 8017, "1": 7467, "1A": 56351, "7": 51639, "7A": 3191, "8": 272, "15": 704, "other": 101159}}, {"name": "PEP FY22", "len": 418421, "seg": {"cover": 8761, "1": 39124, "1A": 54614, "7": 260849, "7A": 201, "8": 114, "15": 1239, "other": 53519}}, {"name": "VZ FY22", "len": 469253, "seg": {"cover": 7499, "1": 56113, "1A": 26536, "7": 128132, "7A": 9733, "8": 212610, "15": 11533, "other": 17097}}], "facts": [{"concept": "CostOfRevenue", "start": "2014-07-01", "end": "2015-06-30", "days": 364, "val": 33038000000, "fy": 2015, "fp": "FY", "form": "10-K", "accn": "0001193125-15-272806", "filed": "2015-07-31", "frame": null}, {"concept": "CostOfRevenue", "start": "2014-07-01", "end": "2015-06-30", "days": 364, "val": 33038000000, "fy": null, "fp": null, "form": "8-K", "accn": "0001193125-15-353706", "filed": "2015-10-27", "frame": null}, {"concept": "CostOfRevenue", "start": "2014-07-01", "end": "2015-06-30", "days": 364, "val": 33038000000, "fy": 2016, "fp": "FY", "form": "10-K", "accn": "0001193125-16-662209", "filed": "2016-07-28", "frame": null}, {"concept": "CostOfRevenue", "start": "2014-07-01", "end": "2015-06-30", "days": 364, "val": 33038000000, "fy": 2017, "fp": "FY", "form": "10-K", "accn": "0001564590-17-014900", "filed": "2017-08-02", "frame": "CY2015"}, {"concept": "CostOfRevenue", "start": "2015-07-01", "end": "2015-09-30", "days": 91, "val": 7207000000, "fy": 2016, "fp": "Q1", "form": "10-Q", "accn": "0001193125-15-350718", "filed": "2015-10-22", "frame": null}, {"concept": "CostOfRevenue", "start": "2015-07-01", "end": "2015-09-30", "days": 91, "val": 7207000000, "fy": 2017, "fp": "Q1", "form": "10-Q", "accn": "0001193125-16-742796", "filed": "2016-10-20", "frame": "CY2015Q3"}, {"concept": "CostOfRevenue", "start": "2015-10-01", "end": "2015-12-31", "days": 91, "val": 9872000000, "fy": 2016, "fp": "Q2", "form": "10-Q", "accn": "0001193125-16-441821", "filed": "2016-01-28", "frame": null}, {"concept": "CostOfRevenue", "start": "2015-10-01", "end": "2015-12-31", "days": 91, "val": 9872000000, "fy": 2017, "fp": "Q2", "form": "10-Q", "accn": "0001564590-17-000654", "filed": "2017-01-26", "frame": "CY2015Q4"}, {"concept": "CostOfRevenue", "start": "2015-07-01", "end": "2015-12-31", "days": 183, "val": 17079000000, "fy": 2016, "fp": "Q2", "form": "10-Q", "accn": "0001193125-16-441821", "filed": "2016-01-28", "frame": null}, {"concept": "CostOfRevenue", "start": "2015-07-01", "end": "2015-12-31", "days": 183, "val": 17079000000, "fy": 2017, "fp": "Q2", "form": "10-Q", "accn": "0001564590-17-000654", "filed": "2017-01-26", "frame": null}, {"concept": "CostOfRevenue", "start": "2016-01-01", "end": "2016-03-31", "days": 90, "val": 7722000000, "fy": 2016, "fp": "Q3", "form": "10-Q", "accn": "0001193125-16-550254", "filed": "2016-04-21", "frame": null}, {"concept": "CostOfRevenue", "start": "2016-01-01", "end": "2016-03-31", "days": 90, "val": 7722000000, "fy": 2017, "fp": "Q3", "form": "10-Q", "accn": "0001564590-17-007547", "filed": "2017-04-27", "frame": "CY2016Q1"}, {"concept": "CostOfRevenue", "start": "2015-07-01", "end": "2016-03-31", "days": 274, "val": 24801000000, "fy": 2016, "fp": "Q3", "form": "10-Q", "accn": "0001193125-16-550254", "filed": "2016-04-21", "frame": null}, {"concept": "CostOfRevenue", "start": "2015-07-01", "end": "2016-03-31", "days": 274, "val": 24801000000, "fy": 2017, "fp": "Q3", "form": "10-Q", "accn": "0001564590-17-007547", "filed": "2017-04-27", "frame": null}, {"concept": "CostOfRevenue", "start": "2015-07-01", "end": "2016-06-30", "days": 365, "val": 32780000000, "fy": 2016, "fp": "FY", "form": "10-K", "accn": "0001193125-16-662209", "filed": "2016-07-28", "frame": null}, {"concept": "CostOfRevenue", "start": "2015-07-01", "end": "2016-06-30", "days": 365, "val": 32780000000, "fy": 2017, "fp": "FY", "form": "10-K", "accn": "0001564590-17-014900", "filed": "2017-08-02", "frame": "CY2016"}, {"concept": "CostOfGoodsAndServicesSold", "start": "2015-07-01", "end": "2016-06-30", "days": 365, "val": 32780000000, "fy": 2018, "fp": "FY", "form": "10-K", "accn": "0001564590-18-019062", "filed": "2018-08-03", "frame": "CY2016"}, {"concept": "CostOfRevenue", "start": "2016-07-01", "end": "2016-09-30", "days": 91, "val": 7844000000, "fy": 2017, "fp": "Q1", "form": "10-Q", "accn": "0001193125-16-742796", "filed": "2016-10-20", "frame": null}, {"concept": "CostOfRevenue", "start": "2016-07-01", "end": "2016-09-30", "days": 91, "val": 7844000000, "fy": 2018, "fp": "Q1", "form": "10-Q", "accn": "0001564590-17-020171", "filed": "2017-10-26", "frame": "CY2016Q3"}, {"concept": "CostOfRevenue", "start": "2016-10-01", "end": "2016-12-31", "days": 91, "val": 9901000000, "fy": 2017, "fp": "Q2", "form": "10-Q", "accn": "0001564590-17-000654", "filed": "2017-01-26", "frame": null}, {"concept": "CostOfRevenue", "start": "2016-10-01", "end": "2016-12-31", "days": 91, "val": 9901000000, "fy": 2018, "fp": "Q2", "form": "10-Q", "accn": "0001564590-18-001129", "filed": "2018-01-31", "frame": "CY2016Q4"}, {"concept": "CostOfRevenue", "start": "2016-07-01", "end": "2016-12-31", "days": 183, "val": 17745000000, "fy": 2017, "fp": "Q2", "form": "10-Q", "accn": "0001564590-17-000654", "filed": "2017-01-26", "frame": null}, {"concept": "CostOfRevenue", "start": "2016-07-01", "end": "2016-12-31", "days": 183, "val": 17745000000, "fy": 2018, "fp": "Q2", "form": "10-Q", "accn": "0001564590-18-001129", "filed": "2018-01-31", "frame": null}, {"concept": "CostOfRevenue", "start": "2017-01-01", "end": "2017-03-31", "days": 89, "val": 8060000000, "fy": 2017, "fp": "Q3", "form": "10-Q", "accn": "0001564590-17-007547", "filed": "2017-04-27", "frame": null}, {"concept": "CostOfRevenue", "start": "2017-01-01", "end": "2017-03-31", "days": 89, "val": 8060000000, "fy": 2018, "fp": "Q3", "form": "10-Q", "accn": "0001564590-18-009307", "filed": "2018-04-26", "frame": "CY2017Q1"}, {"concept": "CostOfRevenue", "start": "2016-07-01", "end": "2017-03-31", "days": 273, "val": 25805000000, "fy": 2017, "fp": "Q3", "form": "10-Q", "accn": "0001564590-17-007547", "filed": "2017-04-27", "frame": null}, {"concept": "CostOfRevenue", "start": "2016-07-01", "end": "2017-03-31", "days": 273, "val": 25805000000, "fy": 2018, "fp": "Q3", "form": "10-Q", "accn": "0001564590-18-009307", "filed": "2018-04-26", "frame": null}, {"concept": "CostOfRevenue", "start": "2016-07-01", "end": "2017-06-30", "days": 364, "val": 34261000000, "fy": 2017, "fp": "FY", "form": "10-K", "accn": "0001564590-17-014900", "filed": "2017-08-02", "frame": "CY2017"}, {"concept": "CostOfGoodsAndServicesSold", "start": "2016-07-01", "end": "2017-06-30", "days": 364, "val": 34261000000, "fy": 2018, "fp": "FY", "form": "10-K", "accn": "0001564590-18-019062", "filed": "2018-08-03", "frame": null}, {"concept": "CostOfGoodsAndServicesSold", "start": "2016-07-01", "end": "2017-06-30", "days": 364, "val": 34261000000, "fy": 2019, "fp": "FY", "form": "10-K", "accn": "0001564590-19-027952", "filed": "2019-08-01", "frame": "CY2017"}], "walk": [{"pos": 3408, "item": "1", "text": "", "decision": "toc"}, {"pos": 3472, "item": "1A", "text": "", "decision": "toc"}, {"pos": 3500, "item": "1B", "text": "", "decision": "toc"}, {"pos": 3541, "item": "2", "text": "", "decision": "toc"}, {"pos": 3566, "item": "3", "text": "", "decision": "toc"}, {"pos": 3598, "item": "4", "text": "", "decision": "toc"}, {"pos": 3645, "item": "5", "text": "", "decision": "toc"}, {"pos": 3769, "item": "6", "text": "", "decision": "toc"}, {"pos": 3807, "item": "7", "text": "", "decision": "toc"}, {"pos": 3907, "item": "7A", "text": "", "decision": "toc"}, {"pos": 3981, "item": "8", "text": "", "decision": "toc"}, {"pos": 4039, "item": "9", "text": "", "decision": "toc"}, {"pos": 4138, "item": "9A", "text": "", "decision": "toc"}, {"pos": 4309, "item": "9B", "text": "", "decision": "toc"}, {"pos": 4352, "item": "10", "text": "", "decision": "toc"}, {"pos": 4422, "item": "11", "text": "", "decision": "toc"}, {"pos": 4460, "item": "12", "text": "", "decision": "toc"}, {"pos": 4570, "item": "13", "text": "", "decision": "toc"}, {"pos": 4659, "item": "14", "text": "", "decision": "toc"}, {"pos": 4722, "item": "15", "text": "", "decision": "toc"}, {"pos": 4824, "item": "1", "text": "Note About Forward-Looking Statements", "decision": "accept"}, {"pos": 6345, "item": "1", "text": "BUSINESS", "decision": "ignore"}, {"pos": 8617, "item": "1", "text": "\u2022", "decision": "ignore"}, {"pos": 13153, "item": "1", "text": "Create more personal computing", "decision": "ignore"}, {"pos": 17002, "item": "1", "text": "OPERATING SEGMENTS", "decision": "ignore"}, {"pos": 20761, "item": "1", "text": "Dynamics", "decision": "ignore"}, {"pos": 24746, "item": "1", "text": "Enterprise Services", "decision": "ignore"}, {"pos": 28698, "item": "1", "text": "\u2022", "decision": "ignore"}, {"pos": 32329, "item": "1", "text": "Gaming", "decision": "ignore"}, {"pos": 36367, "item": "1", "text": "OPERATIONS", "decision": "ignore"}, {"pos": 40144, "item": "1", "text": "pending. While we employ much of our int", "decision": "ignore"}, {"pos": 44524, "item": "1", "text": "There are two broad categories of OEMs. ", "decision": "ignore"}, {"pos": 49209, "item": "1", "text": "Customer Licensing Programs", "decision": "ignore"}, {"pos": 53157, "item": "1", "text": "Partner Programs", "decision": "ignore"}, {"pos": 56691, "item": "1", "text": "President and President, Microsoft Europ", "decision": "ignore"}, {"pos": 61949, "item": "1A", "text": "RISK FACTORS", "decision": "accept"}, {"pos": 64883, "item": "1A", "text": "attract application developers to our PC", "decision": "ignore"}, {"pos": 69296, "item": "1A", "text": "\u2022", "decision": "ignore"}, {"pos": 74272, "item": "1A", "text": "If our goodwill or amortizable intangibl", "decision": "ignore"}, {"pos": 79369, "item": "1A", "text": "We may not be able to protect our source", "decision": "ignore"}, {"pos": 83962, "item": "1A", "text": "products or services. Customers may fail", "decision": "ignore"}, {"pos": 89416, "item": "1A", "text": "competitors with specifications for how ", "decision": "ignore"}, {"pos": 94464, "item": "1A", "text": "jurisdiction to jurisdiction. Additional", "decision": "ignore"}, {"pos": 100005, "item": "1A", "text": "Our hardware and software products may e", "decision": "ignore"}, {"pos": 107525, "item": "1B", "text": "UNRESOLVED STAFF COMMENTS", "decision": "accept"}, {"pos": 107767, "item": "2", "text": "PROPERTIES", "decision": "accept"}, {"pos": 109303, "item": "3", "text": "LEGAL PROCEEDINGS", "decision": "accept"}, {"pos": 110852, "item": "4", "text": "MINE SAFETY DISCLOSURES", "decision": "accept"}, {"pos": 110954, "item": "5", "text": "MARKET FOR REGISTRANT\u2019S COMMON EQUITY, R", "decision": "accept"}, {"pos": 112674, "item": "6", "text": "SELECTED FINANCIAL DATA", "decision": "accept"}, {"pos": 115728, "item": "7", "text": "MANAGEMENT\u2019S DISCUSSION AND ANALYSIS OF ", "decision": "accept"}, {"pos": 117882, "item": "7", "text": "\u2022", "decision": "ignore"}, {"pos": 122130, "item": "7", "text": "Our international operations provide a s", "decision": "ignore"}, {"pos": 126063, "item": "7", "text": "We expect to report the financial perfor", "decision": "ignore"}, {"pos": 129536, "item": "7", "text": "Fiscal year 2015 compared with fiscal ye", "decision": "ignore"}, {"pos": 132260, "item": "7", "text": "Reportable Segments", "decision": "ignore"}, {"pos": 136139, "item": "7", "text": "Phone revenue decreased $4.2 billion or ", "decision": "ignore"}, {"pos": 140540, "item": "7", "text": "Productivity and Business Processes oper", "decision": "ignore"}, {"pos": 144834, "item": "7", "text": "business PC market. Windows OEM non-Pro ", "decision": "ignore"}, {"pos": 148453, "item": "7", "text": "Research and development expenses includ", "decision": "ignore"}, {"pos": 151247, "item": "7", "text": "Fiscal year 2016 compared with fiscal ye", "decision": "ignore"}, {"pos": 154323, "item": "7", "text": "OTHER INCOME (EXPENSE), NET", "decision": "ignore"}, {"pos": 157949, "item": "7", "text": "revenue deferrals related to sales of Wi", "decision": "ignore"}, {"pos": 162898, "item": "7", "text": "the Microsoft Office system and our serv", "decision": "ignore"}, {"pos": 167404, "item": "7", "text": "A majority of our investments are priced", "decision": "ignore"}, {"pos": 171962, "item": "7", "text": "The following table outlines the expecte", "decision": "ignore"}, {"pos": 174596, "item": "7", "text": "Contractual Obligations", "decision": "ignore"}, {"pos": 178480, "item": "7", "text": "Should we require more capital in the U.", "decision": "ignore"}, {"pos": 182671, "item": "7", "text": "available for free to existing users in ", "decision": "ignore"}, {"pos": 187097, "item": "7", "text": "Research and Development Costs", "decision": "ignore"}, {"pos": 190569, "item": "7", "text": "STATEMENT OF MANAGEMENT\u2019S RESPONSIBILITY", "decision": "ignore"}, {"pos": 192557, "item": "7A", "text": "ITEM 7A. QUANTITATIVE AND QUALITATIVE DI", "decision": "accept"}, {"pos": 195466, "item": "7A", "text": "The following table sets forth the one-d", "decision": "ignore"}, {"pos": 196285, "item": "8", "text": "ITEM 8. FINANCIAL STATEMENTS AND SUPPLEM", "decision": "accept"}, {"pos": 197498, "item": "8", "text": "COMPREHENSIVE INCOME STATEMENTS", "decision": "ignore"}, {"pos": 198171, "item": "8", "text": "BALANCE SHEETS", "decision": "ignore"}, {"pos": 199911, "item": "8", "text": "CASH FLOWS STATEMENTS", "decision": "ignore"}, {"pos": 202186, "item": "8", "text": "STOCKHOLDERS\u2019 EQUITY STATEMENTS", "decision": "ignore"}, {"pos": 203235, "item": "8", "text": "NOTES TO FINANCIAL STATEMENTS", "decision": "ignore"}, {"pos": 206685, "item": "8", "text": "Product Revenue and Service and Other Re", "decision": "ignore"}, {"pos": 211120, "item": "8", "text": "revenue from the arrangement is deferred", "decision": "ignore"}, {"pos": 215597, "item": "8", "text": "product failure rates, historical and pr", "decision": "ignore"}, {"pos": 219613, "item": "8", "text": "\u2022", "decision": "ignore"}, {"pos": 224285, "item": "8", "text": "evidence in evaluating potential impairm", "decision": "ignore"}, {"pos": 227983, "item": "8", "text": "quantities on hand, future purchase comm", "decision": "ignore"}, {"pos": 232086, "item": "8", "text": "Adoption of the new standard resulted in", "decision": "ignore"}, {"pos": 235810, "item": "8", "text": "We anticipate this standard will have a ", "decision": "ignore"}, {"pos": 240207, "item": "8", "text": "The components of basic and diluted EPS ", "decision": "ignore"}, {"pos": 241802, "item": "8", "text": "NOTE 4 \u2014 INVESTMENTS", "decision": "ignore"}, {"pos": 244455, "item": "8", "text": "Unrealized Losses on Investments", "decision": "ignore"}, {"pos": 247165, "item": "8", "text": "Foreign Currency", "decision": "ignore"}, {"pos": 251637, "item": "8", "text": "Commodity", "decision": "ignore"}, {"pos": 253067, "item": "8", "text": "Fair Values of Derivative Instruments", "decision": "ignore"}, {"pos": 255227, "item": "8", "text": "Fair Value Hedge Gains (Losses)", "decision": "ignore"}, {"pos": 257755, "item": "8", "text": "NOTE 6 \u2014 FAIR VALUE MEASUREMENTS", "decision": "ignore"}, {"pos": 260046, "item": "8", "text": "The following table reconciles the total", "decision": "ignore"}, {"pos": 261749, "item": "8", "text": "NOTE 9 \u2014 BUSINESS COMBINATIONS", "decision": "ignore"}, {"pos": 264607, "item": "8", "text": "During the fourth quarter of fiscal year", "decision": "ignore"}, {"pos": 267914, "item": "8", "text": "NOTE 10 \u2014 GOODWILL", "decision": "ignore"}, {"pos": 271943, "item": "8", "text": "patent agreements, and contractual arran", "decision": "ignore"}, {"pos": 275728, "item": "8", "text": "The components of intangible assets acqu", "decision": "ignore"}, {"pos": 278142, "item": "8", "text": "The components of our long-term debt, in", "decision": "ignore"}, {"pos": 280729, "item": "8", "text": "Maturities of our long-term debt for eac", "decision": "ignore"}, {"pos": 282694, "item": "8", "text": "The reduction from the federal statutory", "decision": "ignore"}, {"pos": 285712, "item": "8", "text": "Deferred income tax balances reflect the", "decision": "ignore"}, {"pos": 289639, "item": "8", "text": "NOTE 14 \u2014 RESTRUCTURING CHARGES", "decision": "ignore"}, {"pos": 293046, "item": "8", "text": "NOTE 15 \u2014 UNEARNED REVENUE", "decision": "ignore"}, {"pos": 295242, "item": "8", "text": "NOTE 17 \u2014 CONTINGENCIES", "decision": "ignore"}, {"pos": 299439, "item": "8", "text": "The trial of the British Columbia action", "decision": "ignore"}, {"pos": 303566, "item": "8", "text": "Indemnifications", "decision": "ignore"}, {"pos": 306246, "item": "8", "text": "Dividends", "decision": "ignore"}, {"pos": 309270, "item": "8", "text": "NOTE 20 \u2014 EMPLOYEE STOCK AND SAVINGS PLA", "decision": "ignore"}, {"pos": 311678, "item": "8", "text": "Employee Stock Purchase Plan", "decision": "ignore"}, {"pos": 315178, "item": "8", "text": "Intelligent Cloud", "decision": "ignore"}, {"pos": 318217, "item": "8", "text": "(In millions)", "decision": "ignore"}, {"pos": 320991, "item": "8", "text": "Our total commercial cloud revenue, whic", "decision": "ignore"}, {"pos": 324275, "item": "8", "text": "REPORT OF INDEPENDENT REGISTERED PUBLIC ", "decision": "ignore"}, {"pos": 326590, "item": "9", "text": "CHANGES IN AND DISAGREEMENTS WITH ACCOUN", "decision": "accept"}, {"pos": 326701, "item": "9A", "text": "CONTROLS AND PROCEDURES", "decision": "accept"}, {"pos": 329283, "item": "9A", "text": "REPORT OF INDEPENDENT REGISTERED PUBLIC ", "decision": "ignore"}, {"pos": 333524, "item": "9B", "text": "OTHER INFORMATION", "decision": "accept"}, {"pos": 333579, "item": "10", "text": "DIRECTORS, EXECUTIVE OFFICERS AND CORPOR", "decision": "accept"}, {"pos": 335032, "item": "11", "text": "EXECUTIVE COMPENSATION", "decision": "accept"}, {"pos": 335335, "item": "12", "text": "SECURITY OWNERSHIP OF CERTAIN BENEFICIAL", "decision": "accept"}, {"pos": 335619, "item": "13", "text": "CERTAIN RELATIONSHIPS AND", "decision": "accept"}, {"pos": 335886, "item": "14", "text": "PRINCIPAL ACCOUNTING FEES AND SERVICES", "decision": "accept"}, {"pos": 336268, "item": "15", "text": "PART IV", "decision": "accept"}, {"pos": 336286, "item": "15", "text": "EXHIBITS, FINANCIAL STATEMENT SCHEDULES", "decision": "ignore"}, {"pos": 338253, "item": "15", "text": "Incorporated by Reference", "decision": "ignore"}, {"pos": 340702, "item": "15", "text": "Incorporated by Reference", "decision": "ignore"}, {"pos": 343092, "item": "15", "text": "Incorporated by Reference", "decision": "ignore"}], "msft16_len": 346738, "experiment": [{"query": "original", "doc": "A_now", "distance": 0.534, "rank": 73, "of": 203}, {"query": "original", "doc": "B_section", "distance": 0.5, "rank": 46, "of": 203}, {"query": "original", "doc": "C_rows", "distance": 0.518, "rank": 60, "of": 203}, {"query": "original", "doc": "D_rows_header", "distance": 0.357, "rank": 2, "of": 203}, {"query": "rewritten", "doc": "A_now", "distance": 0.501, "rank": 28, "of": 203}, {"query": "rewritten", "doc": "B_section", "distance": 0.463, "rank": 9, "of": 203}, {"query": "rewritten", "doc": "C_rows", "distance": 0.47, "rank": 10, "of": 203}, {"query": "rewritten", "doc": "D_rows_header", "distance": 0.387, "rank": 1, "of": 203}], "cutoff": {"original": 0.418, "rewritten": 0.448}, "flat": "ITEM 8. FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA\nINCOME STATEMENTS\n(In millions, except per share amounts)\nYear Ended June 30,\n2016\n2015\n2014\nRevenue:\nProduct\n$\n61,502\n$\n75,956\n$\n72,948\nService and other\n23,818\n17,624\n13,885\nTotal revenue\n85,320\n93,580\n86,833\nCost of revenue:\nProduct\n17,880\n21,410\n16,681\nService and other\n14,900\n11,628\n10,397\nTotal cost of revenue\n32,780\n33,038\n27,078\nGross margin\n52,540\n60,542\n59,755\nResearch and development\n11,988\n12,046\n11,381\nSales and marketing\n14,697", "rows": "ITEM 8. FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA\nINCOME STATEMENTS\n(In millions, except per share amounts)\nYear Ended June 30, | 2016 | 2015 | 2014\nRevenue:\nProduct | 61,502 | 75,956 | 72,948\nService and other | 23,818 | 17,624 | 13,885\nTotal revenue | 85,320 | 93,580 | 86,833\nCost of revenue:\nProduct | 17,880 | 21,410 | 16,681\nService and other | 14,900 | 11,628 | 10,397\nTotal cost of revenue | 32,780 | 33,038 | 27,078\nGross margin | 52,540 | 60,542 | 59,755\nResearch and development | 11,988 | 12,046 | 11,381\nSales and marketing | 14,697 | 15,713 | 15,811\nGeneral and administrative | 4,563 | 4,611 | 4,677\nImpairment, integration, and restructuring | 1,110 | 10,011 | 127", "c115_head": "$\n50\nEquity\n$\n157\n$\n149\n$\n163\n$\n178\n$\n137\nCommodity"};
+const $ = (s, el = document) => el.querySelector(s);
+const NS = "http://www.w3.org/2000/svg";
+function el(tag, attrs = {}, text) { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (text != null) e.textContent = text; return e; }
+function store(key, val) { try { if (val === undefined) return JSON.parse(localStorage.getItem(key)); localStorage.setItem(key, JSON.stringify(val)); } catch (e) { return null; } }
+function pressOne(group, btn) { group.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", b === btn ? "true" : "false")); }
+
+/* ---------- pipeline toggle ---------- */
+document.querySelectorAll("[data-mode]").forEach(b => b.addEventListener("click", () => {
+  pressOne(b.parentElement, b);
+  $("#pipe").classList.toggle("mode-m0", b.dataset.mode === "m0");
+}));
+
+/* ---------- plan stepper ---------- */
+const STEPS = [
+  { n: 1, name: "financial_fact table + loader", who: "me", what: "A new table, its Alembic migration, and load_facts.py, which downloads companyfacts for each of the 10 companies through the existing EDGAR client and inserts every 10-K fact.", why: "Numbers need a structured home before anything can look them up. This is the data side of ADR-002.", files: "db/models.py · migration · ingestion/load_facts.py · tests", done: "MSFT FY2016 CostOfRevenue rows are in Postgres; a re-run inserts nothing new.", run: "uv run alembic upgrade head\nuv run python -m filinglens.ingestion.load_facts --from-subset eval/financebench_subset.jsonl" },
+  { n: 2, name: "Metric map + get_metric()", who: "you", what: "METRICS (metric → XBRL concepts) and get_metric(), which returns exactly one number for a company, metric and fiscal year.", why: "The agent will ask for \"cost_of_revenue\", not for a tag name. This is where the three traps from the picker get handled.", files: "financials.py (you) · tests/test_financials.py (me, written first)", done: "uv run pytest tests/test_financials.py is green, including MSFT FY2016 COGS = 32,780.", run: "uv run pytest tests/test_financials.py -v" },
+  { n: 3, name: "split_sections()", who: "you", what: "Turn one 10-K's plain text into a list of Item sections, robust to the table of contents and running page headers.", why: "Chunks that never mix sections, and a section label for M2's filters.", files: "ingestion/parse_10k.py (you) · tests/test_parse_10k.py (me, written first)", done: "Tests green; all 12 filings yield Items 1A, 7 and 8 in order.", run: "uv run pytest tests/test_parse_10k.py -v" },
+  { n: 4, name: "Table rows in html_to_text", who: "me", what: "Inside <table>, join cells with \" | \" and break lines only at the end of a row.", why: "Labels stay next to their numbers, for the LLM and for M2's keyword search.", files: "ingestion/html_text.py · tests/test_html_text.py", done: "The MSFT income statement reads \"Total cost of revenue | 32,780 | 33,038 | 27,078\".", run: "uv run pytest tests/test_html_text.py -v" },
+  { n: 5, name: "build_chunks() per Item + re-ingest", who: "me", what: "Chunk each Item separately, fill chunk.section, re-ingest the 12 filings. The contextual header was tried and dropped from the embedding after the ablation (Part D, Part E); the prompt shows that context instead.", why: "This is where parts B and C meet the database.", files: "chunk_embed.py · run.py · eval/run_eval.py", done: "2,954 chunks, every one with its Item; none crosses two Items.", run: "uv run python -m filinglens.ingestion.run --from-subset eval/financebench_subset.jsonl --rechunk" },
+  { n: 6, name: "Measure hit@k, record it", who: "me", what: "Fixed the matcher (any window of the evidence), ran a 5-variant ablation, kept the best variant, ran hit-m1.", why: "Every quality change gets a saved run. No number, no claim.", files: "eval/results/2026-10-30-m1-ablation.json · 2026-10-30-hit-m1.json", done: "hit@6 8/20, same as M0 under the same matcher; hit@20 15/20.", run: "uv run python eval/retrieval_hit.py --name hit-m1" },
+];
+const WHO = { you: ["you", "YOU"], me: ["me", "CLAUDE"], both: ["both", "YOU + CLAUDE"] };
+let doneSet = new Set(store("m1-done") || []);
+let current = 0;
+function renderSteps() {
+  const list = $("#steplist"); list.textContent = "";
+  STEPS.forEach((s, i) => {
+    const b = document.createElement("button");
+    b.type = "button"; b.setAttribute("role", "tab"); b.setAttribute("aria-selected", i === current ? "true" : "false");
+    if (doneSet.has(s.n)) b.classList.add("done");
+    b.innerHTML = `<span class="tick" aria-hidden="true"></span><span><span class="n">step ${s.n}</span><br><span class="nm"></span></span><span class="who ${WHO[s.who][0]}">${WHO[s.who][1]}</span>`;
+    b.querySelector(".nm").textContent = s.name;
+    b.addEventListener("click", () => { current = i; renderSteps(); });
+    list.appendChild(b);
+  });
+  const s = STEPS[current], d = $("#stepdetail");
+  d.innerHTML = `<div class="rowctl"><span class="eyebrow">Step ${s.n} of 6</span><span class="who ${WHO[s.who][0]}">${WHO[s.who][1]}</span></div>
+    <h3></h3><dl><dt>What</dt><dd class="w"></dd><dt>Why</dt><dd class="y"></dd><dt>Files</dt><dd class="f mono"></dd><dt>Done when</dt><dd class="dn"></dd><dt>Run</dt><dd><pre class="r"></pre></dd></dl>
+    <label class="done-row"><input type="checkbox" id="stepdone"> Mark step ${s.n} as done</label>`;
+  d.querySelector("h3").textContent = s.name; d.querySelector(".w").textContent = s.what; d.querySelector(".y").textContent = s.why;
+  d.querySelector(".f").textContent = s.files; d.querySelector(".dn").textContent = s.done; d.querySelector(".r").textContent = s.run;
+  const cb = $("#stepdone"); cb.checked = doneSet.has(s.n);
+  cb.addEventListener("change", () => { cb.checked ? doneSet.add(s.n) : doneSet.delete(s.n); store("m1-done", [...doneSet]); renderSteps(); });
+}
+renderSteps();
+
+/* ---------- fact picker ---------- */
+const FACTS = DATA.facts;
+const OWN_10K = "0001193125-16-662209"; // Microsoft's FY2016 10-K
+// Microsoft's fiscal year runs July to June: a period ending in July 2015 or later belongs to FY2016
+function fyOfPeriod(end) { const d = new Date(end + "T00:00:00Z"); return d.getUTCMonth() >= 6 ? d.getUTCFullYear() + 1 : d.getUTCFullYear(); }
+let yearMode = "fy";
+function renderPicker() {
+  const annual = $("#r-annual").checked, dedupe = $("#r-dedupe").checked;
+  const rows = FACTS.map(f => ({ f, out: null }));
+  for (const r of rows) {
+    const f = r.f;
+    if (yearMode === "fy" && f.fy !== 2016) r.out = `fy = ${f.fy}`;
+    else if (yearMode === "period" && fyOfPeriod(f.end) !== 2016) r.out = `period is FY${fyOfPeriod(f.end)}`;
+    else if (annual && !(f.form === "10-K" && f.days > 350 && f.days < 380)) r.out = f.form !== "10-K" ? `${f.form}` : `${f.days}-day period`;
+  }
+  if (dedupe) {
+    const groups = {};
+    rows.filter(r => !r.out).forEach(r => { const k = `${r.f.start}|${r.f.end}`; (groups[k] = groups[k] || []).push(r); });
+    for (const k in groups) {
+      const g = groups[k];
+      const own = g.find(r => r.f.accn === OWN_10K);
+      const keep = own || g.slice().sort((a, b) => b.f.filed.localeCompare(a.f.filed))[0];
+      g.forEach(r => { if (r !== keep) r.out = r.f.accn === OWN_10K ? "duplicate" : "repeat in later filing"; });
+    }
+  }
+  const kept = rows.filter(r => !r.out);
+  const vals = [...new Set(kept.map(r => r.f.val))];
+  const tb = $("#facts tbody"); tb.textContent = "";
+  for (const r of rows) {
+    const f = r.f, tr = document.createElement("tr");
+    if (r.out) tr.className = "out"; else if (vals.length === 1) tr.className = "win";
+    const cells = [f.concept, `${f.start} → ${f.end}`, f.days, (f.val / 1e6).toLocaleString("en-US"), f.form, (f.fy == null ? "–" : f.fy), f.filed, r.out ? "✕ " + r.out : "kept"];
+    cells.forEach((c, i) => { const td = document.createElement("td"); td.textContent = c; td.className = i === 7 ? "reason" : "m" + (i === 3 ? " r" : ""); tr.appendChild(td); });
+    tb.appendChild(tr);
+  }
+  const res = $("#pick-result");
+  if (vals.length === 1) { res.className = "result ok"; res.innerHTML = `One answer: <b>$${(vals[0] / 1e6).toLocaleString("en-US")}M</b>. That matches the income statement.`; }
+  else { res.className = "result bad"; res.innerHTML = `<b>${kept.length}</b> rows, <b>${vals.length}</b> different values: ${vals.slice(0, 5).map(v => "$" + (v / 1e6).toLocaleString("en-US") + "M").join(", ")}${vals.length > 5 ? " …" : ""}. Which one is "FY2016 COGS"?`; }
+  const where = ["concept IN ('CostOfRevenue',\n                  'CostOfGoodsAndServicesSold')"];
+  where.push(yearMode === "fy" ? "fy = 2016                 -- SEC's field" : "fiscal_year = 2016        -- from period_end");
+  if (annual) where.push("form = '10-K'", "period_end - period_start BETWEEN 350 AND 380");
+  $("#pick-sql").textContent = (dedupe ? "SELECT DISTINCT ON (period_start, period_end) value\n" : "SELECT value\n") + "FROM financial_fact\nWHERE " + where.join("\n  AND ") + (dedupe ? "\nORDER BY period_start, period_end,\n  (accession_no = :own_10k) DESC, filed_at DESC" : "");
+}
+document.querySelectorAll("[data-year]").forEach(b => b.addEventListener("click", () => { yearMode = b.dataset.year; pressOne(b.parentElement, b); renderPicker(); }));
+$("#r-annual").addEventListener("change", renderPicker);
+$("#r-dedupe").addEventListener("change", renderPicker);
+renderPicker();
+
+/* ---------- section bars ---------- */
+const SEGS = [
+  { k: "cover", label: "cover + TOC", color: "var(--line-strong)" },
+  { k: "1", label: "Item 1", color: "color-mix(in srgb, var(--muted) 55%, var(--surface))" },
+  { k: "1A", label: "Item 1A", color: "color-mix(in srgb, var(--nar) 45%, var(--surface))" },
+  { k: "7", label: "Item 7", color: "var(--nar)" },
+  { k: "7A", label: "Item 7A", color: "var(--ink)" },
+  { k: "8", label: "Item 8", color: "var(--num)" },
+  { k: "15", label: "Item 15", color: "color-mix(in srgb, var(--num) 45%, var(--surface))" },
+  { k: "other", label: "other items", color: "var(--sunk)" },
+];
+let focusSeg = null;
+const tip = $("#tip");
+function showTip(e, text) { tip.textContent = text; tip.hidden = false; const x = Math.min(e.clientX + 12, window.innerWidth - 270); tip.style.left = x + "px"; tip.style.top = (e.clientY + 14) + "px"; }
+function hideTip() { tip.hidden = true; }
+function renderBars() {
+  const svg = $("#secbars"); svg.textContent = "";
+  const W = 760, L = 84, R = 20, rowH = 22, gap = 8, top = 10;
+  const max = Math.max(...DATA.bars.map(b => b.len));
+  const H = top + DATA.bars.length * (rowH + gap) + 30;
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  const sx = v => (W - L - R) * v / max;
+  DATA.bars.forEach((b, i) => {
+    const y = top + i * (rowH + gap);
+    svg.appendChild(el("text", { x: L - 10, y: y + 15, "text-anchor": "end", class: "lbl" }, b.name));
+    let x = L;
+    SEGS.forEach(s => {
+      const v = b.seg[s.k] || 0; if (!v) return;
+      const w = sx(v);
+      const r = el("rect", { x, y, width: Math.max(w, 0.8), height: rowH, fill: s.color, stroke: "var(--surface)", "stroke-width": 0.6, tabindex: 0 });
+      r.style.opacity = focusSeg && focusSeg !== s.k ? 0.15 : 1;
+      const msg = `${b.name} · ${s.label} · ${v.toLocaleString("en-US")} chars (${Math.round(100 * v / b.len)}%)`;
+      r.addEventListener("mousemove", e => showTip(e, msg)); r.addEventListener("mouseleave", hideTip);
+      r.addEventListener("focus", () => { const bb = r.getBoundingClientRect(); showTip({ clientX: bb.left, clientY: bb.bottom }, msg); }); r.addEventListener("blur", hideTip);
+      svg.appendChild(r); x += w;
+    });
+  });
+  const ay = top + DATA.bars.length * (rowH + gap) + 4;
+  svg.appendChild(el("line", { x1: L, y1: ay, x2: W - R, y2: ay, class: "axis" }));
+  for (let t = 0; t <= 500000; t += 100000) { const x = L + sx(t); svg.appendChild(el("line", { x1: x, y1: ay, x2: x, y2: ay + 4, class: "axis" })); svg.appendChild(el("text", { x, y: ay + 17, "text-anchor": "middle", class: "lbl" }, t ? `${t / 1000}k` : "0")); }
+}
+const lg = $("#seclegend");
+SEGS.forEach(s => {
+  const b = document.createElement("button"); b.type = "button"; b.setAttribute("aria-pressed", "false");
+  b.innerHTML = `<i style="background:${s.color}"></i>`; b.append(s.label);
+  b.addEventListener("click", () => { focusSeg = focusSeg === s.k ? null : s.k; lg.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", "false")); if (focusSeg) b.setAttribute("aria-pressed", "true"); renderBars(); });
+  lg.appendChild(b);
+});
+renderBars();
+
+/* ---------- heading walker ---------- */
+const WALK = DATA.walk, DOCLEN = DATA.msft16_len;
+const WHY = {
+  toc: "Inside the table of contents: headings sit a few lines apart. Skipped (rule 2).",
+  accept: "Comes later in the outline than the current section, so a new section starts here (rule 3).",
+  ignore: "Not later than the current section: a running page header or a repeat. Ignored (rule 3).",
+};
+function renderWalkTrack() {
+  const svg = $("#walktrack"); svg.textContent = "";
+  const L = 20, R = 680, sx = p => L + (R - L) * p / DOCLEN;
+  svg.appendChild(el("line", { x1: L, y1: 80, x2: R, y2: 80, class: "axis" }));
+  [0, 100000, 200000, 300000].forEach(t => { svg.appendChild(el("text", { x: sx(t), y: 98, "text-anchor": "middle", class: "lbl" }, t ? `${t / 1000}k` : "0")); });
+  svg.appendChild(el("text", { x: L, y: 114, class: "lbl" }, "position in the document (characters)"));
+  WALK.forEach((w, i) => {
+    const x = sx(w.pos), h = w.decision === "accept" ? 52 : w.decision === "ignore" ? 26 : 18;
+    const col = w.decision === "accept" ? "var(--num)" : w.decision === "ignore" ? "var(--nar)" : "var(--muted)";
+    svg.appendChild(el("line", { x1: x, y1: 78, x2: x, y2: 78 - h, stroke: col, "stroke-width": w.decision === "accept" ? 2 : 1, opacity: w.decision === "accept" ? 1 : 0.6, "data-i": i }));
+    if (w.decision === "accept" && ["1A", "7", "7A", "8", "15"].includes(w.item)) svg.appendChild(el("text", { x: x + 3, y: 22, class: "lbl-num" }, w.item));
+  });
+  svg.appendChild(el("circle", { id: "walkcur", cx: sx(WALK[0].pos), cy: 80, r: 5, fill: "var(--ink)" }));
+}
+function renderWalk(i) {
+  const w = WALK[i];
+  const svg = $("#walktrack"), L = 20, R = 680;
+  svg.querySelector("#walkcur").setAttribute("cx", L + (R - L) * w.pos / DOCLEN);
+  let cur = "cover"; for (let j = 0; j <= i; j++) if (WALK[j].decision === "accept") cur = "Item " + WALK[j].item;
+  const counts = { toc: 0, accept: 0, ignore: 0 }; for (let j = 0; j <= i; j++) counts[WALK[j].decision]++;
+  const p = $("#walkpanel");
+  p.innerHTML = `<span class="eyebrow">Heading ${i + 1} of ${WALK.length} · char ${w.pos.toLocaleString("en-US")}</span>
+    <div class="state"></div><div><span class="dec ${w.decision}">${w.decision}</span></div><p class="w" style="font-size:.92rem"></p>
+    <div class="state muted">You are now in: <b class="c" style="color:var(--ink)"></b></div>
+    <div class="state muted">so far: ${counts.toc} TOC · ${counts.accept} accepted · ${counts.ignore} ignored</div>`;
+  p.querySelector(".state").textContent = `"Item ${w.item}${w.text ? " " + w.text : ""}"`;
+  p.querySelector(".w").textContent = WHY[w.decision];
+  p.querySelector(".c").textContent = cur;
+}
+renderWalkTrack(); renderWalk(0);
+const walkInput = $("#walk"); walkInput.max = WALK.length - 1;
+walkInput.addEventListener("input", () => renderWalk(+walkInput.value));
+let walkTimer = null;
+$("#walkplay").addEventListener("click", e => {
+  if (walkTimer) { clearInterval(walkTimer); walkTimer = null; e.target.textContent = "Play"; return; }
+  if (+walkInput.value >= WALK.length - 1) walkInput.value = 0;
+  e.target.textContent = "Pause";
+  walkTimer = setInterval(() => { const v = +walkInput.value + 1; if (v >= WALK.length) { clearInterval(walkTimer); walkTimer = null; e.target.textContent = "Play"; return; } walkInput.value = v; renderWalk(v); }, 140);
+});
+
+/* ---------- table before/after ---------- */
+function renderTbl(mode) {
+  const t = mode === "flat" ? DATA.flat : DATA.rows;
+  $("#tbltext").textContent = t;
+  const lines = t.split("\n").length;
+  $("#tblmeta").textContent = mode === "flat" ? `${lines} lines shown, and the statement isn't finished yet: each label and each value is its own line.` : `${lines} lines: each row of the statement is one line, label first.`;
+}
+document.querySelectorAll("[data-tbl]").forEach(b => b.addEventListener("click", () => { pressOne(b.parentElement, b); renderTbl(b.dataset.tbl); }));
+renderTbl("flat");
+
+/* ---------- experiment chart ---------- */
+const VARIANTS = [
+  { k: "A_now", label: "M0 chunk 115", sub: "VaR text + flattened statement" },
+  { k: "B_section", label: "+ section split", sub: "Item 8 only, still flattened" },
+  { k: "C_rows", label: "+ table rows", sub: "Item 8 only, rows kept" },
+  { k: "D_rows_header", label: "+ contextual header", sub: "rows + one-line header" },
+];
+function renderExp(q) {
+  const svg = $("#exp"); svg.textContent = "";
+  const L = 190, R = 730, top = 36, rowH = 50;
+  const N = 203, sx = r => L + (R - L) * Math.log(r) / Math.log(N);
+  svg.appendChild(el("rect", { x: sx(1) - 4, y: top - 14, width: sx(6) - sx(1) + 8, height: rowH * 4 + 4, class: "zone" }));
+  svg.appendChild(el("text", { x: sx(1), y: top - 20, class: "lbl-num" }, "top 6: what the LLM sees"));
+  [1, 2, 6, 10, 20, 50, 100, 203].forEach(t => { const x = sx(t); svg.appendChild(el("line", { x1: x, y1: top - 12, x2: x, y2: top + rowH * 4 - 8, class: "grid" })); svg.appendChild(el("text", { x, y: top + rowH * 4 + 10, "text-anchor": "middle", class: "lbl" }, t)); });
+  svg.appendChild(el("text", { x: R, y: top + rowH * 4 + 28, "text-anchor": "end", class: "lbl" }, "rank among 203 chunks (log scale) → worse"));
+  const res = DATA.experiment.filter(r => r.query === q);
+  let prev = null;
+  VARIANTS.forEach((v, i) => {
+    const r = res.find(x => x.doc === v.k), y = top + i * rowH + 8;
+    svg.appendChild(el("text", { x: 0, y: y + 2, class: "t" }, v.label));
+    svg.appendChild(el("text", { x: 0, y: y + 18, class: "sub" }, v.sub));
+    const x = sx(r.rank), inTop = r.rank <= 6;
+    if (prev) svg.appendChild(el("line", { x1: prev.x, y1: prev.y + 5, x2: x, y2: y - 5, class: "edge-dash" }));
+    svg.appendChild(el("circle", { cx: x, cy: y, r: 7, fill: inTop ? "var(--num)" : "var(--nar)" }));
+    const lx = x > 560 ? x - 12 : x + 12;
+    svg.appendChild(el("text", { x: lx, y: y + 4, "text-anchor": x > 560 ? "end" : "start", class: inTop ? "lbl-num" : "lbl-nar" }, `rank ${r.rank} · distance ${r.distance.toFixed(3)}`));
+    prev = { x, y };
+  });
+  const a = res.find(x => x.doc === "A_now"), d = res.find(x => x.doc === "D_rows_header");
+  $("#expcap").textContent = q === "original"
+    ? `One-chunk test, original eval question: the section split and the table rows each help a little (73 → 46 → 60), and the header looks like the jump: rank ${a.rank} → ${d.rank}, distance ${a.distance.toFixed(3)} → ${d.distance.toFixed(3)}. Read the update below before trusting it.`
+    : `A cleaner query helps on its own (rank ${a.rank} instead of 73), and stacks with the chunk fixes: with the header the chunk is rank ${d.rank}. Query rewriting is M3's job; it multiplies what M1 builds.`;
+}
+document.querySelectorAll("[data-q]").forEach(b => b.addEventListener("click", () => { pressOne(b.parentElement, b); renderExp(b.dataset.q); }));
+renderExp("original");
+
+/* ---------- contents bar highlight ---------- */
+const links = [...document.querySelectorAll("nav.toc a")];
+const io = new IntersectionObserver(es => { es.forEach(e => { if (e.isIntersecting) links.forEach(a => a.classList.toggle("on", a.getAttribute("href") === "#" + e.target.id)); }); }, { rootMargin: "-40% 0px -55% 0px" });
+document.querySelectorAll("section[id]").forEach(s => io.observe(s));
+</script>

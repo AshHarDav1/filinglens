@@ -1,0 +1,415 @@
+<title>FilingLens M2 Plan</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  /* Layout: same frame as the M1 Workshop (1120px, prose 68ch). Orange = search by meaning, teal = found / right section, ink = search by words. */
+  :root {
+    --bg: #f3f5f7; --surface: #ffffff; --sunk: #eaeef2; --ink: #161b22; --muted: #5b6673;
+    --line: #d8dee6; --line-strong: #aeb8c4; --num: #0f766e; --nar: #b4530a; --bad: #b42318;
+    --font-display: "Newsreader", Georgia, "Times New Roman", serif;
+    --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0d1117; --surface: #161b22; --sunk: #10151c; --ink: #e7ebf0; --muted: #96a1b0;
+      --line: #28303b; --line-strong: #46515f; --num: #35d0bd; --nar: #f0a94c; --bad: #f97066; color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0d1117; --surface: #161b22; --sunk: #10151c; --ink: #e7ebf0; --muted: #96a1b0;
+    --line: #28303b; --line-strong: #46515f; --num: #35d0bd; --nar: #f0a94c; --bad: #f97066; color-scheme: dark;
+  }
+  body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.6; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 40px 96px; }
+  h1, h2, h3 { font-family: var(--font-display); font-weight: 600; text-wrap: balance; margin: 0; }
+  h1 { font-size: clamp(2rem, 5.4vw, 3rem); line-height: 1.08; letter-spacing: -0.01em; max-width: 24ch; }
+  h2 { font-size: clamp(1.4rem, 3.4vw, 1.85rem); line-height: 1.2; }
+  h3 { font-size: 1.1rem; line-height: 1.3; }
+  p { margin: 0; max-width: 68ch; }
+  code { font-family: var(--font-mono); font-size: 0.86em; background: var(--sunk); border: 1px solid var(--line); border-radius: 4px; padding: 0 4px; }
+  .eyebrow { font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+  .lede { font-size: 1.12rem; color: var(--muted); }
+  section { display: flex; flex-direction: column; gap: 16px; margin-block-start: 76px; scroll-margin-top: 64px; }
+  :focus-visible { outline: 2px solid var(--nar); outline-offset: 2px; }
+  ul.plain { margin: 0; padding-left: 1.1em; display: flex; flex-direction: column; gap: 6px; max-width: 72ch; }
+
+  body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+  nav.toc { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter: blur(6px); border-bottom: 1px solid var(--line); }
+  nav.toc .in { max-width: 1120px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 8px; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+  nav.toc a { font-family: var(--font-mono); font-size: 0.74rem; color: var(--muted); text-decoration: none; padding: 4px 10px; border-radius: 999px; white-space: nowrap; border: 1px solid transparent; }
+  nav.toc a:hover, nav.toc a.on { color: var(--ink); background: var(--surface); border-color: var(--line); }
+
+  header.masthead { display: flex; flex-direction: column; gap: 16px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { font-family: var(--font-mono); font-size: 0.76rem; border: 1px solid var(--line); border-radius: 999px; padding: 4px 11px; color: var(--muted); background: var(--surface); font-variant-numeric: tabular-nums; }
+  .chip b { color: var(--ink); font-weight: 500; }
+
+  .split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; }
+  .three { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+  .card h3 { font-size: 1.05rem; }
+  .card .big { font-family: var(--font-display); font-size: 2.2rem; line-height: 1; font-variant-numeric: tabular-nums; }
+  .card.good { border-top: 3px solid var(--num); } .card.meh { border-top: 3px solid var(--line-strong); } .card.nar { border-top: 3px solid var(--nar); }
+  .note { font-size: 0.9rem; color: var(--muted); border-left: 2px solid var(--line-strong); padding-left: 12px; max-width: 80ch; }
+  .simple { font-size: 0.95rem; border: 1px dashed var(--line-strong); border-radius: 8px; padding: 10px 14px; max-width: 80ch; }
+  .simple b { font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; margin-right: 6px; }
+
+  .seg { display: inline-flex; border: 1px solid var(--line-strong); border-radius: 8px; overflow: hidden; align-self: flex-start; flex-wrap: wrap; }
+  .seg button { font: 500 0.8rem var(--font-mono); background: var(--surface); color: var(--muted); border: 0; padding: 7px 13px; cursor: pointer; }
+  .seg button + button { border-left: 1px solid var(--line-strong); }
+  .seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+
+  figure { margin: 0; display: flex; flex-direction: column; gap: 10px; }
+  .diagram { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px; overflow-x: auto; }
+  .diagram svg { display: block; width: 100%; height: auto; }
+  .diagram.mid svg { min-width: 560px; }
+  figcaption { font-size: 0.9rem; color: var(--muted); max-width: 84ch; }
+  svg.dg { font-family: var(--font-body); }
+  .dg text { fill: var(--ink); font-size: 13px; }
+  .dg .lbl { fill: var(--muted); font-family: var(--font-mono); font-size: 11px; }
+  .dg .val { fill: var(--ink); font-family: var(--font-mono); font-size: 12px; font-weight: 500; }
+  .dg .axis { stroke: var(--line-strong); stroke-width: 1; }
+  .dg .grid { stroke: var(--line); stroke-width: 1; }
+
+  /* query words */
+  .words { display: flex; flex-wrap: wrap; gap: 6px; }
+  .w { font-family: var(--font-mono); font-size: 0.8rem; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line-strong); }
+  .w.useful { border-color: var(--num); color: var(--num); }
+  .w.noise { color: var(--muted); text-decoration: line-through; border-style: dashed; }
+  .w.stop { color: var(--muted); opacity: .55; }
+
+  /* explorer */
+  .explorer { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .qtext { font-size: 0.95rem; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; }
+  .ranklist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+  .ranklist li { display: grid; grid-template-columns: 26px 70px minmax(0, 1fr); gap: 10px; align-items: start; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; font-size: 0.86rem; }
+  .ranklist li.hit { border-color: var(--num); background: color-mix(in srgb, var(--num) 9%, var(--surface)); }
+  .ranklist .n { font-family: var(--font-mono); color: var(--muted); }
+  .ranklist .sec { font-family: var(--font-mono); font-size: 0.74rem; color: var(--muted); white-space: nowrap; }
+  .ranklist .snip { min-width: 0; overflow-wrap: anywhere; color: var(--muted); }
+  .ranklist li.hit .snip { color: var(--ink); }
+  .badge { font-family: var(--font-mono); font-size: 0.68rem; color: var(--num); font-weight: 600; }
+  .ranks { display: flex; flex-wrap: wrap; gap: 8px; }
+  .rk { font-family: var(--font-mono); font-size: 0.8rem; border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; background: var(--surface); }
+  .rk b { font-weight: 600; }
+  .rk.in b { color: var(--num); } .rk.out b { color: var(--bad); }
+
+  /* rrf calculator */
+  .calc { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; align-items: start; }
+  .calc label { display: flex; flex-direction: column; gap: 4px; font-size: 0.9rem; }
+  .calc input[type=range] { width: 100%; accent-color: var(--ink); }
+  .formula { font-family: var(--font-mono); font-size: 0.85rem; background: var(--sunk); border-radius: 8px; padding: 10px 12px; overflow-x: auto; white-space: pre; }
+
+  /* plan */
+  .steps { display: flex; flex-direction: column; border-top: 1px solid var(--line); }
+  .step { display: grid; grid-template-columns: 44px minmax(0, 1fr) minmax(0, 1fr); gap: 8px 20px; padding-block: 16px; border-bottom: 1px solid var(--line); }
+  .step .num { font-family: var(--font-display); font-size: 1.6rem; color: var(--muted); line-height: 1; }
+  .step h3 { font-size: 1.02rem; }
+  .step p { font-size: 0.93rem; }
+  .step .how { font-size: 0.88rem; color: var(--muted); }
+  .step .how b { color: var(--ink); font-weight: 500; }
+
+  .answer { background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--num); border-radius: 8px; padding: 12px 14px; font-size: 0.97rem; display: flex; flex-direction: column; gap: 8px; }
+  .src { font-family: var(--font-mono); font-size: 0.78rem; color: var(--muted); }
+
+  details.q { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px; }
+  details.q summary { cursor: pointer; font-weight: 500; }
+  details.q[open] summary { margin-bottom: 8px; }
+  details.q p { font-size: 0.95rem; }
+  .quiz { display: flex; flex-direction: column; gap: 8px; }
+
+  table { border-collapse: collapse; width: 100%; font-size: 0.88rem; }
+  .tscroll { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+  th, td { text-align: left; vertical-align: top; padding: 8px 12px; border-bottom: 1px solid var(--line); }
+  tr:last-child td { border-bottom: 0; }
+  th { font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; background: var(--sunk); }
+
+  @media (max-width: 860px) {
+    .split, .three, .calc { grid-template-columns: minmax(0, 1fr); }
+    .step { grid-template-columns: 34px minmax(0, 1fr); }
+    .step .how { grid-column: 2; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+
+<nav class="toc" aria-label="Sections"><div class="in">
+  <a href="#now">Where we stand</a><a href="#tested">Three ideas, tested</a><a href="#words">Search by words</a><a href="#merge">Merge the lists</a><a href="#sections">Right section</a><a href="#cite">Citations</a><a href="#plan">The plan</a><a href="#quiz">Check yourself</a>
+</div></nav>
+
+<div class="wrap">
+
+<header class="masthead">
+  <span class="eyebrow">FilingLens · Milestone 2 · Search</span>
+  <h1>Put the right passage in the top 6 more often</h1>
+  <p class="lede">The LLM only reads the 6 chunks the search hands it. Today the right passage is among them for 23 of 51 questions. M2 tries three ways to raise that, and I tested all three on the real data before writing this plan.</p>
+  <div class="chips">
+    <span class="chip">today hit@6 <b>23/51</b></span>
+    <span class="chip">search by words alone <b>17/51</b></span>
+    <span class="chip">both searches merged <b>23/51</b></span>
+    <span class="chip">right section only <b>36/51</b> (ceiling)</span>
+  </div>
+</header>
+
+<section id="result" style="margin-block-start:40px">
+  <span class="eyebrow">What actually happened (after building M2)</span>
+  <h2>The answers doubled, but not because of M2's search tricks</h2>
+  <div class="three">
+    <div class="card good"><span class="eyebrow">Full pipeline, 20 questions</span><div class="big">13/20</div><p>LLM answers graded by the judge. M0's RAG got 6/20, the closed-book model 11/20. RAG is ahead for the first time.</p></div>
+    <div class="card meh"><span class="eyebrow">Same, with the section router</span><div class="big">13/20</div><p>Identical score. So the jump came from M1: table rows the LLM can read, chunks that don't mix sections, excerpts labelled with their Item.</p></div>
+    <div class="card meh"><span class="eyebrow">Search tricks on held-out questions</span><div class="big">7–10/20</div><p>vs 8/20 for plain vector search. Hybrid + router won on the 31 questions it was chosen on, then lost on the 20 it hadn't seen.</p></div>
+  </div>
+  <ul class="plain">
+    <li><b>Kept as default:</b> plain vector search. Keyword search, merging and the routers are built and tested, and can be switched on, but none survived the held-out check.</li>
+    <li><b>Found on the way:</b> Netflix keeps its statements after Item 15, so routing to "Item 8" hid them (rank 1 → 37). Fixed: a pointer Item 8 now also searches Items 15 and 16.</li>
+    <li><b>Lesson:</b> a search score (hit@6) didn't move in M1, yet answers improved a lot, because the same chunks became readable. Measure the whole pipeline, not just one part.</li>
+  </ul>
+  <p class="note">Details and every number: docs/m2-results.md and ADR-008 in the repo. The plan below is kept as it was written.</p>
+</section>
+
+<!-- ============ NOW ============ -->
+<section id="now">
+  <span class="eyebrow">Where we stand</span>
+  <h2>28 questions out of 51 go to the LLM without the passage they need</h2>
+  <figure>
+    <div class="diagram"><svg class="dg" viewBox="0 0 760 70" role="img" aria-label="Of 51 questions, 23 have the evidence in the top 6 and 28 do not.">
+      <rect x="0" y="10" width="342.7" height="34" rx="4" fill="var(--num)"/>
+      <rect x="344.7" y="10" width="415.3" height="34" rx="4" fill="var(--line-strong)"/>
+      <text x="12" y="32" fill="var(--bg)" style="fill:var(--bg);font-weight:600">23 found in the top 6</text>
+      <text x="356" y="32" style="font-weight:600">28 not in the top 6</text>
+      <text x="0" y="64" class="lbl">each block is a share of the 51 FinanceBench 10-K questions · eval/results/2026-10-30-hit-m1-51q.json</text>
+    </svg></div>
+  </figure>
+  <p>When the passage isn't in those 6 chunks, the LLM can only answer "not found" or guess. So M2 is about one thing: <b>ranking</b>. Getting the right chunk from rank 15 or 40 up into the top 6.</p>
+</section>
+
+<!-- ============ TESTED ============ -->
+<section id="tested">
+  <span class="eyebrow">Three ideas, tested before building</span>
+  <h2>One idea is worth a lot. The other two, as a first try, are not.</h2>
+  <p>I ran a quick prototype on all 51 questions. It changed nothing in the database: keyword search was computed on the fly.</p>
+  <figure>
+    <div class="diagram mid"><svg id="testchart" class="dg" viewBox="0 0 760 250" role="img" aria-label="Hit at 6 out of 51: search by meaning 23, by words 17, both merged 23, by meaning within the right section 36."></svg></div>
+    <figcaption>Questions with the evidence in the top 6, out of 51. Switch to see the top 20.</figcaption>
+  </figure>
+  <div class="seg" role="group" aria-label="k"><button type="button" data-k="6" aria-pressed="true">top 6</button><button type="button" data-k="20" aria-pressed="false">top 20</button></div>
+  <div class="three">
+    <div class="card meh"><span class="eyebrow">Idea 1 · search by words</span><div class="big">17/51</div><p>Worse than searching by meaning, because the question's filler words ("please", "answer", "millions") match almost every table.</p></div>
+    <div class="card meh"><span class="eyebrow">Idea 2 · merge both lists</span><div class="big">23/51</div><p>No gain at the top 6 yet. The noisy word search drags good results down as often as it lifts others up.</p></div>
+    <div class="card good"><span class="eyebrow">Idea 3 · search the right section</span><div class="big">36/51</div><p>+13 questions. But this is a ceiling: in the test I told the search which section held the answer. The real work is guessing it.</p></div>
+  </div>
+</section>
+
+<!-- ============ WORDS ============ -->
+<section id="words">
+  <span class="eyebrow">Idea 1 · search by words</span>
+  <h2>A smarter Ctrl+F, built into Postgres</h2>
+  <div class="simple"><b>In simple terms</b>Search by meaning (what we have) compares fingerprints: "cost of revenue" and "COGS" can match even with no shared words. Search by words is the opposite: it only finds chunks that contain the question's actual words, but it finds them reliably. Postgres has this built in. It ignores small words ("the", "of") and word endings, so "statements" matches "statement".</div>
+  <div class="split">
+    <div class="card"><span class="eyebrow">How it works in Postgres</span>
+      <ul class="plain">
+        <li>Each chunk gets a list of its words, stemmed: a <code>tsvector</code> column, filled automatically.</li>
+        <li>An index on that column (a GIN index), like an index on any column you search by.</li>
+        <li>The question becomes a <code>tsquery</code>, and Postgres scores every chunk by how many of the words it contains and how close together they are (<code>ts_rank_cd</code>).</li>
+      </ul>
+    </div>
+    <div class="card"><span class="eyebrow">Why it failed on average</span>
+      <p>These are the words sent for the Microsoft COGS question. Teal words help. Struck-out words are instructions to the answerer, but the search treats them as content, and "millions" or "provide" appear in hundreds of chunks. Grey words are dropped by Postgres anyway.</p>
+      <div class="words" id="qwords"></div>
+    </div>
+  </div>
+
+  <h3>Compare the searches on real questions</h3>
+  <p>Pick a question and a search. The green row is the chunk that holds the FinanceBench evidence, if it made the top 6.</p>
+  <div class="explorer">
+    <div class="seg" role="group" aria-label="Question" id="qpick"></div>
+    <div class="qtext" id="qtext"></div>
+    <div class="ranks" id="qranks"></div>
+    <div class="seg" role="group" aria-label="Search method" id="mpick">
+      <button type="button" data-m="vector" aria-pressed="true">by meaning</button>
+      <button type="button" data-m="keyword" aria-pressed="false">by words</button>
+      <button type="button" data-m="hybrid" aria-pressed="false">merged</button>
+    </div>
+    <ol class="ranklist" id="toplist"></ol>
+  </div>
+  <p class="note">Microsoft COGS is the case where words win (rank 56 by meaning, 4 by words): "income statement" is literally on the page. Boeing and AMD are the opposite: their questions share few words with the passage.</p>
+</section>
+
+<!-- ============ MERGE ============ -->
+<section id="merge">
+  <span class="eyebrow">Idea 2 · merge the two lists</span>
+  <h2>Reciprocal rank fusion: points for being high on either list</h2>
+  <div class="simple"><b>In simple terms</b>Each search gives a ranked list. Every chunk earns points from each list: 1 ÷ (60 + its rank). Add the points, sort again. A chunk that is decent on both lists beats one that is first on one list and nowhere on the other. It only uses ranks, so it doesn't matter that the two searches score on different scales.</div>
+  <div class="calc">
+    <div class="card">
+      <label>Rank by meaning: <b id="rv-out">56</b><input type="range" id="rv" min="1" max="200" value="56"></label>
+      <label>Rank by words: <b id="rk-out">4</b><input type="range" id="rk" min="1" max="200" value="4"></label>
+      <div class="formula" id="formula"></div>
+    </div>
+    <div class="card">
+      <span class="eyebrow">Read it like this</span>
+      <p id="calc-read"></p>
+      <p class="note">The 60 is the standard constant from the original paper. It keeps one first place from outweighing everything else.</p>
+    </div>
+  </div>
+  <p>Merging can only help when the word search is good. As a first try it isn't, so step 2 of the plan cleans the question before searching by words.</p>
+</section>
+
+<!-- ============ SECTIONS ============ -->
+<section id="sections">
+  <span class="eyebrow">Idea 3 · search the right section</span>
+  <h2>Most answers live in two Items</h2>
+  <figure>
+    <div class="diagram mid"><svg id="secchart" class="dg" viewBox="0 0 760 240" role="img" aria-label="Number of questions whose evidence is in each Item: Item 8 thirty, Item 7 nineteen, Item 1A three, Item 1 three, cover two, Items 3, 15 and 16 one each."></svg></div>
+    <figcaption>Where the FinanceBench evidence sits, out of 51 questions (some evidence spans two Items). Item 8 is the financial statements, Item 7 is management's discussion.</figcaption>
+  </figure>
+  <div class="split">
+    <div class="card good"><span class="eyebrow">Why it works so well</span>
+      <p>Item 8 is about a third of a filing's chunks (89 of 260 on average). Searching only there removes two thirds of the competition. Boeing's legal question: rank 11 → 1. AMD's quick ratio: rank 18 → 2.</p>
+    </div>
+    <div class="card nar"><span class="eyebrow">The hard part</span>
+      <p>36/51 assumed we always know the right Item. A real system has to guess it from the question, and a wrong guess hides the answer completely. So the search should fall back to all sections when unsure.</p>
+    </div>
+  </div>
+  <div class="tscroll"><table>
+    <thead><tr><th>How to guess the section</th><th>How it works</th><th>For</th><th>Against</th></tr></thead>
+    <tbody>
+      <tr><td><b>Rules</b></td><td>Words in the question pick the Items: "risk" → 1A; "legal", "lawsuit" → 1A, 3, 8; numbers, ratios, "balance sheet" → 7 + 8</td><td>Free, instant, easy to test</td><td>Brittle: questions phrase things in many ways</td></tr>
+      <tr><td><b>Small LLM call</b></td><td>A cheap model reads the question and returns a list of likely Items</td><td>Understands phrasing; this is what the M3 agent's "plan" step will do anyway</td><td>One extra call per question (~0.5 s, a fraction of a cent)</td></tr>
+      <tr><td><b>Soft boost</b></td><td>Search everything, but rank chunks from the likely Items higher</td><td>A wrong guess costs a few ranks, not the answer</td><td>Smaller gain than a hard filter</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- ============ CITE ============ -->
+<section id="cite">
+  <span class="eyebrow">Citations</span>
+  <h2>Every answer points to the filing and the Item</h2>
+  <p>Each chunk already knows its company, form, year, Item and the filing's URL. M2 passes that through to the answer, so a reader can click through and check.</p>
+  <div class="answer">
+    <div><b>$32,780 million.</b> Microsoft's total cost of revenue for fiscal 2016 [1].</div>
+    <div class="src">[1] Microsoft 10-K, fiscal year 2016 · Item 8. Financial Statements · sec.gov/Archives/edgar/data/789019/000119312516662209/d187868d10k.htm</div>
+  </div>
+  <p class="note">Illustration of the format. In M3 the number itself will come from the XBRL lookup, and the citation will point to the same filing.</p>
+</section>
+
+<!-- ============ PLAN ============ -->
+<section id="plan">
+  <span class="eyebrow">The plan</span>
+  <h2>Six steps, each measured</h2>
+  <div class="steps">
+    <div class="step"><span class="num">1</span><div><h3>Word index in Postgres</h3><p>A <code>tsvector</code> column on <code>chunk</code>, filled automatically by Postgres, plus a GIN index. One migration. No new library.</p></div><p class="how"><b>Done when</b> keyword search over a filing takes milliseconds and gives the same results as the prototype.</p></div>
+    <div class="step"><span class="num">2</span><div><h3>Clean the question before searching by words</h3><p>Drop instruction words ("please", "answer", "provide", "round", "units") so only content words are searched.</p></div><p class="how"><b>Measure</b> word search alone: does it beat 17/51?</p></div>
+    <div class="step"><span class="num">3</span><div><h3>Merge both searches (RRF)</h3><p><code>hybrid_search()</code>: run both, merge the ranks, return the top k.</p></div><p class="how"><b>Measure</b> merged vs meaning alone (23/51). Keep it only if it wins.</p></div>
+    <div class="step"><span class="num">4</span><div><h3>Section guessing</h3><p>Try rules and a small LLM call, as a hard filter and as a soft boost, with a fallback to all sections.</p></div><p class="how"><b>Measure</b> each against today (23/51) and the ceiling (36/51).</p></div>
+    <div class="step"><span class="num">5</span><div><h3>Citations</h3><p>Results and answers carry company, form, year, Item and filing URL. RAG prompt v2 asks for <code>[n]</code> citations tied to those sources.</p></div><p class="how"><b>Done when</b> every RAG answer's sources list the Item and the link.</p></div>
+    <div class="step"><span class="num">6</span><div><h3>Final measurement</h3><p>Retrieval on the 51 questions, then one full run with the LLM and the judge on the 20, compared with plain RAG (6/20) and closed-book (11/20).</p></div><p class="how"><b>Fair test</b> try ideas on 31 of the 51 questions, confirm the winner once on the other 20.</p></div>
+  </div>
+  <div class="simple"><b>Why split the questions</b>If we try ten variants on the same 51 questions and keep the best, part of the "improvement" is luck: we picked whatever happened to fit these 51. Choosing on 31 questions and confirming on 20 the choice never saw gives an honest number. It's the same idea as a train/test split.</div>
+  <p class="note">Everything here is code in this repo and Postgres features. The only new cost is the section-guessing LLM call, if we keep it.</p>
+</section>
+
+<!-- ============ QUIZ ============ -->
+<section id="quiz">
+  <span class="eyebrow">Check yourself</span>
+  <h2>Interview questions for M2</h2>
+  <div class="quiz">
+    <details class="q"><summary>What is hybrid search, and why combine two searches?</summary><p>Running a search by meaning (embeddings) and a search by words (full-text) and merging the results. Meaning handles different wording ("COGS" vs "cost of revenue"); words handle exact terms, names and numbers that embeddings blur. Each catches misses of the other, when both are decent.</p></details>
+    <details class="q"><summary>How do you merge two ranked lists with different score scales?</summary><p>Reciprocal rank fusion: every item gets 1 / (60 + rank) from each list, and the points are added. It only uses positions, so cosine distances and text-match scores never have to be compared.</p></details>
+    <details class="q"><summary>Your hybrid search scored the same as vector search. Why could that be?</summary><p>Merging only helps if both lists are good. Here the word search was weak (17/51) because the questions contain instruction words that match almost every chunk. Fix the weaker list first, then merge.</p></details>
+    <details class="q"><summary>What does a "ceiling" experiment tell you?</summary><p>How much an idea could give if one hard part were solved perfectly. Searching only the right section gave 36/51 vs 23/51, which says section routing is worth building and how much is at stake. The real result will be lower, because the router will sometimes guess wrong.</p></details>
+    <details class="q"><summary>Why tune on some questions and test on others?</summary><p>Trying many variants on one set and keeping the best overfits to that set: part of the gain is luck. Choosing on one part and confirming once on a held-out part gives a number you can trust.</p></details>
+  </div>
+</section>
+
+</div>
+
+<script>
+const DATA = {"summary": {"vector": {"hit@6": 23, "hit@10": 26, "hit@20": 39, "hit@40": 42}, "keyword": {"hit@6": 17, "hit@10": 19, "hit@20": 29, "hit@40": 35}, "hybrid": {"hit@6": 23, "hit@10": 26, "hit@20": 31, "hit@40": 41}, "vector_oracle_section": {"hit@6": 36, "hit@10": 38, "hit@20": 47, "hit@40": 51}}, "sections": [["8", 30], ["7", 19], ["1A", 3], ["1", 3], ["3", 1], ["15", 1], ["16", 1], ["cover", 2]], "showcase": {"00222": {"question": "Does AMD have a reasonably healthy liquidity profile based on its quick ratio for FY22? If the quick ratio is not relevant to measure liquidity, please state that and explain why.", "tsquery": "does | amd | have | reasonably | healthy | liquidity | profile | based | on | its | quick | ratio | for | fy22 | if | the | is | not | relevant | to | measure | please | state | that | and | explain | why", "n": 264, "vector": [{"idx": 4, "section": "1", "ev": false, "snip": "ITEM 1. BUSINESS Cautionary Statement Regarding Forward-Looking Statements The statements in this report include forward-looking statements within the"}, {"idx": 124, "section": "7", "ev": false, "snip": "ITEM 7. MANAGEMENT\u2019S DISCUSSION AND ANALYSIS OF FINANCIAL CONDITION AND RESULTS OF OPERATIONS The following discussion should be read in conjunction w"}, {"idx": 248, "section": "15", "ev": false, "snip": "ITEM 15. EXHIBITS, FINANCIAL STATEMENT SCHEDULES 1. Financial Statements The financial statements of AMD are set forth in Item 8 of this Annual Report"}, {"idx": 121, "section": "5", "ev": false, "snip": "ITEM 5. MARKET FOR REGISTRANT\u2019S COMMON EQUITY, RELATED STOCKHOLDER MATTERS AND ISSUER PURCHASES OF EQUITY SECURITIES Our common stock is listed on The"}, {"idx": 5, "section": "1", "ev": false, "snip": "over the next 12 months and beyond; AMD\u2019s ability to obtain sufficient external financing on favorable terms, or at all; AMD\u2019s expectation that based "}, {"idx": 158, "section": "8", "ev": false, "snip": "| 115 | 227 | 45 See accompanying notes to consolidated financial statements. 56 Table of Contents Advanced Micro Devices, Inc. Notes to Consolidated "}], "keyword": [{"idx": 15, "section": "1", "ev": false, "snip": "family powered by our \u201cZen 3\u201d core architecture has up to 16 cores and is the first AMD Ryzen processor to feature AMD 3D V-Cache technology to improv"}, {"idx": 20, "section": "1", "ev": false, "snip": "and optimized anti-aliasing to boost frame rates in supported games while delivering similar or better image quality than native resolution without re"}, {"idx": 130, "section": "7", "ev": false, "snip": "workstation processors designed for professionals to run demanding workstation applications. We also introduced the AMD Ryzen PRO 7030 Series Mobile p"}, {"idx": 26, "section": "1", "ev": false, "snip": "applications, on our FPGAs and Adaptive SoCs. Out Vitis AI unified software platform enables the development and deployment of AI software on our FPGA"}, {"idx": 250, "section": "15", "ev": false, "snip": "and U.S. Bank Trust Company, National Association, dated February 14, 2022, filed as Exhibit 4.2 to AMD\u2019s Current Report on Form 8-K dated February 14"}, {"idx": 14, "section": "1", "ev": false, "snip": "to the end user. Moreover, heterogeneous computing allows for the elevation of the GPU to the same level as the CPU for memory access, queuing, and ex"}], "hybrid": [{"idx": 4, "section": "1", "ev": false, "snip": "ITEM 1. BUSINESS Cautionary Statement Regarding Forward-Looking Statements The statements in this report include forward-looking statements within the"}, {"idx": 130, "section": "7", "ev": false, "snip": "workstation processors designed for professionals to run demanding workstation applications. We also introduced the AMD Ryzen PRO 7030 Series Mobile p"}, {"idx": 250, "section": "15", "ev": false, "snip": "and U.S. Bank Trust Company, National Association, dated February 14, 2022, filed as Exhibit 4.2 to AMD\u2019s Current Report on Form 8-K dated February 14"}, {"idx": 6, "section": "1", "ev": false, "snip": "processing units (APUs) that integrate CPUs and GPUs, and chipsets for desktop and notebook personal computers; \u2022discrete GPUs, and semi-custom SoC pr"}, {"idx": 257, "section": "15", "ev": false, "snip": "as amended and restated, dated August 21, 2019, filed as Exhibit 10.7 to AMD\u2019s Quarterly Report on Form 10-Q for the fiscal quarter ended September 28"}, {"idx": 5, "section": "1", "ev": false, "snip": "over the next 12 months and beyond; AMD\u2019s ability to obtain sufficient external financing on favorable terms, or at all; AMD\u2019s expectation that based "}], "ranks": {"vector": 18, "keyword": 247, "keyword_norm": 247, "hybrid": 55, "vector_oracle_section": 2, "hybrid_oracle_section": 12}, "ev_section": ["8"]}, "01091": {"question": "Has Boeing reported any materially important ongoing legal battles from FY2022?", "tsquery": "has | boeing | reported | any | materially | important | ongoing | legal | battles | from | fy2022", "n": 258, "vector": [{"idx": 56, "section": "7", "ev": false, "snip": "performance. These factors have contributed to significant earnings charges on a number of fixed-price development programs which are expected to adve"}, {"idx": 95, "section": "7", "ev": false, "snip": "in Accrued liabilities is primarily driven by the accrued losses on BDS fixed-price development programs, lower payments to 737 MAX customers in 2022,"}, {"idx": 62, "section": "7", "ev": false, "snip": "operations | ($3,547) | ($2,902) | ($12,767) Other income, net | 1,058 | 551 | 447 Interest and debt expense | (2,533) | (2,682) | (2,156) Loss before"}, {"idx": 5, "section": "1", "ev": false, "snip": "consists of equipment under operating leases, sales-type/finance leases, notes and other receivables, assets held for sale or re-lease and investments"}, {"idx": 8, "section": "1", "ev": false, "snip": "of study from more than 300 accredited colleges and universities, online and across the globe through our tuition assistance program. Over 9,000 Boein"}, {"idx": 57, "section": "7", "ev": false, "snip": "| ($20.88) Non-GAAP (1) Core operating loss | ($4,690) | ($4,075) | ($14,150) Core operating margins | (7.0 | %) | (6.5 | %) | (24.3 | %) Core loss pe"}], "keyword": [{"idx": 235, "section": "8", "ev": false, "snip": "Table of Contents REPORT OF INDEPENDENT REGISTERED PUBLIC ACCOUNTING FIRM To the shareholders and the Board of Directors of The Boeing Company Opinion"}, {"idx": 14, "section": "1", "ev": false, "snip": "in 1916 and reincorporated in Delaware in 1934. Our principal executive offices are located at 929 Long Bridge Drive, Arlington, Virginia 22202, and o"}, {"idx": 238, "section": "9A", "ev": false, "snip": "Item 9A. Controls and Procedures (a)Evaluation of Disclosure Controls and Procedures. Our Chief Executive Officer and Chief Financial Officer have eva"}, {"idx": 253, "section": "15", "ev": false, "snip": "the Company\u2019s Current Report on Form 8-K dated January 6, 2021) 10.8 | Summary of Non employee Director Compensation (Exhibit 10.6 to the Company\u2019s Fo"}, {"idx": 239, "section": "9A", "ev": false, "snip": "public accounting firm, as stated in their report which is included in Item 8 of this report and is incorporated by reference herein. (c)Changes in In"}, {"idx": 251, "section": "15", "ev": false, "snip": "Item 15. Exhibits and Financial Statement Schedules (a)List of documents filed as part of this report: 1.Financial Statements Our consolidated financi"}], "hybrid": [{"idx": 252, "section": "15", "ev": false, "snip": "syndication agent and Citibank, N.A. and JPMorgan Chase Bank, N.A., as joint lead arrangers and joint book managers (Exhibit 10.2 to the Company\u2019s Cur"}, {"idx": 128, "section": "8", "ev": false, "snip": "and other | (1,532) | (1,267) | (2,355) FAS/CAS service cost adjustment | 1,143 | 1,173 | 1,383 Loss from operations | (3,547) | (2,902) | (12,767) Ot"}, {"idx": 251, "section": "15", "ev": false, "snip": "Item 15. Exhibits and Financial Statement Schedules (a)List of documents filed as part of this report: 1.Financial Statements Our consolidated financi"}, {"idx": 14, "section": "1", "ev": false, "snip": "in 1916 and reincorporated in Delaware in 1934. Our principal executive offices are located at 929 Long Bridge Drive, Arlington, Virginia 22202, and o"}, {"idx": 8, "section": "1", "ev": false, "snip": "of study from more than 300 accredited colleges and universities, online and across the globe through our tuition assistance program. Over 9,000 Boein"}, {"idx": 5, "section": "1", "ev": false, "snip": "consists of equipment under operating leases, sales-type/finance leases, notes and other receivables, assets held for sale or re-lease and investments"}], "ranks": {"vector": 11, "keyword": 144, "keyword_norm": 91, "hybrid": 24, "vector_oracle_section": 1, "hybrid_oracle_section": 7}, "ev_section": ["8"]}, "04700": {"question": "What is the FY2016 COGS for Microsoft? Please state answer in USD millions. Provide a response to the question by primarily using the statement of income.", "tsquery": "what | is | the | fy2016 | cogs | for | microsoft | please | state | answer | in | usd | millions | provide | response | to | question | by | primarily | using | statement | of | income", "n": 211, "vector": [{"idx": 190, "section": "8", "ev": false, "snip": "integration and restructuring expenses | (1,110) | (10,011) | (127) Revenue reconciling amounts and other (a) | (6,669) | 275 | (338) Total Corporate "}, {"idx": 175, "section": "8", "ev": false, "snip": "| 3,246 | 3,246 Corporate and Other | 6,709 | 83 Total | 33,909 | 25,318 Revenue from Windows 10 is primarily recognized at the time of billing in the"}, {"idx": 77, "section": "7", "ev": false, "snip": "on our reportable segments is contained in Note 21 \u2013 Segment Information and Geographic Data of the Notes to Financial Statements (Part II, Item 8 of "}, {"idx": 191, "section": "8", "ev": false, "snip": "7,702 | 3,073 Other | 5,851 | 6,234 | 6,217 Total | 85,320 | 93,580 | 86,833 (a) | Includes a net $6.6 billion of revenue deferrals related to sales o"}, {"idx": 98, "section": "7", "ev": false, "snip": "not generate a tax benefit. Our effective tax rate was lower than the U.S. federal statutory rate primarily due to foreign earnings taxed at lower rat"}, {"idx": 104, "section": "7", "ev": false, "snip": "(In millions) Three Months Ending, September 30, 2016 | 10,194 December 31, 2016 | 8,348 March 31, 2017 | 5,868 June 30, 2017 | 3,058 Thereafter | 6,4"}], "keyword": [{"idx": 96, "section": "7", "ev": false, "snip": "centers. In fiscal year 2016, our U.S. loss before income taxes was $325 million and our foreign income before income taxes was $20.1 billion. Net rev"}, {"idx": 193, "section": "8", "ev": false, "snip": "94 Table of Contents PART II Item 8 REPORT OF INDEPENDENT REGISTERED PUBLIC ACCOUNTING FIRM To the Board of Directors and Stockholders of Microsoft Co"}, {"idx": 204, "section": "15", "ev": false, "snip": "Item 15 PART IV ITEM 15. EXHIBITS, FINANCIAL STATEMENT SCHEDULES (a) | Financial Statements and Schedules The financial statements are set forth under"}, {"idx": 118, "section": "8", "ev": true, "snip": "Item 8 ITEM 8. FINANCIAL STATEMENTS AND SUPPLEMENTARY DATA INCOME STATEMENTS (In millions, except per share amounts) Year Ended June 30, | 2016 | 2015"}, {"idx": 114, "section": "7", "ev": false, "snip": "the financial statements from such a position are measured based on the largest benefit that has a greater than 50% likelihood of being realized upon "}, {"idx": 31, "section": "1", "ev": false, "snip": "period (generally two or three years depending on the specific programs used). The Open programs have several variations to fit customers\u2019 diverse way"}], "hybrid": [{"idx": 98, "section": "7", "ev": false, "snip": "not generate a tax benefit. Our effective tax rate was lower than the U.S. federal statutory rate primarily due to foreign earnings taxed at lower rat"}, {"idx": 82, "section": "7", "ev": false, "snip": "margin. Operating expenses increased $989 million or 12%, mainly due to higher research and development expenses and sales and marketing expenses. Res"}, {"idx": 193, "section": "8", "ev": false, "snip": "94 Table of Contents PART II Item 8 REPORT OF INDEPENDENT REGISTERED PUBLIC ACCOUNTING FIRM To the Board of Directors and Stockholders of Microsoft Co"}, {"idx": 192, "section": "8", "ev": false, "snip": "per share | 0.61 | 0.63 | 0.48 | 0.40 | 2.12 Diluted earnings per share | 0.61 | 0.62 | 0.47 | 0.39 | (b) | 2.10 | (b) Fiscal Year 2015 Revenue | 23,2"}, {"idx": 104, "section": "7", "ev": false, "snip": "(In millions) Three Months Ending, September 30, 2016 | 10,194 December 31, 2016 | 8,348 March 31, 2017 | 5,868 June 30, 2017 | 3,058 Thereafter | 6,4"}, {"idx": 85, "section": "7", "ev": false, "snip": "a decline in the business PC market following Windows XP end of support in the prior year, and declines in Japan, offset in part by subscriber growth "}], "ranks": {"vector": 56, "keyword": 3, "keyword_norm": 4, "hybrid": 14, "vector_oracle_section": 22, "hybrid_oracle_section": 4}, "ev_section": ["8"]}, "06655": {"question": "What is Amazon's FY2017 days payable outstanding (DPO)? DPO is defined as: 365 * (average accounts payable between FY2016 and FY2017) / (FY2017 COGS + change in inventory between FY2016 and FY2017). Round your answer to two decimal places. Address the question by using the line items and information shown within the balance sheet and the P&L statement.", "tsquery": "what | is | amazon | fy2017 | days | payable | outstanding | dpo | defined | as | 365 | average | accounts | between | fy2016 | and | cogs | change | in | inventory | round | your | answer | to | two | decimal | places | address | the | question | by | using | line | items | information | shown | within | balance | sheet | statement", "n": 192, "vector": [{"idx": 120, "section": "8", "ev": false, "snip": "to prepayments of Amazon Prime memberships and AWS services. Included in \u201cOther long-term liabilities\u201d on our consolidated balance sheets was $499 mil"}, {"idx": 88, "section": "7A", "ev": false, "snip": "5, 2034 | 1,250 3.875% Notes due on August 22, 2037 | 2,750 4.950% Notes due on December 5, 2044 | 1,500 4.050% Notes due on August 22, 2047 | 3,500 4"}, {"idx": 93, "section": "8", "ev": true, "snip": "activities | (3,882) | (3,740) | 9,860 Foreign currency effect on cash and cash equivalents | (374) | (212) | 713 Net increase (decrease) in cash and "}, {"idx": 61, "section": "7", "ev": false, "snip": "and 2017. Amounts held in foreign currencies were $7.3 billion, $9.1 billion, and $11.1 billion, as of December 31, 2015, 2016, and 2017, and were pri"}, {"idx": 94, "section": "8", "ev": true, "snip": "| 3,033 Basic earnings per share | 1.28 | 5.01 | 6.32 Diluted earnings per share | 1.25 | 4.90 | 6.15 Weighted-average shares used in computation of e"}, {"idx": 136, "section": "8", "ev": false, "snip": "for a term of three years, bears interest at the London interbank offered rate (\u201cLIBOR\u201d) plus 1.65%, and has a commitment fee of 0.50% on the undrawn "}], "keyword": [{"idx": 2, "section": "cover", "ev": false, "snip": "market value of voting stock held by non-affiliates of the registrant as of June 30, 2017 | 387,327,844,190 Number of shares of common stock outstandi"}, {"idx": 55, "section": "7", "ev": false, "snip": "businesses benefits our shareholders over the long-term. We also believe it is useful to evaluate our operating results and growth rates before and af"}, {"idx": 90, "section": "8", "ev": false, "snip": "Item 8. | Financial Statements and Supplementary Data INDEX TO CONSOLIDATED FINANCIAL STATEMENTS Page Report of Ernst & Young LLP, Independent Registe"}, {"idx": 46, "section": "6", "ev": false, "snip": "Item 6. | Selected Consolidated Financial Data The following selected consolidated financial data should be read in conjunction with the consolidated "}, {"idx": 121, "section": "8", "ev": false, "snip": "remeasurement of intercompany balances, we recorded a loss of $215 million in 2015 and recorded gains of $62 million and $202 million in 2016 and 2017"}, {"idx": 52, "section": "7", "ev": false, "snip": "below for additional information on our non-GAAP free cash flows financial measures. (2) | Working capital consists of accounts receivable, inventory,"}], "hybrid": [{"idx": 122, "section": "8", "ev": false, "snip": "forfeitures. Additionally, we retrospectively adjusted our consolidated statements of cash flows to reclassify excess tax benefits of $119 million and"}, {"idx": 94, "section": "8", "ev": true, "snip": "| 3,033 Basic earnings per share | 1.28 | 5.01 | 6.32 Diluted earnings per share | 1.25 | 4.90 | 6.15 Weighted-average shares used in computation of e"}, {"idx": 120, "section": "8", "ev": false, "snip": "to prepayments of Amazon Prime memberships and AWS services. Included in \u201cOther long-term liabilities\u201d on our consolidated balance sheets was $499 mil"}, {"idx": 119, "section": "8", "ev": false, "snip": "change in the extent or manner in which an asset is used, or any other significant adverse change that would indicate that the carrying amount of an a"}, {"idx": 121, "section": "8", "ev": false, "snip": "remeasurement of intercompany balances, we recorded a loss of $215 million in 2015 and recorded gains of $62 million and $202 million in 2016 and 2017"}, {"idx": 90, "section": "8", "ev": false, "snip": "Item 8. | Financial Statements and Supplementary Data INDEX TO CONSOLIDATED FINANCIAL STATEMENTS Page Report of Ernst & Young LLP, Independent Registe"}], "ranks": {"vector": 3, "keyword": 14, "keyword_norm": 25, "hybrid": 2, "vector_oracle_section": 2, "hybrid_oracle_section": 2}, "ev_section": ["7", "8"]}}};
+const $ = s => document.querySelector(s);
+const NS = "http://www.w3.org/2000/svg";
+function el(tag, a = {}, t) { const e = document.createElementNS(NS, tag); for (const k in a) e.setAttribute(k, a[k]); if (t != null) e.textContent = t; return e; }
+function pressOne(group, btn) { group.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", b === btn ? "true" : "false")); }
+
+/* tested chart */
+const METHODS = [
+  { k: "vector", label: "by meaning (today)", color: "var(--nar)" },
+  { k: "keyword", label: "by words", color: "var(--ink)" },
+  { k: "hybrid", label: "both merged", color: "var(--line-strong)" },
+  { k: "vector_oracle_section", label: "right section only", color: "var(--num)" },
+];
+function renderTest(k) {
+  const svg = $("#testchart"); svg.textContent = "";
+  const L = 60, B = 200, H = 170, max = 51, sy = v => B - H * v / max;
+  [0, 10, 20, 30, 40, 51].forEach(t => { svg.appendChild(el("line", { x1: L, y1: sy(t), x2: 740, y2: sy(t), class: t ? "grid" : "axis" })); svg.appendChild(el("text", { x: L - 8, y: sy(t) + 4, "text-anchor": "end", class: "lbl" }, t)); });
+  METHODS.forEach((m, i) => {
+    const v = DATA.summary[m.k]["hit@" + k], x = L + 30 + i * 170, w = 110;
+    svg.appendChild(el("rect", { x, y: sy(v), width: w, height: B - sy(v), fill: m.color, rx: 3 }));
+    svg.appendChild(el("text", { x: x + w / 2, y: sy(v) - 8, "text-anchor": "middle", class: "val" }, `${v}/51`));
+    svg.appendChild(el("text", { x: x + w / 2, y: B + 20, "text-anchor": "middle", class: "lbl" }, m.label));
+  });
+  svg.appendChild(el("text", { x: 740, y: B + 42, "text-anchor": "end", class: "lbl" }, "\"right section only\" is a ceiling: the search was told the Item"));
+}
+document.querySelectorAll("[data-k]").forEach(b => b.addEventListener("click", () => { pressOne(b.parentElement, b); renderTest(+b.dataset.k); }));
+renderTest(6);
+
+/* query words */
+const NOISE = new Set(["please", "state", "answer", "usd", "millions", "provide", "response", "question", "primarily", "using"]);
+const STOP = new Set(["what", "is", "the", "for", "in", "to", "by", "of"]);
+const qw = $("#qwords");
+DATA.showcase["04700"].tsquery.split(" | ").forEach(w => { const s = document.createElement("span"); s.className = "w " + (STOP.has(w) ? "stop" : NOISE.has(w) ? "noise" : "useful"); s.textContent = w; qw.appendChild(s); });
+
+/* explorer */
+const QS = [
+  { id: "04700", label: "MSFT · COGS" },
+  { id: "01091", label: "BA · legal battles" },
+  { id: "00222", label: "AMD · quick ratio" },
+  { id: "06655", label: "AMZN · DPO" },
+];
+let curQ = "04700", curM = "vector";
+const qp = $("#qpick");
+QS.forEach((q, i) => { const b = document.createElement("button"); b.type = "button"; b.textContent = q.label; b.setAttribute("aria-pressed", i === 0 ? "true" : "false"); b.addEventListener("click", () => { curQ = q.id; pressOne(qp, b); renderExplorer(); }); qp.appendChild(b); });
+document.querySelectorAll("[data-m]").forEach(b => b.addEventListener("click", () => { curM = b.dataset.m; pressOne(b.parentElement, b); renderExplorer(); }));
+const RANK_LABELS = { vector: "by meaning", keyword: "by words", hybrid: "merged", vector_oracle_section: "meaning, right section" };
+function renderExplorer() {
+  const s = DATA.showcase[curQ];
+  $("#qtext").textContent = s.question;
+  const rk = $("#qranks"); rk.textContent = "";
+  Object.entries(RANK_LABELS).forEach(([k, lab]) => { const r = s.ranks[k]; const d = document.createElement("span"); d.className = "rk " + (r && r <= 6 ? "in" : "out"); d.innerHTML = `${lab}: evidence at rank <b>${r == null ? "–" : r}</b>`; rk.appendChild(d); });
+  const ol = $("#toplist"); ol.textContent = "";
+  s[curM].forEach((r, i) => {
+    const li = document.createElement("li"); if (r.ev) li.className = "hit";
+    li.innerHTML = `<span class="n">${i + 1}</span><span class="sec">Item ${r.section}${r.ev ? '<br><span class="badge">EVIDENCE</span>' : ""}</span><span class="snip"></span>`;
+    li.querySelector(".snip").textContent = r.snip + "…";
+    ol.appendChild(li);
+  });
+}
+renderExplorer();
+
+/* rrf calculator */
+function renderCalc() {
+  const rv = +$("#rv").value, rk = +$("#rk").value;
+  $("#rv-out").textContent = rv; $("#rk-out").textContent = rk;
+  const a = 1 / (60 + rv), b = 1 / (60 + rk), only = 1 / 61;
+  $("#formula").textContent = `1/(60+${rv}) + 1/(60+${rk})\n= ${a.toFixed(5)} + ${b.toFixed(5)}\n= ${(a + b).toFixed(5)} points`;
+  const vsOne = a + b > only ? "beats" : "loses to";
+  $("#calc-read").textContent = `This chunk ${vsOne} a chunk that is 1st by meaning but missing from the word list (${only.toFixed(5)} points). A chunk ranked 10th on both lists would score ${(2 / 70).toFixed(5)}.`;
+}
+$("#rv").addEventListener("input", renderCalc); $("#rk").addEventListener("input", renderCalc); renderCalc();
+
+/* sections chart */
+(function () {
+  const svg = $("#secchart"), L = 110, R = 700, top = 12, rowH = 26, max = 30;
+  DATA.sections.forEach(([s, n], i) => {
+    const y = top + i * rowH, w = (R - L) * n / max;
+    svg.appendChild(el("text", { x: L - 10, y: y + 15, "text-anchor": "end", class: "lbl" }, s === "cover" ? "cover page" : "Item " + s));
+    svg.appendChild(el("rect", { x: L, y, width: Math.max(w, 2), height: 18, rx: 3, fill: s === "8" || s === "7" ? "var(--num)" : "var(--line-strong)" }));
+    svg.appendChild(el("text", { x: L + w + 8, y: y + 14, class: "val" }, n));
+  });
+})();
+
+/* contents highlight */
+const links = [...document.querySelectorAll("nav.toc a")];
+const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) links.forEach(a => a.classList.toggle("on", a.getAttribute("href") === "#" + e.target.id)); }), { rootMargin: "-40% 0px -55% 0px" });
+document.querySelectorAll("section[id]").forEach(s => io.observe(s));
+</script>

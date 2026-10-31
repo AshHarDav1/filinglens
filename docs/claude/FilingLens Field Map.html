@@ -1,0 +1,502 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>FilingLens Field Map</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  /* Layout: one reading column (max 68ch) with full-bleed diagram bands between sections. */
+  :root {
+    --bg: #f3f5f7;
+    --surface: #ffffff;
+    --ink: #161b22;
+    --muted: #5b6673;
+    --line: #d8dee6;
+    --num: #0f766e;        /* exact figures: XBRL */
+    --nar: #b4530a;        /* management's words: RAG */
+    --done: #0f766e;
+    --now: #b4530a;
+    --font-display: "Newsreader", Georgia, "Times New Roman", serif;
+    --font-body: "IBM Plex Sans", system-ui, -apple-system, Segoe UI, sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --ink: #e7ebf0;
+      --muted: #96a1b0;
+      --line: #28303b;
+      --num: #35d0bd;
+      --nar: #f0a94c;
+      --done: #35d0bd;
+      --now: #f0a94c;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --ink: #e7ebf0;
+    --muted: #96a1b0;
+    --line: #28303b;
+    --num: #35d0bd;
+    --nar: #f0a94c;
+    --done: #35d0bd;
+    --now: #f0a94c;
+    color-scheme: dark;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.6;
+  }
+  .wrap {
+    max-width: 760px;
+    margin: 0 auto;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 40px 72px;
+  }
+  h1, h2, h3 { font-family: var(--font-display); font-weight: 600; text-wrap: balance; margin: 0; }
+  h1 { font-size: clamp(2rem, 6vw, 3rem); line-height: 1.1; letter-spacing: -0.01em; }
+  h2 { font-size: clamp(1.35rem, 3.6vw, 1.75rem); line-height: 1.2; }
+  h3 { font-size: 1.05rem; line-height: 1.3; }
+  p { margin: 0; max-width: 65ch; }
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .lede { font-size: 1.1rem; color: var(--muted); }
+  section { display: flex; flex-direction: column; gap: 16px; margin-block-start: 56px; }
+  .stack-sm { display: flex; flex-direction: column; gap: 10px; }
+
+  header.masthead { display: flex; flex-direction: column; gap: 14px; }
+  .status-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .chip {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 4px 11px;
+    color: var(--muted);
+    background: var(--surface);
+  }
+  .chip.live { color: var(--now); border-color: color-mix(in srgb, var(--now) 45%, var(--line)); }
+  .chip.live::before {
+    content: "";
+    display: inline-block;
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--now);
+    margin-right: 7px;
+    vertical-align: 1px;
+    animation: breathe 2.4s ease-in-out infinite;
+  }
+  @keyframes breathe { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .35; transform: scale(.75); } }
+
+  /* ---- pipeline ---- */
+  .pipeline {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(104px, 1fr));
+    gap: 10px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 18px 16px;
+  }
+  .stop { display: flex; flex-direction: column; gap: 6px; min-width: 0; position: relative; padding-top: 14px; }
+  .stop .bar {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    border-radius: 2px;
+    background: var(--line);
+    overflow: hidden;
+  }
+  .stop .bar::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--nar);
+    transform: scaleX(0);
+    transform-origin: left;
+    animation: sweep 6s linear infinite;
+    animation-delay: var(--d);
+  }
+  .stop:nth-child(-n+3) .bar::after { background: var(--num); }
+  @keyframes sweep {
+    0%   { transform: scaleX(0); opacity: 0; }
+    4%   { transform: scaleX(1); opacity: 1; }
+    22%  { transform: scaleX(1); opacity: 1; }
+    30%  { transform: scaleX(1); opacity: .22; }
+    100% { transform: scaleX(1); opacity: .22; }
+  }
+  .stop .n { font-family: var(--font-mono); font-size: 0.68rem; color: var(--muted); }
+  .stop .t { font-size: 0.86rem; font-weight: 500; line-height: 1.25; }
+  .stop .s { font-size: 0.76rem; color: var(--muted); line-height: 1.35; }
+
+  /* ---- two halves ---- */
+  .halves { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; }
+  .half {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px;
+    background: var(--surface);
+    display: flex; flex-direction: column; gap: 8px;
+    min-width: 0;
+  }
+  .half .tag { font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: .08em; text-transform: uppercase; }
+  .half.n .tag { color: var(--num); }
+  .half.w .tag { color: var(--nar); }
+  .half p { font-size: 0.92rem; }
+  .half .sample {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    border-top: 1px solid var(--line);
+    padding-top: 10px;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+    overflow-x: auto;
+  }
+
+  /* ---- chunking animation ---- */
+  .diagram {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 18px 16px;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .diagram .cap { font-size: 0.8rem; color: var(--muted); }
+  .doc-flow { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .doc {
+    width: 74px; flex: none;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 7px 6px;
+    display: flex; flex-direction: column; gap: 4px;
+    background: var(--bg);
+  }
+  .doc i { display: block; height: 3px; border-radius: 2px; background: var(--line); }
+  .doc i:nth-child(3) { width: 70%; }
+  .doc i:nth-child(6) { width: 55%; }
+  .arrow { font-family: var(--font-mono); color: var(--muted); font-size: 0.9rem; }
+  .chunks { display: flex; gap: 6px; flex-wrap: wrap; min-width: 0; }
+  .chunk {
+    width: 42px; height: 30px;
+    border-radius: 3px;
+    border: 1px solid color-mix(in srgb, var(--nar) 35%, var(--line));
+    background: color-mix(in srgb, var(--nar) 10%, transparent);
+    animation: pop 5s ease-in-out infinite;
+    animation-delay: var(--d);
+  }
+  @keyframes pop {
+    0%, 8%   { opacity: 0; transform: translateX(-10px) scale(.9); }
+    16%, 70% { opacity: 1; transform: translateX(0) scale(1); }
+    85%, 100%{ opacity: 1; transform: translateX(0) scale(1); }
+  }
+  .vecs { display: flex; gap: 5px; align-items: center; }
+  .vec {
+    width: 9px; height: 9px; border-radius: 50%;
+    background: var(--num);
+    animation: fadein 5s ease-in-out infinite;
+    animation-delay: var(--d);
+  }
+  @keyframes fadein { 0%, 30% { opacity: 0; transform: scale(.4); } 45%, 100% { opacity: 1; transform: scale(1); } }
+
+  /* ---- vector space ---- */
+  .space { width: 100%; max-width: 100%; height: auto; display: block; }
+  .space .dot { fill: var(--line); }
+  .space .hit { fill: var(--num); animation: hit 5s ease-in-out infinite; animation-delay: var(--d); }
+  @keyframes hit { 0%, 35% { r: 4; opacity: .35; } 50%, 90% { r: 7; opacity: 1; } 100% { r: 4; opacity: .35; } }
+  .space .ray { stroke: var(--num); stroke-width: 1.2; stroke-dasharray: 3 3; opacity: 0; animation: ray 5s ease-in-out infinite; animation-delay: var(--d); }
+  @keyframes ray { 0%, 35% { opacity: 0; } 55%, 90% { opacity: .65; } 100% { opacity: 0; } }
+  .space .q { fill: var(--nar); animation: qpulse 5s ease-in-out infinite; }
+  @keyframes qpulse { 0%, 15% { opacity: 0; } 25%, 100% { opacity: 1; } }
+  .space text { font-family: var(--font-mono); font-size: 11px; fill: var(--muted); }
+  .space .fence { stroke: var(--line); stroke-width: 1; fill: none; stroke-dasharray: 5 4; }
+
+  /* ---- roadmap ---- */
+  .road { display: flex; flex-direction: column; gap: 0; }
+  .ms {
+    display: grid;
+    grid-template-columns: 26px 1fr;
+    gap: 14px;
+    padding-block: 11px;
+    align-items: start;
+  }
+  .ms .mark { position: relative; display: flex; justify-content: center; padding-top: 5px; }
+  .ms .mark::before {
+    content: "";
+    position: absolute;
+    top: 18px; bottom: -18px;
+    width: 1px;
+    background: var(--line);
+  }
+  .ms:last-child .mark::before { display: none; }
+  .ms .pin { width: 11px; height: 11px; border-radius: 50%; border: 2px solid var(--line); background: var(--bg); z-index: 1; }
+  .ms.done .pin { background: var(--done); border-color: var(--done); }
+  .ms.here .pin {
+    background: var(--now); border-color: var(--now);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--now) 60%, transparent);
+    animation: ping 2.2s ease-out infinite;
+  }
+  @keyframes ping {
+    0%   { box-shadow: 0 0 0 0 color-mix(in srgb, var(--now) 55%, transparent); }
+    70%  { box-shadow: 0 0 0 11px color-mix(in srgb, var(--now) 0%, transparent); }
+    100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--now) 0%, transparent); }
+  }
+  .ms .body { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+  .ms .name { font-size: 0.95rem; font-weight: 500; }
+  .ms .what { font-size: 0.85rem; color: var(--muted); }
+  .ms:not(.done):not(.here) .name { color: var(--muted); }
+  .ms.here .name { color: var(--now); }
+
+  .steps { display: flex; flex-direction: column; gap: 0; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); overflow: hidden; }
+  .step { display: grid; grid-template-columns: 22px 1fr auto; gap: 12px; padding: 12px 14px; align-items: baseline; border-top: 1px solid var(--line); }
+  .step:first-child { border-top: none; }
+  .step .ix { font-family: var(--font-mono); font-size: 0.78rem; color: var(--muted); }
+  .step .txt { font-size: 0.9rem; min-width: 0; }
+  .step .state { font-family: var(--font-mono); font-size: 0.72rem; white-space: nowrap; }
+  .step.ok .state { color: var(--done); }
+  .step.todo .state { color: var(--now); }
+  .step.todo { background: color-mix(in srgb, var(--now) 7%, transparent); }
+
+  .scoreboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+  .score {
+    border: 1px dashed var(--line);
+    border-radius: 10px;
+    padding: 14px;
+    display: flex; flex-direction: column; gap: 4px;
+    min-width: 0;
+  }
+  .score .v { font-family: var(--font-mono); font-size: 1.6rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .score .k { font-size: 0.82rem; }
+  .score .n { font-size: 0.75rem; color: var(--muted); }
+
+  pre {
+    margin: 0;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 14px;
+    overflow-x: auto;
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    line-height: 1.7;
+  }
+  pre .c { color: var(--muted); }
+  ul { margin: 0; padding-left: 1.1rem; display: flex; flex-direction: column; gap: 6px; }
+  li { font-size: 0.95rem; }
+  strong { font-weight: 600; }
+  .rule { height: 1px; background: var(--line); border: none; margin: 0; }
+  .foot { margin-block-start: 56px; font-size: 0.82rem; color: var(--muted); }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+    .chunk, .vec, .space .hit, .space .ray, .space .q { opacity: 1; transform: none; }
+    .stop .bar::after { transform: scaleX(1); opacity: .35; }
+  }
+</style>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <span class="eyebrow">FilingLens · project map</span>
+    <h1>Where we are, in pictures</h1>
+    <p class="lede">Everything is built. Nothing has been run yet. The next three commands decide whether the whole approach works.</p>
+    <div class="status-row">
+      <span class="chip live">M0 PoC · steps 3–5</span>
+      <span class="chip">20 questions · 10 companies · 12 filings</span>
+      <span class="chip">0 eval runs saved</span>
+    </div>
+  </header>
+
+  <section>
+    <span class="eyebrow">The goal</span>
+    <h2>Two to four hours of an analyst's day, in under thirty seconds</h2>
+    <p>An equity analyst opens a 10-K, hunts for the revenue line, hunts for the paragraph where management explains it, and writes it up. We want to ask one question and get back the exact figure, management's own explanation, and a link to the page it came from — so the answer can be checked, not trusted.</p>
+    <div class="pipeline" aria-label="How one question becomes one answer">
+      <div class="stop" style="--d:0s"><span class="bar"></span><span class="n">01</span><span class="t">Question</span><span class="s">"What drove AMD's FY22 revenue?"</span></div>
+      <div class="stop" style="--d:.35s"><span class="bar"></span><span class="n">02</span><span class="t">Pick the filing</span><span class="s">ticker + fiscal year</span></div>
+      <div class="stop" style="--d:.7s"><span class="bar"></span><span class="n">03</span><span class="t">Find paragraphs</span><span class="s">search the filing's text</span></div>
+      <div class="stop" style="--d:1.05s"><span class="bar"></span><span class="n">04</span><span class="t">Hand to the model</span><span class="s">question + the excerpts</span></div>
+      <div class="stop" style="--d:1.4s"><span class="bar"></span><span class="n">05</span><span class="t">Answer</span><span class="s">grounded in those excerpts</span></div>
+      <div class="stop" style="--d:1.75s"><span class="bar"></span><span class="n">06</span><span class="t">Citation</span><span class="s">filing URL + section</span></div>
+    </div>
+    <p>That is the whole product in six moves. Today steps 02–06 exist as code and pass unit tests, but no real filing has ever gone through them.</p>
+  </section>
+
+  <section>
+    <span class="eyebrow">The one rule that shapes everything</span>
+    <h2>Numbers and words come from different places</h2>
+    <p>A language model reading a financial table will sometimes get a digit wrong, and a wrong digit in equity research is worse than no answer. So the system never lets the model read numbers out of text. Figures come from the SEC's structured data; the model only ever explains.</p>
+    <div class="halves">
+      <div class="half n">
+        <span class="tag">Exact figures — XBRL</span>
+        <p>Every US filing ships machine-readable tagged financials. We load them into a table and query them with SQL. No model involved, so no room for a hallucinated digit.</p>
+        <div class="sample">Revenues FY2022 = 23,601,000,000</div>
+      </div>
+      <div class="half w">
+        <span class="tag">Explanations — retrieval</span>
+        <p>The "why" only exists in prose: Risk Factors, MD&amp;A. We search that prose for the relevant paragraphs and let the model summarise them — and only them.</p>
+        <div class="sample">"...driven by a 64% increase in Data Center..."</div>
+      </div>
+    </div>
+    <p>This is ADR-002 in the project docs. It is also the single sentence worth memorising for an interview about this codebase.</p>
+  </section>
+
+  <section>
+    <span class="eyebrow">Concept · ingestion</span>
+    <h2>A 300-page filing becomes a few hundred searchable pieces</h2>
+    <p>You cannot hand a whole 10-K to a model — it does not fit, and most of it is irrelevant. So the filing is cut into overlapping windows of about 2,000 characters (roughly half a page each), and every window is turned into a list of 1,536 numbers called an <strong>embedding</strong>: a position in meaning-space, where passages about the same topic land near each other.</p>
+    <div class="diagram">
+      <div class="doc-flow">
+        <div class="doc" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        <span class="arrow">→</span>
+        <div class="chunks" aria-hidden="true">
+          <span class="chunk" style="--d:0s"></span>
+          <span class="chunk" style="--d:.25s"></span>
+          <span class="chunk" style="--d:.5s"></span>
+          <span class="chunk" style="--d:.75s"></span>
+          <span class="chunk" style="--d:1s"></span>
+        </div>
+        <span class="arrow">→</span>
+        <div class="vecs" aria-hidden="true">
+          <span class="vec" style="--d:0s"></span>
+          <span class="vec" style="--d:.15s"></span>
+          <span class="vec" style="--d:.3s"></span>
+          <span class="vec" style="--d:.45s"></span>
+          <span class="vec" style="--d:.6s"></span>
+        </div>
+      </div>
+      <p class="cap">10-K HTML → overlapping 2,000-character chunks (200 of them shared with the neighbour, so a sentence is never cut in half) → one embedding per chunk, stored in Postgres next to the text.</p>
+    </div>
+    <p>The overlap is the detail people miss: without it, the one sentence you need can land exactly on a cut line and appear in neither piece. Each embedding is cached by a hash of its text, so re-running ingestion never pays for the same vector twice.</p>
+  </section>
+
+  <section>
+    <span class="eyebrow">Concept · retrieval</span>
+    <h2>Search by meaning, fenced in by company and year</h2>
+    <p>The question gets an embedding too. Finding the right paragraphs is then just geometry: take the six chunks whose vectors sit closest to the question's. No keyword has to match — "what drove revenue" finds "the increase was primarily due to" without sharing a word.</p>
+    <div class="diagram">
+      <svg class="space" viewBox="0 0 560 240" role="img" aria-label="Chunks as dots in meaning-space; the six nearest the question light up, inside a fence labelled AMD FY2022">
+        <rect class="fence" x="24" y="20" width="400" height="200" rx="10"></rect>
+        <text x="34" y="40">AMD · FY2022</text>
+        <circle class="dot" cx="470" cy="60"  r="4"></circle>
+        <circle class="dot" cx="508" cy="104" r="4"></circle>
+        <circle class="dot" cx="488" cy="170" r="4"></circle>
+        <circle class="dot" cx="524" cy="200" r="4"></circle>
+        <text x="455" y="226">other filings</text>
+        <circle class="dot" cx="70"  cy="70"  r="4"></circle>
+        <circle class="dot" cx="110" cy="190" r="4"></circle>
+        <circle class="dot" cx="160" cy="60"  r="4"></circle>
+        <circle class="dot" cx="200" cy="200" r="4"></circle>
+        <circle class="dot" cx="360" cy="70"  r="4"></circle>
+        <circle class="dot" cx="390" cy="180" r="4"></circle>
+        <circle class="dot" cx="96"  cy="130" r="4"></circle>
+        <circle class="dot" cx="330" cy="200" r="4"></circle>
+        <circle class="dot" cx="150" cy="150" r="4"></circle>
+        <circle class="dot" cx="400" cy="120" r="4"></circle>
+        <line class="ray" style="--d:0s"   x1="240" y1="120" x2="212" y2="96"></line>
+        <line class="ray" style="--d:.1s"  x1="240" y1="120" x2="276" y2="98"></line>
+        <line class="ray" style="--d:.2s"  x1="240" y1="120" x2="268" y2="152"></line>
+        <line class="ray" style="--d:.3s"  x1="240" y1="120" x2="198" y2="146"></line>
+        <line class="ray" style="--d:.4s"  x1="240" y1="120" x2="300" y2="124"></line>
+        <line class="ray" style="--d:.5s"  x1="240" y1="120" x2="238" y2="70"></line>
+        <circle class="hit" style="--d:0s"  cx="212" cy="96"  r="4"></circle>
+        <circle class="hit" style="--d:.1s" cx="276" cy="98"  r="4"></circle>
+        <circle class="hit" style="--d:.2s" cx="268" cy="152" r="4"></circle>
+        <circle class="hit" style="--d:.3s" cx="198" cy="146" r="4"></circle>
+        <circle class="hit" style="--d:.4s" cx="300" cy="124" r="4"></circle>
+        <circle class="hit" style="--d:.5s" cx="238" cy="70"  r="4"></circle>
+        <circle class="q" cx="240" cy="120" r="7"></circle>
+        <text x="252" y="124" style="fill: var(--nar)">question</text>
+      </svg>
+      <p class="cap">Dashed fence = the SQL filter on ticker and fiscal year, applied before the distance ranking.</p>
+    </div>
+    <p>The fence matters more than it looks. Similarity search always returns <em>something</em> — ask about AMD with no filter and you can get Microsoft's paragraphs back, confidently cited. Filtering to one company's one filing first is what stops that.</p>
+  </section>
+
+  <hr class="rule">
+
+  <section>
+    <span class="eyebrow">Status</span>
+    <h2>M0: five steps, three finished</h2>
+    <p>M0 is a proof of concept with one job — produce a number good enough to justify building the rest, or honest enough to stop.</p>
+    <div class="steps">
+      <div class="step ok"><span class="ix">1a</span><span class="txt">Repo skeleton, settings, Docker, CI</span><span class="state">done</span></div>
+      <div class="step ok"><span class="ix">1b</span><span class="txt">FinanceBench subset — 20 real questions with ground-truth answers</span><span class="state">done</span></div>
+      <div class="step ok"><span class="ix">2</span><span class="txt">Postgres + pgvector, four tables, migration</span><span class="state">done</span></div>
+      <div class="step todo"><span class="ix">3</span><span class="txt">EDGAR client — written and unit-tested, never pointed at the real SEC</span><span class="state">not run</span></div>
+      <div class="step todo"><span class="ix">4</span><span class="txt">Baseline eval — the model answering with no filings at all</span><span class="state">not run</span></div>
+      <div class="step todo"><span class="ix">5</span><span class="txt">RAG eval — the same questions, with retrieved excerpts</span><span class="state">not run</span></div>
+    </div>
+    <p>Three things are missing before step 3 can run: a <span class="chip">.env</span> with an SEC user agent and an API key, a database that is up and migrated, and roughly 150 MB of downloaded filings on disk.</p>
+  </section>
+
+  <section>
+    <span class="eyebrow">The decision this week</span>
+    <h2>Two runs, one comparison</h2>
+    <p>First the model answers all 20 questions from memory alone. Then it answers them again with retrieved excerpts. The gap between those two numbers is the only evidence that retrieval is doing anything — and it is the number that goes on the README.</p>
+    <div class="scoreboard">
+      <div class="score"><span class="v">—/20</span><span class="k">Baseline accuracy</span><span class="n">no filings, model memory only</span></div>
+      <div class="score"><span class="v">—/20</span><span class="k">RAG accuracy</span><span class="n">with retrieved excerpts</span></div>
+      <div class="score"><span class="v">—/20</span><span class="k">Retrieval hit rate</span><span class="n">was the right paragraph even found?</span></div>
+      <div class="score"><span class="v">—</span><span class="k">Cost per question</span><span class="n">tokens in + out</span></div>
+    </div>
+    <p>Blank on purpose. Nothing goes in these boxes that did not come out of a saved run in <span class="chip">eval/results/</span>.</p>
+    <pre><span class="c"># the three commands that fill them in</span>
+uv run python -m filinglens.ingestion.run \
+    --from-subset eval/financebench_subset.jsonl
+
+uv run python eval/run_eval.py --mode baseline --name baseline
+uv run python eval/run_eval.py --mode rag      --name rag-poc</pre>
+    <p>If RAG beats baseline by a clear margin, M1 starts. If it does not, the fix is upstream — chunking, or section parsing — and we find that out now rather than after building an agent on top of it.</p>
+  </section>
+
+  <section>
+    <span class="eyebrow">The road</span>
+    <h2>Seven milestones</h2>
+    <div class="road">
+      <div class="ms here">
+        <div class="mark"><span class="pin"></span></div>
+        <div class="body"><span class="name">M0 · Proof of concept</span><span class="what">Does retrieval beat memory on 20 real questions? ← we are here, steps 3–5</span></div>
+      </div>
+      <div class="ms">
+        <div class="mark"><span class="pin"></span></div>
+        <div class="body"><span class="name">M1 · Data</span><span class="what">Proper section parsing (Item 1A / 7 / 8) and XBRL facts in the database</span></div>
+      </div>
+      <div class="ms">
+        <div class="mark"><span class="pin"></span></div>
+        <div class="body"><span class="name">M2 · Retrieval</span><span class="what">Hybrid search — meaning plus keywords — with citations</span></div>
+      </div>
+      <div class="ms">
+        <div class="mark"><span class="pin"></span></div>
+        <div class="body"><span class="name">M3 · Agent</span><span class="what">LangGraph: search, look up figures, calculate; refuse advice; say "not found"</span></div>
+      </div>
+      <div class="ms">
+        <div class="mark"><span class="pin"></span></div>
+        <div class="body"><span class="name">M4 · Interfaces</span><span class="what">FastAPI with streaming, Streamlit demo, MCP server</span></div>
+      </div>
+      <div class="ms">
+        <div class="mark"><span class="pin"></span></div>
+        <div class="body"><span class="name">M5 · Quality</span><span class="what">One measured improvement, proven against the M0 numbers</span></div>
+      </div>
+      <div class="ms">
+        <div class="mark"><span class="pin"></span></div>
+        <div class="body"><span class="name">M6 · Ship</span><span class="what">Tracing, deploy, README with real results, two-minute demo</span></div>
+      </div>
+    </div>
+  </section>
+
+  <p class="foot">Status read from the working tree on 26 Oct 2026: one commit on <span class="chip">main</span>, no <span class="chip">.env</span>, no <span class="chip">data/</span> cache, <span class="chip">eval/results/</span> empty.</p>
+
+</div>
+
+</body></html>

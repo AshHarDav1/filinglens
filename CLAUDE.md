@@ -158,7 +158,7 @@ uv run streamlit run ui/app.py
   - [x] 5 plain-RAG PoC eval → **GO**: 6/20 (`2026-10-28-rag-poc.json`); retrieval hit@6 6/20, hit@20 14/20
     (`2026-10-29-hit-poc.json`); 12 of 14 wrong answers are retrieval misses. Write-up: `docs/m0-results.md`
 - [x] **M1 Data:** full ingestion of filings (sections → chunks → embeddings) and XBRL facts (branch `m1-data`;
-  results: `docs/m1-results.md`; local explainer, git-ignored: `docs/claude/FilingLens M1 Workshop.html`)
+  results: `docs/m1-results.md`; explainer pages: `docs/claude/`)
   - [x] 1 `financial_fact` + `load_facts.py`: 105,092 10-K facts (us-gaap, all years) for the 10 companies, stored as reported
   - [x] 2 `financials.py`: METRICS map + `get_metric()` (own 10-K first, then concept priority); MSFT FY2016 COGS = 32,780
   - [x] 3 `parse_10k.split_sections()`: skips the TOC and running headers; Items 1A/7/8 found in all 12 filings
