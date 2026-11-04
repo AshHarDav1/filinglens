@@ -9,6 +9,7 @@ PROMPT_VERSIONS = {
     "guard": "v1",
     "plan": "v1",
     "answer": "v1",
+    "answer_retry": "v1",
 }
 
 # baseline v1 (2026-10-22): closed-book. No documents, no tools, no examples.
@@ -159,3 +160,10 @@ REFUSE_OFF_TOPIC = (
     "I can only answer questions about US public companies' SEC filings (10-K annual reports): "
     "reported financials and what management wrote about them."
 )
+
+# answer_retry v1 (2026-11-04): sent after the grounding check (check.py) finds problems.
+ANSWER_RETRY = """\
+An automatic check found problems in your answer:
+{problems}
+Rewrite the answer. Use only numbers that appear in the sources (rounding the final result is \
+fine) and cite only sources that exist. Remove any number you cannot support."""

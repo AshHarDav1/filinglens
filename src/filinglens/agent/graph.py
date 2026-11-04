@@ -1,8 +1,8 @@
 """The FilingLens agent: a LangGraph state machine around the three tools.
 
-    START -> guard -> plan <-> tools (at most MAX_ROUNDS rounds) -> answer -> END
-               |        \\-> not_found (no tool returned data) -> END
-               \\-> refuse (advice / off topic) -> END
+    START -> guard -> plan <-> tools (at most MAX_ROUNDS rounds) -> answer -> check -> END
+               |        \\-> not_found (no tool returned data) -> END        |
+               \\-> refuse (advice / off topic) -> END       answer <- once -/ (problems found)
 
 The LLM decides which tools to call and writes the answer; code decides the flow, the limits and
 the exits (ADR-003). Refusals and "not found" are fixed texts, not generated.
@@ -10,7 +10,6 @@ the exits (ADR-003). Refusals and "not found" are fixed texts, not generated.
 Try it: uv run python -m filinglens.agent.graph "What is AMD's FY2022 quick ratio?"
 """
 
-import re
 import sys
 from typing import Annotated, Literal, TypedDict
 
@@ -23,14 +22,11 @@ from langgraph.prebuilt import ToolNode
 from pydantic import BaseModel
 
 from filinglens.agent import prompts
-from filinglens.agent.tools import (
-    CalculateOutput,
-    GetFinancialsOutput,
-    SearchFilingsOutput,
-    format_musd,
-)
+from filinglens.agent.check import check_answer
+from filinglens.agent.sources import Source, cited, collect_sources, render_sources
 
 MAX_ROUNDS = 4  # rounds of tool calls; one round can hold several parallel calls
+MAX_ANSWER_ATTEMPTS = 2  # the first answer plus one rewrite if the check finds problems
 
 Verdict = Literal["ok", "advice", "off_topic"]
 Outcome = Literal["answered", "not_found", "refused"]
@@ -38,16 +34,6 @@ Outcome = Literal["answered", "not_found", "refused"]
 
 class GuardVerdict(BaseModel):
     verdict: Verdict
-
-
-class Source(BaseModel):
-    """One citable piece of evidence; the answer cites it as [n]."""
-
-    n: int
-    kind: Literal["xbrl", "calculation", "passage"]
-    label: str  # "AMD 10-K FY2022 · Item 7", "XBRL · AMD FY2022 cash", "calculate"
-    url: str | None
-    text: str  # what the answer step reads
 
 
 class AgentState(TypedDict, total=False):
@@ -60,6 +46,9 @@ class AgentState(TypedDict, total=False):
     answer: str
     sources: list[Source]
     outcome: Outcome
+    attempts: int  # answer attempts so far
+    problems: list[str]  # what the check found in the latest answer
+    verified: bool
 
 
 class AgentResult(BaseModel):
@@ -70,74 +59,13 @@ class AgentResult(BaseModel):
     rounds: int
     tool_calls: list[dict]  # [{"name": ..., "args": ...}] in call order
     sources: list[Source]  # only the ones the answer cites
-
-
-# --- sources: tool results -> numbered evidence -------------------------------------------------
-
-
-def collect_sources(messages: list[AnyMessage]) -> list[Source]:
-    """Every successful tool result as numbered sources, deduplicated, in the order found.
-
-    Reads the artifacts (typed results), not the text the LLM saw. Failed calls have no artifact.
-    """
-    sources: list[Source] = []
-    seen: set = set()
-
-    def add(key, kind, label, url, text):
-        if key not in seen:
-            seen.add(key)
-            sources.append(Source(n=len(sources) + 1, kind=kind, label=label, url=url, text=text))
-
-    for message in messages:
-        if not isinstance(message, ToolMessage) or message.artifact is None:
-            continue
-        result = message.artifact
-        if isinstance(result, GetFinancialsOutput):
-            for v in result.values:
-                note = "" if v.as_reported else ", from a later 10-K (may be restated)"
-                add(
-                    ("xbrl", v.ticker, v.fiscal_year, v.metric),
-                    "xbrl",
-                    f"XBRL · {v.ticker} FY{v.fiscal_year} {v.metric}",
-                    v.source_url,
-                    f"{v.ticker} FY{v.fiscal_year} {v.metric} = {format_musd(v.value_musd)} "
-                    f"USD millions ({v.concept}, period end {v.period_end}{note})",
-                )
-        elif isinstance(result, CalculateOutput):
-            add(
-                ("calc", result.expression),
-                "calculation",
-                "calculate",
-                None,
-                f"{result.expression} = {result.value:.6g}",
-            )
-        elif isinstance(result, SearchFilingsOutput):
-            for p in result.passages:
-                label = f"{p.ticker} {p.form} FY{p.fiscal_year}"
-                label += f" · Item {p.section}" if p.section else ""
-                add(("chunk", p.chunk_id), "passage", label, p.url, p.content)
-    return sources
-
-
-def render_sources(sources: list[Source]) -> str:
-    def header(s: Source) -> str:
-        if s.kind == "passage":
-            return f"[{s.n}] Filing passage · {s.label}\n"
-        return f"[{s.n}] {'XBRL' if s.kind == 'xbrl' else 'Calculation'}: "
-
-    return "\n\n".join(header(s) + s.text for s in sources)
-
-
-def cited(answer: str, sources: list[Source]) -> list[Source]:
-    numbers = {int(n) for n in re.findall(r"\[(\d+)\]", answer)}
-    return [s for s in sources if s.n in numbers]
+    verified: bool  # passed the grounding check (refusals and "not found" pass trivially)
+    attempts: int
+    problems: list[str]  # left after the last attempt, if not verified
 
 
 def format_filings(filings: dict[str, list[int]]) -> str:
     return "\n".join(f"{ticker}: {', '.join(map(str, years))}" for ticker, years in filings.items())
-
-
-# --- the graph ----------------------------------------------------------------------------------
 
 
 def build_agent(
@@ -167,26 +95,49 @@ def build_agent(
 
     def answer(state: AgentState) -> dict:
         sources = collect_sources(state["messages"])
-        reply = llm.invoke(
-            [
-                SystemMessage(prompts.ANSWER_SYSTEM),
+        prompt = [
+            SystemMessage(prompts.ANSWER_SYSTEM),
+            HumanMessage(
+                prompts.ANSWER_USER.format(
+                    sources=render_sources(sources), question=state["question"]
+                )
+            ),
+        ]
+        if state.get("problems"):  # a rewrite: show the previous answer and what was wrong
+            prompt += [
+                AIMessage(state["answer"]),
                 HumanMessage(
-                    prompts.ANSWER_USER.format(
-                        sources=render_sources(sources), question=state["question"]
+                    prompts.ANSWER_RETRY.format(
+                        problems="\n".join(f"- {p}" for p in state["problems"])
                     )
                 ),
             ]
-        )
-        text = reply.text.strip()
+        text = llm.invoke(prompt).text.strip()
         outcome = "not_found" if text.startswith(prompts.NOT_FOUND) else "answered"
-        return {"answer": text, "sources": sources, "outcome": outcome}
+        return {
+            "answer": text,
+            "sources": sources,
+            "outcome": outcome,
+            "attempts": state.get("attempts", 0) + 1,
+        }
+
+    def check(state: AgentState) -> dict:
+        if state["outcome"] != "answered":
+            return {"verified": True, "problems": []}
+        result = check_answer(state["answer"], state["sources"], state["question"])
+        return {"verified": result.ok, "problems": result.problems(len(state["sources"]))}
 
     def not_found(state: AgentState) -> dict:
-        return {"answer": prompts.NOT_FOUND, "sources": [], "outcome": "not_found"}
+        return {
+            "answer": prompts.NOT_FOUND,
+            "sources": [],
+            "outcome": "not_found",
+            "verified": True,
+        }
 
     def refuse(state: AgentState) -> dict:
         text = prompts.REFUSE_ADVICE if state["verdict"] == "advice" else prompts.REFUSE_OFF_TOPIC
-        return {"answer": text, "sources": [], "outcome": "refused"}
+        return {"answer": text, "sources": [], "outcome": "refused", "verified": True}
 
     def after_guard(state: AgentState) -> str:
         return "plan" if state["verdict"] == "ok" else "refuse"
@@ -198,11 +149,17 @@ def build_agent(
         # Done, or out of rounds (pending calls are dropped): answer from what we have, if any.
         return "answer" if collect_sources(state["messages"]) else "not_found"
 
+    def after_check(state: AgentState) -> str:
+        if state["verified"] or state["attempts"] >= MAX_ANSWER_ATTEMPTS:
+            return END  # still failing after the rewrite: returned with verified=False
+        return "answer"
+
     graph = StateGraph(AgentState)
     graph.add_node("guard", guard)
     graph.add_node("plan", plan)
     graph.add_node("tools", ToolNode(tools))  # runs a round's calls in parallel; errors -> messages
     graph.add_node("answer", answer)
+    graph.add_node("check", check)
     graph.add_node("not_found", not_found)
     graph.add_node("refuse", refuse)
 
@@ -210,8 +167,10 @@ def build_agent(
     graph.add_conditional_edges("guard", after_guard, ["plan", "refuse"])
     graph.add_conditional_edges("plan", after_plan, ["tools", "answer", "not_found"])
     graph.add_edge("tools", "plan")
-    for node in ("answer", "not_found", "refuse"):
-        graph.add_edge(node, END)
+    graph.add_edge("answer", "check")
+    graph.add_conditional_edges("check", after_check, ["answer", END])
+    graph.add_edge("not_found", END)
+    graph.add_edge("refuse", END)
     return graph.compile()
 
 
@@ -233,6 +192,9 @@ def ask(agent: CompiledStateGraph, question: str) -> AgentResult:
         rounds=state.get("rounds", 0),
         tool_calls=calls,
         sources=cited(state["answer"], state.get("sources", [])),
+        verified=state["verified"],
+        attempts=state.get("attempts", 0),
+        problems=state.get("problems", []),
     )
 
 
@@ -252,6 +214,8 @@ if __name__ == "__main__":
         result = ask(default_agent(session), " ".join(sys.argv[1:]))
     for call in result.tool_calls:
         print(f"tool  {call['name']}({call['args']})")
-    print(f"\n{result.outcome} · {result.rounds} rounds\n\n{result.answer}\n")
+    checked = "verified" if result.verified else "NOT verified: " + "; ".join(result.problems)
+    print(f"\n{result.outcome} · {result.rounds} rounds · {result.attempts} attempt(s) · {checked}")
+    print(f"\n{result.answer}\n")
     for s in result.sources:
         print(f"[{s.n}] {s.label}  {s.url or ''}")

@@ -7,14 +7,8 @@ import pytest
 from langchain_core.messages import AIMessage, ToolMessage
 
 from filinglens.agent import prompts, tools
-from filinglens.agent.graph import (
-    GuardVerdict,
-    Source,
-    ask,
-    build_agent,
-    cited,
-    collect_sources,
-)
+from filinglens.agent.graph import GuardVerdict, ask, build_agent
+from filinglens.agent.sources import Source, cited, collect_sources
 from filinglens.agent.tools import (
     CalculateOutput,
     FinancialValue,
@@ -212,3 +206,35 @@ def test_cited_keeps_only_cited_sources():
         Source(n=i, kind="calculation", label="calculate", url=None, text="") for i in (1, 2, 3)
     ]
     assert [s.n for s in cited("x [3] and [1], not 2", sources)] == [1, 3]
+
+
+# --- the grounding check and the one rewrite ----------------------------------------------------
+
+AMD_ROUNDS = [
+    AIMessage("", tool_calls=[call("get_financials", {
+        "ticker": "AMD", "fiscal_years": [2022], "metrics": list(AMD_VALUES)})]),
+    AIMessage("", tool_calls=[call("calculate", {
+        "expression": "(4835 + 1020 + 4126) / 6369"}, id="c2")]),
+    AIMessage("Done."),
+]  # fmt: skip
+
+
+def test_unsupported_number_gets_one_rewrite(amd_financials):
+    llm = FakeLLM([*AMD_ROUNDS, AIMessage("The quick ratio is 1.62 [5]."),
+                   AIMessage("The quick ratio is 1.57 [5].")])  # fmt: skip
+    result = ask(agent_with(llm), "What is AMD's FY2022 quick ratio?")
+    assert result.verified
+    assert result.attempts == 2
+    assert result.answer == "The quick ratio is 1.57 [5]."
+    rewrite_prompt = llm.prompts[-1]
+    assert rewrite_prompt[2].content == "The quick ratio is 1.62 [5]."  # its previous answer
+    assert "The number 1.62 does not appear in any source" in rewrite_prompt[3].content
+
+
+def test_still_wrong_after_the_rewrite_is_returned_unverified(amd_financials):
+    llm = FakeLLM([*AMD_ROUNDS, AIMessage("It is 1.62 [5]."), AIMessage("It is 1.62 [9].")])
+    result = ask(agent_with(llm), "What is AMD's FY2022 quick ratio?")
+    assert not result.verified
+    assert result.attempts == 2  # no third attempt
+    assert result.answer == "It is 1.62 [9]."
+    assert len(result.problems) == 2  # the number and the citation [9]
