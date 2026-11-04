@@ -3,6 +3,7 @@
     uv run python eval/run_eval.py --mode baseline --name baseline       # closed-book LLM
     uv run python eval/run_eval.py --mode rag --name rag-poc             # plain RAG (M0 PoC)
     uv run python eval/run_eval.py --mode rag --name smoke --limit 2     # quick cheap check
+    uv run python eval/run_eval.py --mode agent --name agent-m3          # LangGraph agent (M3)
 
 Results go to eval/results/<date>-<name>.json. Existing results are never overwritten.
 """
@@ -11,13 +12,16 @@ import argparse
 import json
 import statistics
 import time
+from collections import Counter
 from datetime import UTC, date, datetime
 from pathlib import Path
 
+from langchain_core.callbacks import UsageMetadataCallbackHandler
 from langchain_core.messages import HumanMessage, SystemMessage
 from pydantic import BaseModel, Field
 
 from filinglens.agent import prompts
+from filinglens.agent.graph import MAX_ROUNDS, ask, default_agent
 from filinglens.config import get_settings
 from filinglens.db.session import get_session
 from filinglens.ingestion.chunk_embed import CHUNK_OVERLAP, CHUNK_SIZE
@@ -96,6 +100,79 @@ def answer_question(item: dict, mode: str, llm, embedder, session, k: int, args,
     }
 
 
+class UsageCounter(UsageMetadataCallbackHandler):
+    """Tokens per model (from LangChain) plus the number of LLM calls, across one agent run."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.calls = 0
+
+    def on_llm_end(self, response, **kwargs) -> None:
+        self.calls += 1
+        super().on_llm_end(response, **kwargs)
+
+
+def answer_agent(item: dict, agent) -> dict:
+    counter = UsageCounter()
+    started = time.perf_counter()
+    try:
+        result = ask(agent, item["question"], {"callbacks": [counter]})
+    except Exception as e:  # one failing question must not lose the whole run
+        result, error = None, f"{type(e).__name__}: {e}"
+    latency = round(time.perf_counter() - started, 2)
+    by_model = {
+        model: {"input": u.get("input_tokens", 0), "output": u.get("output_tokens", 0)}
+        for model, u in counter.usage_metadata.items()
+    }
+    row = {
+        "latency_s": latency,
+        "tokens": {
+            "input": sum(u["input"] for u in by_model.values()),
+            "output": sum(u["output"] for u in by_model.values()),
+        },
+        "tokens_by_model": by_model,
+        "llm_calls": counter.calls,
+    }
+    if result is None:
+        return {**row, "answer": f"ERROR {error}", "error": error, "outcome": "error",
+                "verified": False, "attempts": 0, "problems": [], "rounds": 0,
+                "tool_calls": [], "sources": []}  # fmt: skip
+    return {
+        **row,
+        "answer": result.answer,
+        "outcome": result.outcome,
+        "verified": result.verified,
+        "attempts": result.attempts,
+        "problems": result.problems,
+        "rounds": result.rounds,
+        "tool_calls": result.tool_calls,
+        "sources": [
+            {"ref": f"[{s.n}]", "kind": s.kind, "label": s.label, "url": s.url}
+            for s in result.sources
+        ],
+    }
+
+
+def agent_summary(rows: list[dict]) -> dict:
+    by_model: dict[str, dict[str, int]] = {}
+    for r in rows:
+        for model, u in r["tokens_by_model"].items():
+            total = by_model.setdefault(model, {"input": 0, "output": 0})
+            total["input"] += u["input"]
+            total["output"] += u["output"]
+    answered = [r for r in rows if r["outcome"] == "answered"]
+    return {
+        "outcomes": dict(Counter(r["outcome"] for r in rows)),
+        "verified": f"{sum(r['verified'] for r in answered)}/{len(answered)} answered",
+        "rewrites": sum(r["attempts"] > 1 for r in rows),
+        "rounds": dict(sorted(Counter(r["rounds"] for r in rows).items())),
+        "tool_calls": dict(Counter(c["name"] for r in rows for c in r["tool_calls"])),
+        "llm_calls_mean": round(statistics.mean(r["llm_calls"] for r in rows), 2),
+        "tokens_by_model": by_model,
+        "errors": sum(r["outcome"] == "error" for r in rows),
+    }
+
+
 def judge(judge_llm, item: dict, candidate: str) -> tuple[JudgeVerdict, dict]:
     result = judge_llm.invoke(
         [
@@ -119,7 +196,7 @@ def judge(judge_llm, item: dict, candidate: str) -> tuple[JudgeVerdict, dict]:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Run the FinanceBench subset eval")
     parser.add_argument("--name", required=True)
-    parser.add_argument("--mode", choices=["baseline", "rag"], required=True)
+    parser.add_argument("--mode", choices=["baseline", "rag", "agent"], required=True)
     parser.add_argument("--subset", type=Path, default=Path("eval/financebench_subset.jsonl"))
     parser.add_argument("--k", type=int, default=6, help="chunks retrieved per question (rag)")
     parser.add_argument("--limit", type=int, help="only the first N questions (smoke test)")
@@ -139,12 +216,16 @@ def main() -> None:
     llm = get_chat_model(settings)
     judge_llm = get_judge_model(settings).with_structured_output(JudgeVerdict, include_raw=True)
     embedder = get_embeddings(settings) if args.mode == "rag" else None
-    session = get_session() if args.mode == "rag" else None
+    session = get_session() if args.mode in ("rag", "agent") else None
+    agent = default_agent(session) if args.mode == "agent" else None
     router = get_router_model(settings) if args.mode == "rag" and args.router == "llm" else None
 
     rows = []
     for n, item in enumerate(items, start=1):
-        result = answer_question(item, args.mode, llm, embedder, session, args.k, args, router)
+        if args.mode == "agent":
+            result = answer_agent(item, agent)
+        else:
+            result = answer_question(item, args.mode, llm, embedder, session, args.k, args, router)
         verdict, judge_tokens = judge(judge_llm, item, result["answer"])
         rows.append(
             {
@@ -161,8 +242,14 @@ def main() -> None:
             }
         )
         mark = "OK " if verdict.correct else "ERR"
+        extra = ""
+        if args.mode == "agent":
+            calls = ",".join(c["name"].split("_")[0] for c in result["tool_calls"])
+            checked = "verified" if result["verified"] else "UNVERIFIED"
+            extra = f" {result['outcome']} r{result['rounds']} {checked} [{calls}]"
         print(
-            f"[{n}/{len(items)}] {mark} {item['ticker']} {item['id'][-5:]} ({result['latency_s']}s)"
+            f"[{n}/{len(items)}] {mark} {item['ticker']} {item['id'][-5:]} "
+            f"({result['latency_s']}s){extra}"
         )
 
     if session is not None:
@@ -188,6 +275,8 @@ def main() -> None:
             "output": sum(r["judge_tokens"]["output"] for r in rows),
         },
     }
+    if args.mode == "agent":
+        summary["agent"] = agent_summary(rows)
     report = {
         "name": args.name,
         "mode": args.mode,
@@ -199,7 +288,11 @@ def main() -> None:
             "judge_provider": settings.judge_provider,
             "judge_model": settings.judge_model,
             "judge_temperature": settings.judge_temperature,
-            "embedding_model": settings.embedding_model if args.mode == "rag" else None,
+            "embedding_model": (
+                settings.embedding_model if args.mode in ("rag", "agent") else None
+            ),
+            "guard_model": settings.router_model if args.mode == "agent" else None,
+            "max_rounds": MAX_ROUNDS if args.mode == "agent" else None,
             "k": args.k if args.mode == "rag" else None,
             "retrieval_method": args.method if args.mode == "rag" else None,
             "router": args.router if args.mode == "rag" else None,
