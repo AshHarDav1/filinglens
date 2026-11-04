@@ -48,6 +48,9 @@ class Settings(BaseSettings):
     # Embeddings
     embedding_model: str = "text-embedding-3-small"
 
+    # HTTP API (M4): where the Streamlit UI and the Python client find it
+    api_url: str = "http://localhost:8000"
+
     # Observability
     langfuse_public_key: str | None = None
     langfuse_secret_key: SecretStr | None = None
