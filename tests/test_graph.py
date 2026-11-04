@@ -7,7 +7,7 @@ import pytest
 from langchain_core.messages import AIMessage, ToolMessage
 
 from filinglens.agent import prompts, tools
-from filinglens.agent.graph import GuardVerdict, ask, build_agent
+from filinglens.agent.graph import ask, build_agent
 from filinglens.agent.sources import Source, cited, collect_sources
 from filinglens.agent.tools import (
     CalculateOutput,
@@ -15,45 +15,10 @@ from filinglens.agent.tools import (
     GetFinancialsOutput,
     make_tools,
 )
+from tests.fakes import FakeGuard, FakeLLM, call
 
 FILINGS = {"AMD": [2022], "BA": [2022]}
 AMD_URL = "https://www.sec.gov/Archives/edgar/data/2488/000000248823000047/"
-
-
-class FakeLLM:
-    """Plays back scripted replies in order and records every prompt it was sent.
-
-    Stands in for both the planner (bind_tools) and the answerer (plain invoke); the same
-    object is used for both, as with the real model.
-    """
-
-    def __init__(self, replies: list[AIMessage]):
-        self.replies = list(replies)
-        self.prompts: list[list] = []
-
-    def bind_tools(self, tools):
-        return self
-
-    def invoke(self, messages):
-        self.prompts.append(messages)
-        if not self.replies:
-            raise AssertionError("LLM called more times than scripted")
-        return self.replies.pop(0)
-
-
-class FakeGuard:
-    def __init__(self, verdict: str):
-        self.verdict = verdict
-
-    def with_structured_output(self, schema):
-        return self
-
-    def invoke(self, messages):
-        return GuardVerdict(verdict=self.verdict)
-
-
-def call(name: str, args: dict, id: str = "c1") -> dict:
-    return {"name": name, "args": args, "id": id, "type": "tool_call"}
 
 
 AMD_VALUES = {"cash": 4835, "short_term_investments": 1020, "receivables": 4126,
