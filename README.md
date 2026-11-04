@@ -5,8 +5,8 @@ data plus **management's explanations** from the 10-K text, with every claim lin
 
 > Portfolio project for learning AI engineering by building a production-style system. Not investment advice.
 
-**Status:** M0 (proof of concept), M1 (data), M2 (search) and M3 (the agent) are done. M4 (API and UI) is
-next. See [Roadmap](#roadmap).
+**Status:** M0 (proof of concept), M1 (data), M2 (search), M3 (the agent) and M4 (API and UI) are done. M5
+(quality) is next. See [Roadmap](#roadmap).
 
 ## How it works
 
@@ -73,6 +73,9 @@ What the numbers say:
   It refuses advice, says "not found" for companies and facts it doesn't have, and ignored a planted injection
   ([docs/m3-results.md](docs/m3-results.md)). On 20 questions ±2 is judge noise; the 51-question comparison is
   in M5.
+- **M4:** the agent runs behind FastAPI (`/ask`, `/ask/stream` with Server-Sent Events, `/health`) and a Streamlit
+  UI. The API layer adds 19 ms per question; the first progress event arrives after about 1 s, while the full
+  answer takes 10-15 s ([docs/m4-results.md](docs/m4-results.md), [ADR-010](docs/adr/010-api-design.md)).
 
 ## Quickstart
 
@@ -97,6 +100,12 @@ uv run python eval/run_behaviour.py --name my-behaviour-run                     
 
 # ask the agent
 uv run python -m filinglens.agent.graph "What is AMD's FY2022 quick ratio?"
+
+# API and UI
+uv run uvicorn filinglens.api.main:app                   # Swagger UI at http://localhost:8000/docs
+uv run streamlit run ui/app.py                           # http://localhost:8501 (API_URL in .env if not :8000)
+curl -N -X POST localhost:8000/ask/stream -H 'content-type: application/json' \
+     -d '{"question": "What is the FY2022 unadjusted EBITDA % margin for PepsiCo?"}'
 
 uv run pytest
 ```
@@ -124,6 +133,11 @@ src/filinglens/
     graph.py                  the LangGraph agent: guard, plan ⇄ tools, answer, check, refuse, not found
     check.py, sources.py      numbered sources and the grounding check
     prompts.py                versioned prompts
+  api/
+    main.py                   FastAPI app: /health, /ask, /ask/stream (SSE), error mapping
+    schemas.py, events.py     the API contract and the stream's step events
+    client.py                 Python client with an SSE parser (used by the UI)
+ui/app.py                     Streamlit demo UI, talks only to the API
 eval/                         question sets, eval runners, saved results
 docs/                         milestone results, ADRs, v2 ideas
 tests/
@@ -135,7 +149,7 @@ tests/
 - [x] **M1 Data:** XBRL facts, Item sections, table rows, per-Item chunks, wider eval (51 questions)
 - [x] **M2 RAG:** full-text index, hybrid search, section routing (tested, optional), citations
 - [x] **M3 Agent:** LangGraph with search, financials and calculator tools; refuse and not-found paths
-- [ ] **M4 Interfaces:** FastAPI with streaming, Streamlit UI
+- [x] **M4 Interfaces:** FastAPI with streaming, Streamlit UI
 - [ ] **M5 Quality:** full eval on 51 questions against the closed-book baseline, one measured improvement
 - [ ] **M6 Ship:** MCP server, Langfuse tracing, CI, deploy
 
