@@ -174,8 +174,11 @@ def build_agent(
     return graph.compile()
 
 
-def ask(agent: CompiledStateGraph, question: str) -> AgentResult:
-    state = agent.invoke({"question": question, "messages": [HumanMessage(question)], "rounds": 0})
+def ask(agent: CompiledStateGraph, question: str, config: dict | None = None) -> AgentResult:
+    """config: LangGraph run config, e.g. {"callbacks": [...]} to count tokens in the eval."""
+    state = agent.invoke(
+        {"question": question, "messages": [HumanMessage(question)], "rounds": 0}, config
+    )
     ran = {m.tool_call_id for m in state["messages"] if isinstance(m, ToolMessage)}
     calls = [
         {"name": c["name"], "args": c["args"]}
