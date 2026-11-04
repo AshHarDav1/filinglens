@@ -2,6 +2,8 @@
 app.dependency_overrides; TestClient is used without `with`, so the lifespan (which creates real
 model clients) does not run."""
 
+import json
+
 import anthropic
 import httpx
 import openai
@@ -128,3 +130,60 @@ def test_database_errors_are_503():
     response = client_with({get_agent: broken_agent}).post("/ask", json={"question": "Hi there"})
     assert response.status_code == 503
     assert response.json() == {"detail": "Database unavailable."}
+
+
+# --- POST /ask/stream ---------------------------------------------------------------------------
+
+
+def parse_sse(text: str) -> list[tuple[str, dict]]:
+    events = []
+    for block in text.strip().split("\n\n"):
+        lines = dict(line.split(": ", 1) for line in block.splitlines())
+        events.append((lines["event"], json.loads(lines["data"])))
+    return events
+
+
+def test_stream_sends_each_step_then_the_result():
+    client = client_with({get_agent: agent_of(lambda: FakeLLM(QUICK_RATIO))})
+    response = client.post("/ask/stream", json={"question": "What is AMD's FY2022 quick ratio?"})
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("text/event-stream")
+    events = parse_sse(response.text)
+    steps = [data for kind, data in events if kind == "step"]
+    assert [s["node"] for s in steps] == ["guard", "plan", "tools", "plan", "answer", "check"]
+    assert steps[0]["label"] == "Question is in scope"
+    assert steps[1]["label"] == "calculate (4835 + 1020 + 4126) / 6369"
+    assert steps[2]["results"] == [
+        {"name": "calculate", "status": "success", "summary": "= 1.56712"}
+    ]
+    assert steps[3]["label"] == "Done gathering data"
+    assert steps[-1]["verified"] is True
+    kind, result = events[-1]
+    assert kind == "result"
+    assert result["answer"] == "AMD's FY2022 quick ratio is 1.57 [1]."
+    assert result["sources"][0]["n"] == 1
+
+
+def test_stream_refusal():
+    client = client_with({get_agent: agent_of(lambda: FakeLLM([]), verdict="advice")})
+    events = parse_sse(client.post("/ask/stream", json={"question": "Buy AMD?"}).text)
+    assert [(k, d.get("node")) for k, d in events] == [
+        ("step", "guard"), ("step", "refuse"), ("result", None)
+    ]  # fmt: skip
+    assert events[-1][1]["outcome"] == "refused"
+
+
+def test_stream_error_after_start_is_an_error_event():
+    error = openai.APIConnectionError(request=REQUEST)
+    client = client_with({get_agent: agent_of(lambda: FailingLLM(error))})
+    response = client.post("/ask/stream", json={"question": "What is AMD's FY2022 quick ratio?"})
+    assert response.status_code == 200  # already sent when the planner failed
+    events = parse_sse(response.text)
+    assert [k for k, _ in events] == ["step", "error"]  # the guard finished, then the failure
+    assert events[-1][1]["status"] == 502
+
+
+def test_stream_is_documented_in_openapi():
+    spec = TestClient(create_app()).get("/openapi.json").json()
+    content = spec["paths"]["/ask/stream"]["post"]["responses"]["200"]["content"]
+    assert "text/event-stream" in content

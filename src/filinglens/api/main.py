@@ -18,7 +18,7 @@ from typing import Annotated
 import anthropic
 import openai
 from fastapi import APIRouter, Depends, FastAPI, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from langchain_core.embeddings import Embeddings
 from langchain_core.language_models import BaseChatModel
 from langgraph.graph.state import CompiledStateGraph
@@ -26,8 +26,9 @@ from sqlalchemy import func, select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from filinglens.agent.graph import AgentResult, ask, build_agent
+from filinglens.agent.graph import AgentResult, ask, build_agent, initial_state, to_result
 from filinglens.agent.tools import available_filings, make_tools
+from filinglens.api.events import sse, step_data
 from filinglens.api.schemas import (
     AskRequest,
     AskResponse,
@@ -149,6 +150,66 @@ def ask_question(body: AskRequest, agent: Agent) -> AskResponse:
     response = to_response(ask(agent, body.question), request_id, started)
     log.info("ask %s %s %d ms", request_id, response.outcome, response.latency_ms)
     return response
+
+
+STREAM_DOC = """\
+`text/event-stream`. One `step` event per finished agent node, then one `result` event with the
+same JSON as POST /ask:
+
+    event: step
+    data: {"node": "guard", "elapsed_ms": 1243, "verdict": "ok", "label": "Question is in scope"}
+
+    event: step
+    data: {"node": "plan", "elapsed_ms": 4808, "tool_calls": [...], "label": "XBRL PEP FY2022: ..."}
+
+    event: result
+    data: {"request_id": "...", "answer": "...", "outcome": "answered", ...}
+
+If the agent fails after streaming started, the last event is `error` with `detail` and `status`
+(502 model provider, 503 database), since the 200 status line has already been sent."""
+
+
+def agent_events(agent: CompiledStateGraph, question: str) -> Iterator[str]:
+    """SSE text for one agent run. A sync generator: Starlette iterates it in a worker thread."""
+    request_id, started = uuid.uuid4().hex, time.perf_counter()
+    final = None
+    try:
+        # "updates": what each node changed, as it finishes; "values": the full state after each
+        # step, so the last one is the final state for the result event.
+        for mode, chunk in agent.stream(initial_state(question), stream_mode=["updates", "values"]):
+            if mode == "values":
+                final = chunk
+                continue
+            elapsed = round((time.perf_counter() - started) * 1000)
+            for node, update in chunk.items():
+                yield sse("step", step_data(node, update or {}, elapsed))
+        response = to_response(to_result(final, question), request_id, started)
+        log.info("ask/stream %s %s %d ms", request_id, response.outcome, response.latency_ms)
+        yield sse("result", response)
+    except PROVIDER_ERRORS as exc:
+        log.warning("model provider error in stream: %r", exc)
+        detail = f"Model provider error ({type(exc).__name__}). Try again in a moment."
+        yield sse("error", {"detail": detail, "status": 502})
+    except SQLAlchemyError as exc:
+        log.warning("database error in stream: %r", exc)
+        yield sse("error", {"detail": "Database unavailable.", "status": 503})
+
+
+@router.post(
+    "/ask/stream",
+    response_class=StreamingResponse,
+    responses={
+        200: {"content": {"text/event-stream": {}}, "description": STREAM_DOC},
+        **ERROR_RESPONSES,
+    },
+)
+def ask_question_stream(body: AskRequest, agent: Agent) -> StreamingResponse:
+    """The same agent as POST /ask, reporting each step as it finishes (Server-Sent Events)."""
+    return StreamingResponse(
+        agent_events(agent, body.question),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},  # no proxy buffering
+    )
 
 
 def provider_error(request: Request, exc: Exception) -> JSONResponse:
