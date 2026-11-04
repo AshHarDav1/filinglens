@@ -6,10 +6,13 @@ requires-python = ">=3.12"
 # Dependencies are added step by step as each component needs them (uv add <pkg>).
 dependencies = [
     "alembic>=1.20.1",
+    "deepagents>=0.7.32",
     "httpx>=0.28.1",
+    "langchain>=1.4.8",
     "langchain-anthropic>=1.7.6",
     "langchain-core>=1.6.13",
     "langchain-openai>=1.7.2",
+    "langgraph>=1.2.19",
     "pgvector>=0.5.1",
     "psycopg[binary]>=3.3.6",
     "pydantic>=2.7",
