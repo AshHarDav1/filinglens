@@ -21,8 +21,10 @@ from filinglens.agent import prompts
 from filinglens.config import get_settings
 from filinglens.db.session import get_session
 from filinglens.ingestion.chunk_embed import CHUNK_OVERLAP, CHUNK_SIZE
-from filinglens.llm import get_chat_model, get_embeddings, get_judge_model
-from filinglens.retrieval.vector import RetrievedChunk, search
+from filinglens.llm import get_chat_model, get_embeddings, get_judge_model, get_router_model
+from filinglens.retrieval.hybrid import retrieve
+from filinglens.retrieval.routing import llm_sections, rule_sections
+from filinglens.retrieval.vector import RetrievedChunk
 
 RESULTS_DIR = Path(__file__).parent / "results"
 
@@ -45,8 +47,9 @@ def format_excerpts(chunks: list[RetrievedChunk]) -> str:
     )
 
 
-def answer_question(item: dict, mode: str, llm, embedder, session, k: int) -> dict:
+def answer_question(item: dict, mode: str, llm, embedder, session, k: int, args, router) -> dict:
     retrieved: list[RetrievedChunk] = []
+    sections = None
     if mode == "baseline":
         messages = [
             SystemMessage(prompts.BASELINE_SYSTEM),
@@ -54,7 +57,14 @@ def answer_question(item: dict, mode: str, llm, embedder, session, k: int) -> di
         ]
     else:
         query_vector = embedder.embed_query(item["question"])
-        retrieved = search(session, query_vector, item["ticker"], item["fiscal_year"], k)
+        if args.router == "rules":
+            sections = rule_sections(item["question"])
+        elif args.router == "llm":
+            sections = llm_sections(item["question"], router)
+        retrieved = retrieve(
+            session, item["question"], query_vector, item["ticker"], item["fiscal_year"], k,
+            method=args.method, sections=sections, section_mode=args.section_mode,
+        )  # fmt: skip
         if not retrieved:
             print(f"  WARNING no chunks for {item['ticker']} FY{item['fiscal_year']} (ingested?)")
         messages = [
@@ -71,9 +81,17 @@ def answer_question(item: dict, mode: str, llm, embedder, session, k: int) -> di
         "answer": response.text,
         "latency_s": round(time.perf_counter() - started, 2),
         "tokens": usage(response),
+        "sections": sections,
         "sources": [
-            {"chunk_id": c.chunk_id, "url": c.url, "distance": round(c.distance, 4)}
-            for c in retrieved
+            {
+                "ref": f"[{i}]",
+                "label": f"{c.ticker} {c.form} FY{c.fiscal_year}"
+                + (f" · Item {c.section}" if c.section else ""),
+                "url": c.url,
+                "chunk_id": c.chunk_id,
+                "distance": round(c.distance, 4),
+            }
+            for i, c in enumerate(retrieved, start=1)
         ],
     }
 
@@ -105,6 +123,9 @@ def main() -> None:
     parser.add_argument("--subset", type=Path, default=Path("eval/financebench_subset.jsonl"))
     parser.add_argument("--k", type=int, default=6, help="chunks retrieved per question (rag)")
     parser.add_argument("--limit", type=int, help="only the first N questions (smoke test)")
+    parser.add_argument("--method", choices=["vector", "keyword", "hybrid"], default="vector")
+    parser.add_argument("--router", choices=["none", "rules", "llm"], default="none")
+    parser.add_argument("--section-mode", choices=["filter", "boost"], default="filter")
     args = parser.parse_args()
 
     out = RESULTS_DIR / f"{date.today().isoformat()}-{args.name}.json"
@@ -119,10 +140,11 @@ def main() -> None:
     judge_llm = get_judge_model(settings).with_structured_output(JudgeVerdict, include_raw=True)
     embedder = get_embeddings(settings) if args.mode == "rag" else None
     session = get_session() if args.mode == "rag" else None
+    router = get_router_model(settings) if args.mode == "rag" and args.router == "llm" else None
 
     rows = []
     for n, item in enumerate(items, start=1):
-        result = answer_question(item, args.mode, llm, embedder, session, args.k)
+        result = answer_question(item, args.mode, llm, embedder, session, args.k, args, router)
         verdict, judge_tokens = judge(judge_llm, item, result["answer"])
         rows.append(
             {
@@ -179,6 +201,10 @@ def main() -> None:
             "judge_temperature": settings.judge_temperature,
             "embedding_model": settings.embedding_model if args.mode == "rag" else None,
             "k": args.k if args.mode == "rag" else None,
+            "retrieval_method": args.method if args.mode == "rag" else None,
+            "router": args.router if args.mode == "rag" else None,
+            "router_model": settings.router_model if args.router == "llm" else None,
+            "section_mode": args.section_mode if args.router != "none" else None,
             "chunk_size_chars": CHUNK_SIZE if args.mode == "rag" else None,
             "chunk_overlap_chars": CHUNK_OVERLAP if args.mode == "rag" else None,
             "prompt_versions": prompts.PROMPT_VERSIONS,
