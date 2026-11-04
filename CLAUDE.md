@@ -120,6 +120,9 @@ uv run python eval/run_eval.py --mode rag --name rag-x                  # [--k 6
 uv run python eval/retrieval_hit.py --name hit-x --subset eval/financebench_10k.jsonl  # hit@6/10/20/40, no LLM
 uv run python eval/retrieval_hit.py ... --split dev|test --method vector|keyword|hybrid --router none|rules|llm|oracle
 uv run python -m filinglens.ingestion.load_facts --from-subset eval/financebench_subset.jsonl  # XBRL -> financial_fact [--tickers MSFT]
+uv run python -m filinglens.agent.graph "What is AMD's FY2022 quick ratio?"  # ask the M3 agent once
+uv run python eval/run_eval.py --mode agent --name agent-x               # agent on the 20 [--subset eval/financebench_10k.jsonl]
+uv run python eval/run_behaviour.py --name behaviour-x                  # refusals, not-found, injection (rules, no judge)
 # later:
 uv run uvicorn filinglens.api.main:app --reload
 uv run streamlit run ui/app.py
