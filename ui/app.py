@@ -38,7 +38,8 @@ def show_answer(entry: dict) -> None:
     seconds = f"{result.latency_ms / 1000:.1f} s"
     if result.outcome == "answered":
         check = "✅ verified" if result.verified else "⚠️ not verified"
-        st.caption(f"{check} · {result.rounds} tool rounds · {seconds}")
+        rounds = f"{result.rounds} tool round{'' if result.rounds == 1 else 's'}"
+        st.caption(f"{check} · {rounds} · {seconds}")
     else:
         st.caption(f"{OUTCOME[result.outcome]} · {seconds}")
     if result.sources:
