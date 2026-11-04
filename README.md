@@ -5,17 +5,21 @@ data plus **management's explanations** from the 10-K text, with every claim lin
 
 > Portfolio project for learning AI engineering by building a production-style system. Not investment advice.
 
-**Status:** M0 (proof of concept), M1 (data) and M2 (search) are done. M3 (the agent) is next. See
-[Roadmap](#roadmap).
+**Status:** M0 (proof of concept), M1 (data), M2 (search) and M3 (the agent) are done. M4 (API and UI) is
+next. See [Roadmap](#roadmap).
 
 ## How it works
 
 ```
-Question
-   │
-   ├─ numbers ──► get_metric(): SQL over SEC XBRL facts ─────────────┐   exact, as reported
-   │                                                                   ├─► LLM answer with citations
-   └─ context ──► vector search over 10-K chunks (one filing, top k) ─┘   (agent with tools in M3)
+Question ─► guard (small model: in scope? advice?) ──► refuse
+               │
+               ▼
+            plan ⇄ tools, at most 4 rounds ──────────► "Not found in the filings."
+               │     get_financials: SQL over SEC XBRL facts (exact, as reported)
+               │     search_filings: vector search in one 10-K, optional Item filter
+               │     calculate:      safe arithmetic
+               ▼
+            answer from numbered sources [n] ─► check: every number and [n] traced to a source
 
 Ingestion:  SEC EDGAR ─► 10-K HTML ─► text (table rows intact) ─► Item sections ─► chunks ─► embeddings
             SEC companyfacts ─► financial_fact (every 10-K fact, as reported)
@@ -32,6 +36,9 @@ Design rules:
   comparison columns of later filings don't leak in.
 - **Chunks follow the 10-K outline**: one Item per chunk, the Item stored for filtering
   ([ADR-006](docs/adr/006-chunk-per-item.md)).
+- **The agent is a state machine with limits** ([ADR-003](docs/adr/003-langgraph-explicit-steps.md),
+  [ADR-009](docs/adr/009-agent-design.md)): code decides the flow, the round limit, refusals and "not found";
+  the LLM chooses tool calls and writes the answer, and a code check verifies its numbers and citations.
 - **Every quality change is measured** on FinanceBench questions and saved under `eval/results/`
   ([ADR-004](docs/adr/004-financebench-acceptance-test.md), [ADR-007](docs/adr/007-retrieval-hit-rate.md)).
 
@@ -44,7 +51,9 @@ All numbers come from saved runs in `eval/results/`. Denominators are the questi
 | Closed-book LLM (gpt-6-luna, no retrieval), judged by claude-haiku-5-5 | 11/20 | `2026-10-28-baseline-haiku-judge` |
 | Plain RAG (M0: vector search, top 6) | 6/20 | `2026-10-28-rag-poc` |
 | Retrieval hit@6 / hit@20 (evidence in top k), M1 chunks | 23/51 / 39/51 | `2026-10-30-hit-m1-51q` |
-| RAG with M1 chunks and labelled excerpts (M2) | **13/20** | `2026-10-30-rag-m2-norouter` |
+| RAG with M1 chunks and labelled excerpts (M2) | 13/20 | `2026-10-30-rag-m2-norouter` |
+| Agent with XBRL, search and calculator tools (M3) | **16/20** | `2026-11-04-agent-m3` |
+| Agent behaviour: refusals, not found, prompt injection | 8/8 | `2026-11-04-behaviour-m3` |
 
 What the numbers say:
 
@@ -59,6 +68,11 @@ What the numbers say:
   questions, then checked on 20 held-out ones. None held up there, so vector search stays the default
   ([ADR-008](docs/adr/008-retrieval-defaults.md)). End to end, RAG now scores 13/20, above the closed-book
   model (11/20): the gain came from M1's readable chunks, not from M2's ranking ([docs/m2-results.md](docs/m2-results.md)).
+- **M3:** the LangGraph agent scores 16/20. It fixed 5 questions M2 missed, 4 of them number questions now
+  answered from XBRL plus the calculator, and lost 2. Mean latency 13.9 s (max 29.1 s), about 3x M2's tokens.
+  It refuses advice, says "not found" for companies and facts it doesn't have, and ignored a planted injection
+  ([docs/m3-results.md](docs/m3-results.md)). On 20 questions ±2 is judge noise; the 51-question comparison is
+  in M5.
 
 ## Quickstart
 
@@ -78,6 +92,11 @@ uv run python -m filinglens.ingestion.load_facts --from-subset eval/financebench
 # evaluation
 uv run python eval/retrieval_hit.py --name my-run --subset eval/financebench_10k.jsonl   # no LLM
 uv run python eval/run_eval.py --mode rag --name my-rag-run                              # LLM + judge, 20 questions
+uv run python eval/run_eval.py --mode agent --name my-agent-run                          # the M3 agent
+uv run python eval/run_behaviour.py --name my-behaviour-run                              # refusals, injection
+
+# ask the agent
+uv run python -m filinglens.agent.graph "What is AMD's FY2022 quick ratio?"
 
 uv run pytest
 ```
@@ -100,7 +119,11 @@ src/filinglens/
     run.py, load_facts.py     ingestion CLIs: filings and XBRL facts
   retrieval/                  vector.py (search within one filing), hybrid.py (keyword + RRF + sections),
                               routing.py (rules and LLM section routers)
-  agent/prompts.py            versioned prompts
+  agent/
+    tools.py                  search_filings, get_financials, calculate (typed, errors written for the LLM)
+    graph.py                  the LangGraph agent: guard, plan ⇄ tools, answer, check, refuse, not found
+    check.py, sources.py      numbered sources and the grounding check
+    prompts.py                versioned prompts
 eval/                         question sets, eval runners, saved results
 docs/                         milestone results, ADRs, v2 ideas
 tests/
@@ -111,7 +134,7 @@ tests/
 - [x] **M0 PoC:** EDGAR client, FinanceBench subset, closed-book baseline, plain RAG, go/no-go
 - [x] **M1 Data:** XBRL facts, Item sections, table rows, per-Item chunks, wider eval (51 questions)
 - [x] **M2 RAG:** full-text index, hybrid search, section routing (tested, optional), citations
-- [ ] **M3 Agent:** LangGraph with search, financials and calculator tools; refuse and not-found paths
+- [x] **M3 Agent:** LangGraph with search, financials and calculator tools; refuse and not-found paths
 - [ ] **M4 Interfaces:** FastAPI with streaming, Streamlit UI
 - [ ] **M5 Quality:** full eval on 51 questions against the closed-book baseline, one measured improvement
 - [ ] **M6 Ship:** MCP server, Langfuse tracing, CI, deploy

@@ -179,7 +179,13 @@ uv run streamlit run ui/app.py
   - [x] citations: sources carry company, form, FY, Item, URL; RAG prompt v2
   - [x] full pipeline on 20: **13/20** (`rag-m2-norouter` and `rag-m2-router` both), vs M0 RAG 6/20 and closed-book 11/20;
     the gain comes from M1's readable chunks + labelled excerpts, not routing
-- [ ] **M3 Agent:** LangGraph with 3 tools, round limit, refuse and not-found paths
+- [x] **M3 Agent:** LangGraph with 3 tools, round limit, refuse and not-found paths (results: `docs/m3-results.md`)
+  - [x] tools (`agent/tools.py`), prompts (guard/plan v1, answer v2, answer_retry v1), graph (`agent/graph.py`),
+    grounding check (`agent/check.py`); 126 tests, fake LLM for every graph path
+  - [x] **16/20** (`2026-11-04-agent-m3`) vs M2 RAG 13/20 and closed-book 11/20; gained 5 (4 number questions via
+    XBRL + calculate), lost 2; mean 13.9 s, max 29.1 s, ~3x M2's tokens; behaviour 8/8 (`2026-11-04-behaviour-m3`)
+  - [ ] for M5, choose on the 31 dev questions: Verizon `debt_current` concept priority (−379 vs −229), plan rule
+    "as of FY X" compares with FY X−1 (Adobe); then the 51-question run for all three systems
 - [ ] **M4 Interfaces:** FastAPI (streaming), Streamlit UI, MCP server
 - [ ] **M5 Quality:** eval on the full subset, one measured improvement (e.g. hybrid vs vector-only, chunk size, reranking)
 - [ ] **M6 Ship:** Langfuse tracing, Docker Compose for everything, CI, deploy, README with architecture and results, 2-minute demo
@@ -192,9 +198,7 @@ real values), plus interview questions. This overrides "AI parts: let me try fir
 
 Update the checkboxes and the "Current step" line as we go.
 
-**Current step:** M3: LangGraph agent with 3 tools (search_filings over `retrieve()`, get_financials over
-`get_metric()`, calculate), round limit, refuse and not-found paths; the plan step picks sections. Compare on the
-20 with rag-m2-norouter (13/20) and closed-book (11/20); then a full run on the 51.
+**Current step:** M4: FastAPI (`/ask`, `/ask/stream`, `/health`) over the M3 agent, then the Streamlit UI.
 
 ## Architecture decisions (full text in docs/adr/; record new ones there)
 
@@ -206,3 +210,5 @@ Update the checkboxes and the "Current step" line as we go.
 - ADR-006: chunk per 10-K Item; no embedded contextual header (measured: it lowered hit@6).
 - ADR-007: retrieval hit rate (hit@k, no LLM) as the per-change metric; matcher v2.
 - ADR-008: vector search stays the default; hybrid search and section routers are tested options (held-out check).
+- ADR-009: agent design: typed tools (text for the LLM, artifact for code), Haiku guard, fixed refusal/not-found
+  texts, answer from numbered sources, grounding check in code with one rewrite.

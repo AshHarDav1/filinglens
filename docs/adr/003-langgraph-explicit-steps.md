@@ -1,6 +1,6 @@
 # ADR-003: LangGraph with explicit steps and limits
 
-Status: accepted (M0, 2026-10-22); to be implemented in M3
+Status: accepted (M0, 2026-10-22); implemented in M3 (2026-11-04, details in ADR-009)
 
 ## Context
 
