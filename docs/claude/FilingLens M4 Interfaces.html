@@ -1,0 +1,1107 @@
+<title>FilingLens M4 Interfaces</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  /* Same frame as the M3 Agent page. Violet = LLM calls, teal = our code and database, orange = the network. */
+  :root {
+    --bg: #f3f5f7; --surface: #ffffff; --sunk: #eaeef2; --ink: #161b22; --muted: #5b6673;
+    --line: #d8dee6; --line-strong: #aeb8c4; --num: #0f766e; --nar: #b4530a; --bad: #b42318; --agent: #5a46c8;
+    --agent-tint: #ece9fb; --num-tint: #e2f3f0; --nar-tint: #fbefe3; --bad-tint: #fbe9e7;
+    --font-display: "Newsreader", Georgia, "Times New Roman", serif;
+    --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0d1117; --surface: #161b22; --sunk: #10151c; --ink: #e7ebf0; --muted: #96a1b0;
+      --line: #28303b; --line-strong: #46515f; --num: #35d0bd; --nar: #f0a94c; --bad: #f97066; --agent: #a99bff;
+      --agent-tint: #221d3d; --num-tint: #0f2a28; --nar-tint: #2e2112; --bad-tint: #3a1715; color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0d1117; --surface: #161b22; --sunk: #10151c; --ink: #e7ebf0; --muted: #96a1b0;
+    --line: #28303b; --line-strong: #46515f; --num: #35d0bd; --nar: #f0a94c; --bad: #f97066; --agent: #a99bff;
+    --agent-tint: #221d3d; --num-tint: #0f2a28; --nar-tint: #2e2112; --bad-tint: #3a1715; color-scheme: dark;
+  }
+  body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.6; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 40px 120px; }
+  h1, h2, h3 { font-family: var(--font-display); font-weight: 600; text-wrap: balance; margin: 0; }
+  h1 { font-size: clamp(2rem, 5.4vw, 3rem); line-height: 1.08; letter-spacing: -0.01em; max-width: 22ch; }
+  h2 { font-size: clamp(1.4rem, 3.4vw, 1.85rem); line-height: 1.2; }
+  h3 { font-size: 1.15rem; line-height: 1.3; }
+  p { margin: 0; max-width: 68ch; }
+  a { color: var(--agent); }
+  code { font-family: var(--font-mono); font-size: 0.86em; background: var(--sunk); border: 1px solid var(--line); border-radius: 4px; padding: 0 4px; overflow-wrap: anywhere; }
+  pre { margin: 0; font-family: var(--font-mono); font-size: 0.8rem; line-height: 1.55; background: var(--sunk); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; overflow-x: auto; max-width: 100%; }
+  pre code { background: none; border: 0; padding: 0; font-size: inherit; }
+  .k { color: var(--agent); } .s { color: var(--nar); } .c { color: var(--muted); font-style: italic; } .n { color: var(--num); }
+  .eyebrow { font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+  .lede { font-size: 1.12rem; color: var(--muted); }
+  section { display: flex; flex-direction: column; gap: 16px; margin-block-start: 80px; scroll-margin-top: 64px; }
+  :focus-visible { outline: 2px solid var(--agent); outline-offset: 2px; }
+  ul.plain { margin: 0; padding-left: 1.1em; display: flex; flex-direction: column; gap: 6px; max-width: 72ch; }
+  .tnum { font-variant-numeric: tabular-nums; }
+  .num { color: var(--num); font-weight: 500; } .nar { color: var(--nar); font-weight: 500; } .ag { color: var(--agent); font-weight: 500; } .bad { color: var(--bad); font-weight: 500; }
+
+  body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+  nav.toc { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter: blur(6px); border-bottom: 1px solid var(--line); }
+  nav.toc .in { max-width: 1120px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 8px; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+  nav.toc a { font-family: var(--font-mono); font-size: 0.74rem; color: var(--muted); text-decoration: none; padding: 4px 10px; border-radius: 999px; white-space: nowrap; border: 1px solid transparent; }
+  nav.toc a:hover, nav.toc a.on { color: var(--ink); background: var(--surface); border-color: var(--line); }
+
+  header.masthead { display: flex; flex-direction: column; gap: 16px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { font-family: var(--font-mono); font-size: 0.76rem; border: 1px solid var(--line); border-radius: 999px; padding: 4px 11px; color: var(--muted); background: var(--surface); font-variant-numeric: tabular-nums; }
+  .chip b { color: var(--ink); font-weight: 500; }
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 0.85rem; color: var(--muted); }
+  .legend span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; background: var(--c); }
+
+  .split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+  .note { font-size: 0.9rem; color: var(--muted); border-left: 2px solid var(--line-strong); padding-left: 12px; max-width: 80ch; }
+  .simple { font-size: 0.95rem; border: 1px dashed var(--line-strong); border-radius: 8px; padding: 10px 14px; max-width: 80ch; }
+  .simple b { font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; margin-right: 6px; }
+
+  /* figures */
+  figure { margin: 0; display: flex; flex-direction: column; gap: 8px; }
+  figcaption { font-size: 0.88rem; color: var(--muted); max-width: 80ch; }
+  .dg { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px; }
+  .dg svg { display: block; width: 100%; min-width: 720px; height: auto; color: var(--muted); }
+  .dg svg text { font-family: var(--font-mono); font-size: 12px; fill: var(--ink); }
+  .dg svg text.lbl { fill: var(--muted); font-size: 11px; }
+  .dg svg .edge { stroke: var(--line-strong); stroke-width: 1.5; fill: none; }
+  .dg svg .node rect { fill: var(--surface); stroke: var(--line-strong); stroke-width: 1.5; }
+  .dg svg .node.llm rect { stroke: var(--agent); }
+  .dg svg .node.code rect { stroke-dasharray: 4 3; }
+  .dg svg .node.end rect { fill: var(--sunk); }
+  .dg svg .node.on rect { fill: var(--agent-tint); stroke: var(--agent); stroke-width: 2.5; }
+  .dg svg .term { fill: var(--surface); stroke: var(--line-strong); stroke-width: 1.5; }
+  .dg svg .node.on .term { fill: var(--agent); stroke: var(--agent); }
+  .dg svg .m2 rect { fill: var(--surface); stroke: var(--line-strong); stroke-width: 1.5; }
+  .dg svg .m2.hot rect { stroke: var(--nar); }
+
+  table { border-collapse: collapse; width: 100%; font-size: 0.88rem; }
+  .tscroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+  .tscroll table { min-width: 760px; }
+  th, td { text-align: left; vertical-align: top; padding: 9px 12px; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 500; background: var(--sunk); }
+  tr:last-child td { border-bottom: 0; }
+  td.tnum, td .tnum { font-variant-numeric: tabular-nums; }
+  .ok { color: var(--num); font-weight: 600; } .no { color: var(--bad); font-weight: 600; }
+  .tag { font-family: var(--font-mono); font-size: 0.7rem; border-radius: 4px; padding: 1px 6px; white-space: nowrap; border: 1px solid var(--line); }
+  .tag.num { background: var(--num-tint); border-color: transparent; }
+  .tag.nar { background: var(--nar-tint); border-color: transparent; }
+  .tag.ag { background: var(--agent-tint); border-color: transparent; }
+
+  /* concept cards */
+  .concepts { display: flex; flex-direction: column; gap: 22px; }
+  .concept { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 14px; scroll-margin-top: 64px; }
+  .concept > header { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .concept > header .cn { font-family: var(--font-mono); font-size: 0.78rem; color: var(--agent); border: 1px solid var(--agent); border-radius: 999px; padding: 0 8px; }
+  .concept > header h3 { font-size: 1.35rem; flex: 1 1 auto; }
+  .rows { display: flex; flex-direction: column; }
+  .row { display: grid; grid-template-columns: 170px minmax(0, 1fr); gap: 16px; padding-block: 12px; border-top: 1px solid var(--line); }
+  .row > .lbl { font-family: var(--font-mono); font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); padding-top: 3px; }
+  .row > div:last-child { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+  .famous { background: var(--sunk); border-radius: 8px; padding: 10px 14px; font-size: 0.93rem; max-width: 80ch; }
+  .famous b { font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; display: block; margin-bottom: 2px; }
+  .analogy { font-size: 0.93rem; color: var(--muted); max-width: 80ch; }
+  .analogy b { color: var(--ink); font-weight: 500; }
+  .askbtn { font: 500 0.76rem var(--font-mono); color: var(--agent); background: transparent; border: 1px solid var(--agent); border-radius: 999px; padding: 4px 11px; cursor: pointer; }
+  .askbtn:hover { background: var(--agent-tint); }
+
+  /* message trace (chat-like) */
+  .msgs { display: flex; flex-direction: column; gap: 8px; }
+  .msg { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 10px; align-items: start; font-size: 0.88rem; }
+  .msg .who { font-family: var(--font-mono); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; padding: 3px 6px; border-radius: 4px; text-align: center; }
+  .msg .body { background: var(--sunk); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; min-width: 0; overflow-wrap: anywhere; }
+  .msg .body pre { background: var(--surface); padding: 8px 10px; font-size: 0.76rem; }
+  .who.human { background: var(--sunk); color: var(--ink); border: 1px solid var(--line); }
+  .who.ai { background: var(--agent-tint); color: var(--agent); }
+  .who.tool { background: var(--num-tint); color: var(--num); }
+  .who.text { background: var(--nar-tint); color: var(--nar); }
+  .who.sys { background: var(--bad-tint); color: var(--bad); }
+  .msg.fresh .body { border-color: var(--agent); }
+
+  /* simulator */
+  .sim { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  .scen { display: flex; flex-wrap: wrap; gap: 8px; }
+  .scen button { font: 500 0.8rem var(--font-body); text-align: left; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; cursor: pointer; display: flex; flex-direction: column; gap: 2px; max-width: 260px; }
+  .scen button small { font-family: var(--font-mono); font-size: 0.68rem; color: var(--muted); }
+  .scen button[aria-pressed="true"] { border-color: var(--agent); box-shadow: inset 0 0 0 1px var(--agent); }
+  .controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .btn { font: 500 0.82rem var(--font-mono); background: var(--surface); color: var(--ink); border: 1px solid var(--line-strong); border-radius: 8px; padding: 7px 14px; cursor: pointer; }
+  .btn.primary { background: var(--agent); border-color: var(--agent); color: var(--bg); }
+  .btn:disabled { opacity: 0.45; cursor: default; }
+  .meter { font-family: var(--font-mono); font-size: 0.78rem; color: var(--muted); display: flex; gap: 14px; flex-wrap: wrap; }
+  .meter b { color: var(--ink); font-weight: 500; }
+  .simpanes { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 14px; }
+  .stepbox { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+  .stepbox h3 { font-size: 1.1rem; }
+  .verdict { font-size: 0.9rem; border-radius: 8px; padding: 10px 12px; background: var(--num-tint); }
+  .verdict.warn { background: var(--nar-tint); }
+
+  /* plan steps */
+  .steps { display: flex; flex-direction: column; gap: 0; counter-reset: st; }
+  .step { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 14px; padding-block: 14px; border-top: 1px solid var(--line); }
+  .step:first-child { border-top: 0; }
+  .step .sn { font-family: var(--font-display); font-size: 1.6rem; line-height: 1; color: var(--agent); }
+  .step .sb { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+  .files { font-family: var(--font-mono); font-size: 0.78rem; color: var(--muted); }
+  .files b { color: var(--ink); font-weight: 500; }
+
+  /* toolbox */
+  .toolbox { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+  .tb h3 { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+  .status { font: 500 0.7rem var(--font-mono); border-radius: 999px; padding: 2px 9px; white-space: nowrap; }
+  .status.need { background: var(--agent-tint); color: var(--agent); }
+  .status.have { background: var(--num-tint); color: var(--num); }
+  .status.ask { background: var(--nar-tint); color: var(--nar); }
+  .status.later { background: var(--sunk); color: var(--muted); border: 1px solid var(--line); }
+  .tb dl { margin: 0; display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 6px 12px; font-size: 0.9rem; }
+  .tb dt { font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); padding-top: 3px; }
+  .tb dd { margin: 0; min-width: 0; }
+
+  /* quiz */
+  .quiz { display: flex; flex-direction: column; gap: 10px; }
+  details { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px; }
+  details summary { cursor: pointer; font-weight: 500; }
+  details[open] summary { margin-bottom: 8px; }
+  details p + p { margin-top: 8px; }
+
+  /* ask drawer */
+  .askfab { position: fixed; right: calc(16px + env(safe-area-inset-right, 0px)); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); z-index: 20; font: 600 0.9rem var(--font-body); background: var(--agent); color: var(--bg); border: 0; border-radius: 999px; padding: 12px 18px; cursor: pointer; box-shadow: 0 6px 20px rgba(20, 16, 50, 0.25); }
+  .drawer { position: fixed; z-index: 30; top: 0; right: 0; bottom: 0; width: min(440px, 100%); background: var(--surface); border-left: 1px solid var(--line); display: flex; flex-direction: column; box-shadow: -10px 0 30px rgba(10, 10, 30, 0.18); padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); padding-right: env(safe-area-inset-right, 0px); }
+  .drawer header { display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+  .drawer header h3 { flex: 1; font-size: 1.1rem; }
+  .ctxline { font-size: 0.8rem; color: var(--muted); padding: 8px 16px; border-bottom: 1px solid var(--line); background: var(--sunk); }
+  .ctxline b { color: var(--ink); font-weight: 500; }
+  .chat { flex: 1; overflow-y: auto; padding: 14px 16px; display: flex; flex-direction: column; gap: 12px; }
+  .bubble { font-size: 0.92rem; line-height: 1.55; border-radius: 10px; padding: 10px 12px; max-width: 100%; overflow-wrap: anywhere; }
+  .bubble.me { background: var(--agent-tint); align-self: flex-end; max-width: 88%; }
+  .bubble.cl { background: var(--sunk); border: 1px solid var(--line); }
+  .bubble.cl p + p, .bubble.cl ul, .bubble.cl pre { margin-top: 8px; }
+  .bubble.cl ul { padding-left: 1.2em; margin-bottom: 0; }
+  .bubble.err { background: var(--bad-tint); color: var(--bad); }
+  .sugg { display: flex; flex-wrap: wrap; gap: 6px; }
+  .sugg button { font: 0.8rem var(--font-body); background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 999px; padding: 5px 10px; cursor: pointer; text-align: left; }
+  .composer { border-top: 1px solid var(--line); padding: 12px 16px; display: flex; flex-direction: column; gap: 8px; }
+  .composer textarea { font: 0.92rem var(--font-body); color: var(--ink); background: var(--bg); border: 1px solid var(--line-strong); border-radius: 8px; padding: 8px 10px; resize: vertical; min-height: 64px; }
+  .composer .bar { display: flex; gap: 8px; align-items: center; }
+  .composer .bar small { flex: 1; color: var(--muted); font-size: 0.74rem; }
+
+  @media (max-width: 860px) {
+    .split, .simpanes, .toolbox { grid-template-columns: minmax(0, 1fr); }
+    .row { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+  }
+  @media (max-width: 520px) {
+    .msg { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+    .msg .who { justify-self: start; }
+    .tb dl { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+    .tb dd { margin-bottom: 6px; }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .dg svg .node rect, .dg svg .term { transition: fill 0.2s, stroke 0.2s; }
+    html { scroll-behavior: smooth; }
+  }
+  /* M4 additions: timeline, wire log, mock UI */
+  .tl { display: flex; flex-direction: column; gap: 6px; }
+  .tl .bar { display: flex; height: 34px; border-radius: 8px; overflow: hidden; border: 1px solid var(--line); background: var(--surface); }
+  .tl .seg { display: flex; align-items: center; justify-content: center; font: 500 0.72rem var(--font-mono); color: var(--bg); white-space: nowrap; overflow: hidden; min-width: 3px; }
+  .tl .seg.llm { background: var(--agent); }
+  .tl .seg.guard { background: color-mix(in srgb, var(--agent) 65%, var(--surface)); }
+  .tl .seg.tool { background: var(--num); }
+  .tl .seg + .seg { border-left: 1px solid var(--surface); }
+  .tl .axis { display: flex; justify-content: space-between; font: 0.7rem var(--font-mono); color: var(--muted); }
+  .tl .keys { display: flex; flex-wrap: wrap; gap: 12px; font-size: 0.82rem; color: var(--muted); }
+  .wire { font: 0.74rem/1.5 var(--font-mono); background: var(--sunk); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; min-height: 260px; max-height: 420px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .wire .ev { color: var(--agent); } .wire .dim { color: var(--muted); }
+  .wire .fresh { background: var(--agent-tint); }
+  .mock { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px; display: flex; flex-direction: column; gap: 10px; min-height: 260px; }
+  .mock .q { background: var(--sunk); border-radius: 8px; padding: 8px 10px; font-size: 0.88rem; }
+  .mock .status { display: flex; flex-direction: column; gap: 4px; font-size: 0.85rem; }
+  .mock .status div::before { content: "✓ "; color: var(--num); }
+  .mock .status div.run::before { content: "… "; color: var(--agent); }
+  .mock .ans { border-left: 3px solid var(--agent); padding-left: 10px; font-size: 0.9rem; }
+  .mock .badge { align-self: flex-start; font: 500 0.72rem var(--font-mono); border-radius: 999px; padding: 2px 9px; background: var(--num-tint); color: var(--num); }
+  .spin { font: 0.85rem var(--font-mono); color: var(--muted); }
+  .clock { font: 600 1.4rem var(--font-mono); font-variant-numeric: tabular-nums; }
+  .seg-toggle { display: inline-flex; border: 1px solid var(--line-strong); border-radius: 8px; overflow: hidden; }
+  .seg-toggle button { font: 500 0.78rem var(--font-mono); background: var(--surface); color: var(--muted); border: 0; padding: 7px 12px; cursor: pointer; }
+  .seg-toggle button[aria-pressed="true"] { background: var(--agent); color: var(--bg); }
+  .endpoints td:first-child { white-space: nowrap; font-family: var(--font-mono); font-size: 0.8rem; }
+  .meth { font: 600 0.68rem var(--font-mono); border-radius: 4px; padding: 1px 6px; margin-right: 6px; }
+  .meth.get { background: var(--num-tint); color: var(--num); } .meth.post { background: var(--agent-tint); color: var(--agent); }
+</style>
+
+<nav class="toc" aria-label="Sections"><div class="in">
+  <a href="#top">Overview</a>
+  <a href="#shift">M3 → M4</a>
+  <a href="#time">Where the time goes</a>
+  <a href="#concepts">Concepts</a>
+  <a href="#watch">Watch a request</a>
+  <a href="#contract">API contract</a>
+  <a href="#plan">Build plan</a>
+  <a href="#toolbox">Toolbox</a>
+  <a href="#measure">Measure</a>
+  <a href="#quiz">Interview</a>
+</div></nav>
+
+<div class="wrap">
+
+<header class="masthead" id="top" data-title="Overview">
+  <span class="eyebrow">FilingLens · Milestone 4 · Interfaces</span>
+  <h1>From a script in a terminal to a service anyone can call</h1>
+  <p class="lede">The M3 agent works, but only as <code>python -m filinglens.agent.graph "…"</code> on your laptop. M4 puts it behind an HTTP API (FastAPI) with a live progress stream, and a small web UI (Streamlit) on top. The agent doesn't change. Everything here is about how people and programs reach it.</p>
+  <div class="chips">
+    <span class="chip">agent accuracy <b>16/20</b></span>
+    <span class="chip">mean answer time <b>13.9 s</b></span>
+    <span class="chip">slowest <b>29.1 s</b></span>
+    <span class="chip">tool time per answer <b>~25 ms</b></span>
+    <span class="chip">tests passing <b>126</b></span>
+  </div>
+  <div class="legend">
+    <span style="--c: var(--agent)">LLM calls (slow, seconds)</span>
+    <span style="--c: var(--num)">our code and database (fast, milliseconds)</span>
+    <span style="--c: var(--nar)">the network between client and server</span>
+  </div>
+  <p class="simple"><b>In one line</b>M3 built the engine. M4 builds the counter where customers order, and a screen that shows their order being made.</p>
+</header>
+
+<!-- ============ M3 -> M4 ============ -->
+<section id="shift" data-title="M3 → M4: before and after">
+  <span class="eyebrow">Before and after</span>
+  <h2>Who can use the agent, and how</h2>
+
+  <figure>
+    <div class="dg">
+      <svg viewBox="0 0 920 110" role="img" aria-label="Today: one developer runs a Python command in a terminal; the agent prints the answer to the terminal.">
+        <defs><marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="currentColor"/></marker></defs>
+        <g class="m2"><rect x="10" y="33" width="170" height="44" rx="8"/><text x="95" y="60" text-anchor="middle">you, in a terminal</text></g>
+        <g class="m2 hot"><rect x="250" y="33" width="250" height="44" rx="8"/><text x="375" y="53" text-anchor="middle">python -m ...agent.graph</text><text x="375" y="69" text-anchor="middle" class="lbl">loads models, runs, exits</text></g>
+        <g class="m2"><rect x="570" y="33" width="150" height="44" rx="8"/><text x="645" y="60" text-anchor="middle">agent</text></g>
+        <g class="m2"><rect x="790" y="33" width="120" height="44" rx="8"/><text x="850" y="60" text-anchor="middle">stdout</text></g>
+        <line class="edge" x1="180" y1="55" x2="248" y2="55" marker-end="url(#a1)"/>
+        <line class="edge" x1="500" y1="55" x2="568" y2="55" marker-end="url(#a1)"/>
+        <line class="edge" x1="720" y1="55" x2="788" y2="55" marker-end="url(#a1)"/>
+        <text x="460" y="100" text-anchor="middle" class="lbl">one user · 1.3 s of start-up every time · nothing to see for 12 s · no contract for other programs</text>
+      </svg>
+    </div>
+    <figcaption><b>Today (M3): a script.</b> Each run loads the model clients (1.25 s measured), answers one question, and exits.</figcaption>
+  </figure>
+
+  <figure>
+    <div class="dg">
+      <svg viewBox="0 0 920 300" role="img" aria-label="After M4: Streamlit UI, curl or Swagger, and later MCP clients call a FastAPI server over HTTP. The server has /health, /ask and /ask/stream, keeps model clients loaded, builds the agent per request, and talks to Postgres, OpenAI and Anthropic.">
+        <defs><marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="currentColor"/></marker></defs>
+        <g class="node"><rect x="10" y="30" width="170" height="44" rx="8"/><text x="95" y="50" text-anchor="middle">Streamlit UI</text><text x="95" y="66" text-anchor="middle" class="lbl">ui/app.py</text></g>
+        <g class="node"><rect x="10" y="118" width="170" height="44" rx="8"/><text x="95" y="138" text-anchor="middle">curl · Swagger</text><text x="95" y="154" text-anchor="middle" class="lbl">/docs in the browser</text></g>
+        <g class="node end"><rect x="10" y="206" width="170" height="44" rx="8"/><text x="95" y="226" text-anchor="middle">MCP clients</text><text x="95" y="242" text-anchor="middle" class="lbl">later (M6)</text></g>
+        <path class="edge" d="M180 52 C 230 52, 230 140, 278 140" marker-end="url(#a2)"/>
+        <line class="edge" x1="180" y1="140" x2="278" y2="140" marker-end="url(#a2)"/>
+        <path class="edge" d="M180 228 C 230 228, 230 140, 278 140" marker-end="url(#a2)" stroke-dasharray="4 3"/>
+        <text x="229" y="104" text-anchor="middle" class="lbl">HTTP + SSE</text>
+        <g class="node llm"><rect x="280" y="40" width="250" height="200" rx="10"/>
+          <text x="405" y="64" text-anchor="middle">FastAPI server</text>
+          <text x="300" y="96" class="lbl">GET  /health</text>
+          <text x="300" y="118" class="lbl">POST /ask</text>
+          <text x="300" y="140" class="lbl">POST /ask/stream</text>
+          <text x="300" y="162" class="lbl">GET  /docs  (Swagger)</text>
+          <text x="300" y="194" class="lbl">once: model clients</text>
+          <text x="300" y="214" class="lbl">per request: session + agent</text>
+        </g>
+        <line class="edge" x1="530" y1="140" x2="598" y2="140" marker-end="url(#a2)"/>
+        <g class="node llm"><rect x="600" y="118" width="120" height="44" rx="8"/><text x="660" y="145" text-anchor="middle">M3 agent</text></g>
+        <line class="edge" x1="720" y1="130" x2="778" y2="62" marker-end="url(#a2)"/>
+        <line class="edge" x1="720" y1="140" x2="778" y2="140" marker-end="url(#a2)"/>
+        <line class="edge" x1="720" y1="150" x2="778" y2="218" marker-end="url(#a2)"/>
+        <g class="node code"><rect x="780" y="40" width="130" height="44" rx="8"/><text x="845" y="67" text-anchor="middle">Postgres</text></g>
+        <g class="node"><rect x="780" y="118" width="130" height="44" rx="8"/><text x="845" y="138" text-anchor="middle">OpenAI</text><text x="845" y="154" text-anchor="middle" class="lbl">gpt-6-luna</text></g>
+        <g class="node"><rect x="780" y="196" width="130" height="44" rx="8"/><text x="845" y="216" text-anchor="middle">Anthropic</text><text x="845" y="232" text-anchor="middle" class="lbl">Haiku guard</text></g>
+      </svg>
+    </div>
+    <figcaption><b>After M4: a service.</b> One server process stays up. Any HTTP client can call it, a typed contract (OpenAPI) describes it, and <code>/ask/stream</code> reports each agent step as it happens.</figcaption>
+  </figure>
+
+  <div class="tscroll"><table>
+    <thead><tr><th>Question</th><th>M3 script</th><th>M4 service</th></tr></thead>
+    <tbody>
+      <tr><td>Who can ask?</td><td>Whoever has the repo, Python and the keys</td><td class="ag">Anyone who can reach the URL: the UI, curl, other services</td></tr>
+      <tr><td>Start-up cost</td><td class="tnum">~1.3 s on every run (model clients)</td><td class="tnum num">Once at server start, then ~7 ms per request to build the agent</td></tr>
+      <tr><td>What the user sees while waiting</td><td>Nothing for ~12 s</td><td>Each step as it finishes: “checked scope”, “fetching XBRL”, “calculating”, “writing”</td></tr>
+      <tr><td>Contract</td><td>Printed text</td><td>JSON validated by Pydantic, documented in OpenAPI at <code>/docs</code></td></tr>
+      <tr><td>Failures</td><td>A Python traceback</td><td>HTTP status codes: 422 bad input, 502 model provider down, 503 database down</td></tr>
+      <tr><td>Concurrency</td><td>One question at a time</td><td class="tnum">Many at once: each request gets its own DB session and its own agent</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- ============ time ============ -->
+<section id="time" data-title="Where the 12.5 seconds go">
+  <span class="eyebrow">Measured today, before building anything</span>
+  <h2>Where the 12.5 seconds go</h2>
+  <p>I streamed the PepsiCo EBITDA question through the real agent and timed every node. This chart decides most of M4's design.</p>
+  <figure>
+    <div class="tl" role="img" aria-label="PepsiCo question timeline: guard 1.2 s, plan 3.6 s, tools 24 ms, plan 1.7 s, tools 1 ms, plan 2.1 s, answer 3.9 s, check under 1 ms; total 12.5 s.">
+      <div class="bar" id="tlBar"></div>
+      <div class="axis"><span>0 s</span><span>3 s</span><span>6 s</span><span>9 s</span><span>12.5 s</span></div>
+      <div class="keys"><span><b class="ag">■</b> LLM call (gpt-6-luna)</span><span><b style="color: color-mix(in srgb, var(--agent) 65%, var(--surface))">■</b> guard (Haiku)</span><span><b class="num">■</b> tools + check (our code, too thin to see)</span></div>
+    </div>
+    <figcaption>Real run, 2026-11-04. Guard 1,243 ms · plan 3,565 ms · <span class="num">get_financials 24 ms</span> · plan 1,692 ms · <span class="num">calculate 1 ms</span> · plan 2,071 ms · answer 3,896 ms · <span class="num">check &lt;1 ms</span>. Two other questions: “Should I buy AMD?” was refused after 1.8 s, and Tesla was “not found” after 9.3 s (the planner spent 8 s deciding not to call a tool).</figcaption>
+  </figure>
+  <ul class="plain">
+    <li><b>99.8% of the time is LLM calls.</b> Our database and Python code take about 25 ms in total. Making the API layer faster won't help; showing progress will.</li>
+    <li><b>Seven moments when something happened.</b> These are the events <code>/ask/stream</code> sends, so the user sees work after 1.2 s instead of a blank screen for 12.5 s.</li>
+    <li><b>Model clients cost 1,251 ms to create; building the agent from them costs 7 ms.</b> So the server creates the clients once at start-up and builds the agent per request (concept 6).</li>
+  </ul>
+</section>
+
+<!-- ============ concepts ============ -->
+<section id="concepts" data-title="Concepts">
+  <span class="eyebrow">Eight concepts, in build order</span>
+  <h2>Each one: what it is, why it was invented, why we need it, how we build it, and our data</h2>
+  <p class="note">You know FastAPI and HTTP well, so these cards skip the basics and focus on what changes when the thing behind the API is a slow, non-deterministic, paid LLM agent.</p>
+  <div class="concepts">
+
+  <!-- 1 -->
+  <article class="concept" id="c-api" data-title="An API contract for an LLM app">
+    <header><span class="cn">1</span><h3>An API contract for an LLM app</h3><button class="askbtn" data-ask="c-api">Ask about this</button></header>
+    <div class="rows">
+      <div class="row"><div class="lbl">What it is</div><div>
+        <p>The same thing you've built many times: typed request and response models, validated at the edge. What's new is <b>what the response must carry</b>. An LLM answer is only useful if the caller can check it, so the contract includes the evidence (sources with URLs), the agent's trace (tool calls, rounds), its own quality flag (<code>verified</code>), the outcome (answered / not found / refused), and IDs to find the request again.</p>
+        <p class="analogy"><b>Backend analogy:</b> a payment API returns not only “ok” but a transaction ID, status and receipt. An LLM API returns the answer plus its receipt: where each number came from.</p>
+      </div></div>
+      <div class="row"><div class="lbl">Why it exists</div><div>
+        <p>Early LLM demos returned a bare string. Nobody downstream could tell a sourced number from a guess, retry safely, or debug a bad answer.</p>
+        <div class="famous"><b>Well-known example</b>OpenAI's and Anthropic's own APIs return far more than text: a request ID, the stop reason, token usage, tool calls as structured JSON. Perplexity returns its citations as a separate list next to the answer, which is the pattern we follow.</div>
+      </div></div>
+      <div class="row"><div class="lbl">Why FilingLens needs it</div><div>
+        <p>CLAUDE.md: “Every answer returns <code>sources</code> (filing URL + section) and the Langfuse trace ID.” The M3 <code>AgentResult</code> already has almost everything; the API exposes it as a stable schema.</p>
+      </div></div>
+      <div class="row"><div class="lbl">How we build it</div><div>
+<pre><code><span class="k">class</span> AskRequest(BaseModel):
+    question: str = Field(min_length=<span class="n">3</span>, max_length=<span class="n">2000</span>)   <span class="c"># a length cap is also a cost cap</span>
+
+<span class="k">class</span> AskResponse(BaseModel):
+    request_id: str                 <span class="c"># to find this request in logs</span>
+    answer: str
+    outcome: Literal[<span class="s">"answered"</span>, <span class="s">"not_found"</span>, <span class="s">"refused"</span>]
+    verified: bool                  <span class="c"># passed the M3 grounding check</span>
+    sources: list[SourceOut]        <span class="c"># n, kind, label, url: only the cited ones</span>
+    tool_calls: list[ToolCallOut]
+    rounds: int
+    latency_ms: int
+    trace_id: str | None = None     <span class="c"># Langfuse, filled from M6; in the schema now so it won't break clients</span></code></pre>
+      </div></div>
+      <div class="row"><div class="lbl">On our data</div><div>
+        <p>For PepsiCo, <code>sources</code> would hold <code>[1] XBRL · PEP FY2022 revenue</code> with the SEC filing-index URL of accession 0000077476-23-000007, and <code>[4] calculate</code>. A UI can render those as links without parsing the answer text.</p>
+      </div></div>
+    </div>
+  </article>
+
+  <!-- 2 -->
+  <article class="concept" id="c-sync" data-title="A synchronous agent in an async server">
+    <header><span class="cn">2</span><h3>A synchronous agent in an async server</h3><button class="askbtn" data-ask="c-sync">Ask about this</button></header>
+    <div class="rows">
+      <div class="row"><div class="lbl">What it is</div><div>
+        <p>FastAPI runs on an event loop. An <code>async def</code> endpoint must never block it. Our agent is synchronous: sync SQLAlchemy sessions and sync <code>llm.invoke()</code> calls that wait up to 8 seconds. FastAPI's rule: a plain <code>def</code> endpoint runs in a <b>threadpool</b> (40 threads by default), so blocking there is fine.</p>
+        <p class="analogy"><b>Backend analogy:</b> exactly what you'd do with a blocking driver in an ASGI app, or a sync Celery task: run it on a worker thread and keep the loop free.</p>
+      </div></div>
+      <div class="row"><div class="lbl">Why it exists</div><div>
+        <p>Python web servers moved from WSGI (one thread per request) to ASGI (one event loop, many requests) for long-lived connections like websockets and streaming. Mixing in blocking code is the classic mistake: one slow call freezes every request on that loop.</p>
+        <div class="famous"><b>Well-known example</b>Django added async views in 3.1 but still runs sync views in a threadpool through <code>sync_to_async</code>. Starlette and FastAPI do the same for plain <code>def</code> routes.</div>
+      </div></div>
+      <div class="row"><div class="lbl">Why FilingLens needs it</div><div>
+        <p>An answer takes 2–30 seconds. With an <code>async def</code> route calling our sync agent, a second user would wait for the first one to finish.</p>
+        <p class="note">Trade-off: 40 threads means about 40 concurrent questions per process, which is plenty for a demo. The fully async alternative (<code>ainvoke</code>, async psycopg sessions) scales further but means rewriting the tools and the session handling. That's not worth it at this scale; it's recorded in ADR-010 as the upgrade path.</p>
+      </div></div>
+      <div class="row"><div class="lbl">How we build it</div><div>
+<pre><code>@app.post(<span class="s">"/ask"</span>, response_model=AskResponse)
+<span class="k">def</span> ask(body: AskRequest, agent = Depends(get_agent)):   <span class="c"># def, not async def: runs in the threadpool</span>
+    <span class="k">return</span> to_response(run_agent(agent, body.question))</code></pre>
+      </div></div>
+      <div class="row"><div class="lbl">On our data</div><div>
+        <p>The PepsiCo request spends 12.47 of its 12.49 seconds waiting on OpenAI and Anthropic. In a thread, that waiting costs nothing to other requests.</p>
+      </div></div>
+    </div>
+  </article>
+
+  <!-- 3 -->
+  <article class="concept" id="c-sse" data-title="Streaming with Server-Sent Events">
+    <header><span class="cn">3</span><h3>Streaming with Server-Sent Events (SSE)</h3><button class="askbtn" data-ask="c-sse">Ask about this</button></header>
+    <div class="rows">
+      <div class="row"><div class="lbl">What it is</div><div>
+        <p>One normal HTTP response that stays open. The server writes small text blocks to it as things happen: <code>event: step</code>, then a <code>data: {...}</code> line, then a blank line. The client reads them one by one. The connection is one-way (server → client), and the stream is plain text over plain HTTP.</p>
+        <p class="analogy"><b>Backend analogy:</b> <code>tail -f</code> over HTTP. Or a chunked download where each chunk is a JSON event.</p>
+      </div></div>
+      <div class="row"><div class="lbl">Why it exists</div><div>
+        <p>Before SSE, live pages polled (“anything new?” every second) or used long-polling hacks. SSE was standardised with HTML5 (the browser's <code>EventSource</code>) for exactly this case: the server pushes updates, the client only listens. Websockets are two-way and need their own protocol upgrade, which is more than a progress feed needs.</p>
+        <div class="famous"><b>Well-known example</b>ChatGPT's text appearing word by word. With <code>stream=true</code>, the OpenAI and Anthropic APIs send SSE events, one per chunk of text. Every streaming chatbot you've used is SSE underneath.</div>
+      </div></div>
+      <div class="row"><div class="lbl">Why FilingLens needs it</div><div>
+        <p>The brief's target is an answer in under 30 seconds, and the mean is 13.9 s. A blank screen for 14 s feels broken. Seeing “Fetching XBRL: PEP FY2022 revenue, operating income, D&amp;A” after 4.8 s shows the work and builds trust.</p>
+      </div></div>
+      <div class="row"><div class="lbl">How we build it</div><div>
+<pre><code><span class="k">def</span> events(agent, question):                       <span class="c"># a sync generator: Starlette iterates it in a thread</span>
+    <span class="k">for</span> update <span class="k">in</span> agent.stream(state, stream_mode=<span class="s">"updates"</span>):
+        <span class="k">yield</span> sse(<span class="s">"step"</span>, describe(update))          <span class="c"># "event: step\ndata: {...}\n\n"</span>
+    <span class="k">yield</span> sse(<span class="s">"result"</span>, final_response)
+
+@app.post(<span class="s">"/ask/stream"</span>)
+<span class="k">def</span> ask_stream(body: AskRequest, agent = Depends(get_agent)):
+    <span class="k">return</span> StreamingResponse(events(agent, body.question), media_type=<span class="s">"text/event-stream"</span>)</code></pre>
+        <p class="note">No extra library: Starlette's <code>StreamingResponse</code> is enough. <code>sse-starlette</code> adds keep-alive pings and disconnect handling; we can add it if we need them. We use POST rather than the browser's GET-only <code>EventSource</code>, because the question goes in a JSON body. Our client is Python, so that doesn't matter.</p>
+      </div></div>
+      <div class="row"><div class="lbl">On our data</div><div>
+        <p>The PepsiCo run would send 7 <code>step</code> events at 1.2, 4.8, 4.8, 6.5, 6.5, 8.6 and 12.5 s, then one <code>result</code>. Play it in <a href="#watch">Watch a request</a>.</p>
+      </div></div>
+    </div>
+  </article>
+
+  <!-- 4 -->
+  <article class="concept" id="c-modes" data-title="Streaming steps, not tokens">
+    <header><span class="cn">4</span><h3>Streaming steps, not tokens</h3><button class="askbtn" data-ask="c-modes">Ask about this</button></header>
+    <div class="rows">
+      <div class="row"><div class="lbl">What it is</div><div>
+        <p>LangGraph can stream at different levels. <code>stream_mode="updates"</code> yields one item per finished node, with what that node changed. <code>"messages"</code> yields LLM tokens as they're generated. <code>"values"</code> yields the whole state after each step. You can ask for several at once.</p>
+      </div></div>
+      <div class="row"><div class="lbl">Why it exists</div><div>
+        <p>Chatbots streamed tokens because they had one long LLM call. Agents spend most of their time in many shorter calls and tools, so “which step am I on?” became the more useful signal.</p>
+        <div class="famous"><b>Well-known example</b>Perplexity and ChatGPT's search show “Searching… Reading 6 sources…” before the answer text starts. Claude Code shows each tool call as it runs. Both are step streams, with tokens only for the final text.</div>
+      </div></div>
+      <div class="row"><div class="lbl">Why FilingLens needs it</div><div>
+        <p>Our answer goes through a <b>check</b>, and in M3 the check could send it back for one rewrite. If we streamed the first draft's tokens, the user could watch numbers appear that the check then rejects. So we stream <b>steps</b> live and send the answer when it's checked. The answer call is 3.9 of the 12.5 s; streaming its tokens is a possible later improvement.</p>
+      </div></div>
+      <div class="row"><div class="lbl">How we build it</div><div>
+<pre><code><span class="k">for</span> mode, chunk <span class="k">in</span> agent.stream(state, stream_mode=[<span class="s">"updates"</span>, <span class="s">"values"</span>]):
+    <span class="k">if</span> mode == <span class="s">"updates"</span>:                 <span class="c"># {"plan": {"messages": [AIMessage(tool_calls=...)], "rounds": 1}}</span>
+        <span class="k">yield</span> step_event(chunk)
+    <span class="k">else</span>:
+        final_state = chunk                   <span class="c"># the last "values" is the full final state → AskResponse</span></code></pre>
+      </div></div>
+      <div class="row"><div class="lbl">On our data</div><div>
+        <div class="msgs">
+          <div class="msg"><span class="who sys">guard</span><div class="body">verdict ok · 1.2 s</div></div>
+          <div class="msg"><span class="who ai">plan</span><div class="body"><code>get_financials(PEP, [2022], [revenue, operating_income, depreciation_amortization])</code> · 4.8 s</div></div>
+          <div class="msg"><span class="who tool">tools</span><div class="body">get_financials: success · 24 ms later</div></div>
+          <div class="msg"><span class="who ai">answer</span><div class="body">written · 12.5 s → then <i>check</i>: verified</div></div>
+        </div>
+      </div></div>
+    </div>
+  </article>
+
+  <!-- 5 -->
+  <article class="concept" id="c-openapi" data-title="OpenAPI and Swagger docs">
+    <header><span class="cn">5</span><h3>OpenAPI and Swagger docs</h3><button class="askbtn" data-ask="c-openapi">Ask about this</button></header>
+    <div class="rows">
+      <div class="row"><div class="lbl">What it is</div><div>
+        <p>OpenAPI is a JSON document that describes every endpoint: paths, methods, request and response schemas, status codes and examples. FastAPI writes it for you from the Pydantic models (<code>/openapi.json</code>) and serves two UIs on top of it: Swagger UI at <code>/docs</code>, where you can click “Try it out”, and ReDoc at <code>/redoc</code>.</p>
+      </div></div>
+      <div class="row"><div class="lbl">Why it exists</div><div>
+        <p>API docs used to be hand-written wiki pages that drifted from the code. Swagger, created in 2011 for the Wordnik dictionary API, made the description machine-readable. In 2015 it was donated to the new OpenAPI Initiative under the Linux Foundation, and the spec was renamed OpenAPI. From one file you get docs, client generators and contract tests.</p>
+        <div class="famous"><b>Well-known example</b>Stripe and GitHub publish their APIs as OpenAPI specs, and their SDKs are generated from them.</div>
+      </div></div>
+      <div class="row"><div class="lbl">Why FilingLens needs it</div><div>
+        <p>The demo audience (interviewers, the fictional analyst team) can explore the API without reading code. And there's a nice link to M3: <b>tool schemas are the same idea</b>. The JSON Schema that <code>bind_tools</code> sends the LLM for <code>get_financials</code> is the same format OpenAPI uses for <code>AskRequest</code>. Both are a contract for a client: in M3 the client is an LLM, in M4 it's a person or a program.</p>
+      </div></div>
+      <div class="row"><div class="lbl">How we build it</div><div>
+        <p>Mostly for free. We add a title, a version, an example on <code>AskRequest</code> (the PepsiCo question), and document the <code>text/event-stream</code> response of <code>/ask/stream</code>, which FastAPI can't infer. After M4, the follow-up page (M4.2) will embed this real Swagger UI.</p>
+      </div></div>
+      <div class="row"><div class="lbl">On our data</div><div>
+        <p>“Try it out” on <code>/ask</code> with the prefilled PepsiCo example returns the 16.5% answer and its sources, the same JSON the UI renders.</p>
+      </div></div>
+    </div>
+  </article>
+
+  <!-- 6 -->
+  <article class="concept" id="c-life" data-title="What to create once, what per request">
+    <header><span class="cn">6</span><h3>What to create once, and what per request</h3><button class="askbtn" data-ask="c-life">Ask about this</button></header>
+    <div class="rows">
+      <div class="row"><div class="lbl">What it is</div><div>
+        <p>A server has two lifetimes. <b>App lifetime</b>: things created at start-up and shared, such as model clients with their HTTP connection pools, and the settings. <b>Request lifetime</b>: things that must not be shared between concurrent requests, such as a database session. FastAPI's <code>lifespan</code> handles the first, and <code>Depends()</code> generators handle the second.</p>
+        <p class="analogy"><b>Backend analogy:</b> the SQLAlchemy engine is per app and the session is per request. You already do this. The only new part is deciding which side the LLM pieces fall on.</p>
+      </div></div>
+      <div class="row"><div class="lbl">Why it exists</div><div>
+        <p>Creating expensive things per request wastes time; sharing stateful things across requests causes bugs that only appear under load.</p>
+        <div class="famous"><b>Well-known example</b>The OpenAI and Anthropic SDK docs recommend creating the client once and reusing it, because each client holds a connection pool. Creating one per request is a common cause of slow LLM apps.</div>
+      </div></div>
+      <div class="row"><div class="lbl">Why FilingLens needs it</div><div>
+        <p>Our tools are <i>bound to a session</i>: <code>make_tools(session, embedder)</code>. So the agent can't be global, or two requests would share one DB session across threads. And it can't be fully rebuilt per request, or we'd pay 1.25 s for model clients each time.</p>
+      </div></div>
+      <div class="row"><div class="lbl">How we build it</div><div>
+<pre><code>@asynccontextmanager
+<span class="k">async def</span> lifespan(app):
+    app.state.models = Models(llm=get_chat_model(), guard=get_router_model(), embedder=get_embeddings())
+    <span class="k">yield</span>                                                       <span class="c"># once: 1,251 ms</span>
+
+<span class="k">def</span> get_agent(request: Request, session = Depends(get_db)):   <span class="c"># per request: 7 ms</span>
+    m = request.app.state.models
+    <span class="k">return</span> build_agent(m.llm, m.guard, make_tools(session, m.embedder), available_filings(session))</code></pre>
+      </div></div>
+      <div class="row"><div class="lbl">On our data</div><div>
+        <div class="tscroll"><table>
+          <thead><tr><th>Piece</th><th>Measured cost</th><th>Lifetime</th></tr></thead>
+          <tbody class="tnum">
+            <tr><td>Imports (LangChain, SQLAlchemy …)</td><td>593 ms</td><td>process start</td></tr>
+            <tr><td>Model clients (gpt-6-luna, Haiku, embeddings)</td><td>1,251 ms</td><td class="num">app: once in <code>lifespan</code></td></tr>
+            <tr><td><code>available_filings()</code> query</td><td>22 ms cold, 1 ms warm</td><td>request</td></tr>
+            <tr><td><code>build_agent()</code>: bind tools + compile the graph</td><td>6–7 ms</td><td>request</td></tr>
+          </tbody>
+        </table></div>
+      </div></div>
+    </div>
+  </article>
+
+  <!-- 7 -->
+  <article class="concept" id="c-ui" data-title="Streamlit as a thin demo client">
+    <header><span class="cn">7</span><h3>Streamlit as a thin demo client</h3><button class="askbtn" data-ask="c-ui">Ask about this</button></header>
+    <div class="rows">
+      <div class="row"><div class="lbl">What it is</div><div>
+        <p>A Python library that turns a script into a web app. Each widget is a function call (<code>st.chat_input</code>, <code>st.status</code>, <code>st.expander</code>), and the script re-runs top to bottom on every interaction. No HTML, CSS or JavaScript.</p>
+        <p class="analogy"><b>Backend analogy:</b> like Django admin: not what you'd build a consumer product with, but a working UI in an afternoon.</p>
+      </div></div>
+      <div class="row"><div class="lbl">Why it exists</div><div>
+        <p>Data scientists had models but no front-end skills. Every demo meant waiting for a web team. Streamlit launched in 2019 to close that gap, and Snowflake bought it in 2022. Gradio fills the same niche, with Hugging Face Spaces as its well-known home.</p>
+        <div class="famous"><b>Well-known example</b>Most LLM demo apps on GitHub and Hugging Face Spaces are Streamlit or Gradio. Streamlit's <code>st.chat_message</code> and <code>st.status</code> were added specifically for chatbots and agents.</div>
+      </div></div>
+      <div class="row"><div class="lbl">Why FilingLens needs it</div><div>
+        <p>A 2-minute demo needs a screen, not curl. The key design rule: <b>the UI only talks to the API</b>, never to the agent directly. It's a thin client, so it proves the API works, and a React front end could replace it without touching the backend.</p>
+      </div></div>
+      <div class="row"><div class="lbl">How we build it</div><div>
+<pre><code>question = st.chat_input(<span class="s">"Ask about a 10-K…"</span>)
+<span class="k">with</span> st.status(<span class="s">"Working…"</span>) <span class="k">as</span> status:
+    <span class="k">for</span> event <span class="k">in</span> client.ask_stream(question):     <span class="c"># filinglens.api.client: httpx + SSE parsing</span>
+        <span class="k">if</span> event.type == <span class="s">"step"</span>: status.write(event.label)
+        <span class="k">else</span>: result = event.data
+st.markdown(result.answer); show_sources(result.sources)</code></pre>
+      </div></div>
+      <div class="row"><div class="lbl">On our data</div><div>
+        <p>Example buttons for three real questions (PepsiCo EBITDA, Boeing legal battles, “Should I buy AMD?”), so the demo shows a number answer, a text answer and a refusal in under a minute.</p>
+      </div></div>
+    </div>
+  </article>
+
+  <!-- 8 -->
+  <article class="concept" id="c-fail" data-title="Failure modes and testing">
+    <header><span class="cn">8</span><h3>Failure modes and tests for an LLM endpoint</h3><button class="askbtn" data-ask="c-fail">Ask about this</button></header>
+    <div class="rows">
+      <div class="row"><div class="lbl">What it is</div><div>
+        <p>Deciding in advance what the API says when each dependency fails, and testing all of it without calling a real model.</p>
+        <div class="tscroll"><table>
+          <thead><tr><th>Failure</th><th>Response</th><th>Why that code</th></tr></thead>
+          <tbody>
+            <tr><td>Question empty or over 2,000 characters</td><td><code>422</code></td><td>The client's fault; Pydantic does it</td></tr>
+            <tr><td>OpenAI or Anthropic error or timeout</td><td><code>502</code> “model provider error”</td><td>An upstream service failed, not our code</td></tr>
+            <tr><td>Postgres down</td><td><code>503</code>, and <code>/health</code> says so</td><td>Temporarily unavailable; a load balancer can retry elsewhere</td></tr>
+            <tr><td>Failure mid-stream</td><td>an <code>event: error</code></td><td>The 200 status is already sent, so the error must travel as an event</td></tr>
+            <tr><td>“Should I buy AMD?”</td><td><code>200</code>, outcome <code>refused</code></td><td>A refusal is a correct answer, not an error</td></tr>
+          </tbody>
+        </table></div>
+      </div></div>
+      <div class="row"><div class="lbl">Why it exists</div><div>
+        <p>LLM providers have outages and rate limits more often than databases do, and an agent depends on two of them plus Postgres. Without explicit mapping, every failure becomes a 500 and nobody knows whose fault it was.</p>
+        <div class="famous"><b>Well-known example</b>OpenAI's status page has regular incidents, and Anthropic's API returns <code>529 overloaded</code> under load. Production LLM apps handle these as normal events, with clear errors, retries and fallbacks.</div>
+      </div></div>
+      <div class="row"><div class="lbl">Why FilingLens needs it</div><div>
+        <p>A demo that crashes with a traceback when an API key is wrong is worse than no demo. And CI can't call real models, because of cost, keys and non-determinism.</p>
+      </div></div>
+      <div class="row"><div class="lbl">How we build it</div><div>
+        <p>FastAPI's <code>app.dependency_overrides[get_agent]</code> swaps in the M3 test agent built from the scripted <code>FakeLLM</code>. So the API tests run the real graph, real tools (calculate) and real SSE encoding, with fake model replies, in milliseconds. The client is tested with <code>httpx.MockTransport</code>, and the UI with Streamlit's <code>AppTest</code>.</p>
+      </div></div>
+      <div class="row"><div class="lbl">On our data</div><div>
+        <p>The M3 test “AMD quick ratio, two rounds, then a cited answer” becomes an API test: POST <code>/ask</code> → 200, <code>verified: true</code>, sources [1] and [5] with SEC URLs. The same script through <code>/ask/stream</code> must emit guard → plan → tools → plan → tools → plan → answer → check, then the result.</p>
+      </div></div>
+    </div>
+  </article>
+
+  </div>
+</section>
+
+<!-- ============ watch ============ -->
+<section id="watch" data-title="Watch a request (simulator)">
+  <span class="eyebrow">Interactive · real timings</span>
+  <h2>Watch one request, with and without streaming</h2>
+  <p>Pick a question and a mode, then press Play. The timings are from the real runs above. The event format is the one M4 will build. Left: what the user sees. Right: the raw bytes on the wire.</p>
+  <div class="sim">
+    <div class="scen" id="wScen"></div>
+    <div class="controls">
+      <div class="seg-toggle" role="group" aria-label="Response mode">
+        <button type="button" id="mStream" aria-pressed="true">/ask/stream (SSE)</button>
+        <button type="button" id="mPlain" aria-pressed="false">/ask (one response)</button>
+      </div>
+      <button class="btn primary" id="wPlay" type="button">Play</button>
+      <button class="btn" id="wSkip" type="button">Skip to end</button>
+      <label class="meter">speed <select id="wSpeed"><option value="1">1×</option><option value="2" selected>2×</option><option value="4">4×</option></select></label>
+      <span class="clock" id="wClock" aria-live="off">0.0 s</span>
+    </div>
+    <div class="simpanes">
+      <div class="mock" id="wMock" aria-live="polite"></div>
+      <div class="wire" id="wWire" aria-label="Raw HTTP response body"></div>
+    </div>
+    <p class="note" id="wNote"></p>
+  </div>
+</section>
+
+<!-- ============ contract ============ -->
+<section id="contract" data-title="The API contract (planned)">
+  <span class="eyebrow">What M4 will expose</span>
+  <h2>The API contract</h2>
+  <div class="tscroll"><table class="endpoints">
+    <thead><tr><th>Endpoint</th><th>What it does</th><th>Response</th></tr></thead>
+    <tbody>
+      <tr><td><span class="meth get">GET</span>/health</td><td>Checks the database and reports what's loaded: companies, filings, model names. For Docker health checks and the UI's status light.</td><td><code>200</code> or <code>503</code>, JSON</td></tr>
+      <tr><td><span class="meth post">POST</span>/ask</td><td>Runs the agent and returns the full result in one response.</td><td><code>AskResponse</code> JSON</td></tr>
+      <tr><td><span class="meth post">POST</span>/ask/stream</td><td>Same agent; sends <code>step</code> events as nodes finish, then one <code>result</code> event (same shape as <code>/ask</code>), or an <code>error</code> event.</td><td><code>text/event-stream</code></td></tr>
+      <tr><td><span class="meth get">GET</span>/docs · /openapi.json</td><td>Swagger UI and the machine-readable spec, generated by FastAPI.</td><td>HTML · JSON</td></tr>
+    </tbody>
+  </table></div>
+  <div class="split">
+    <div class="card"><span class="eyebrow">Request</span>
+<pre><code>POST /ask
+{"question": "What is the FY2022 unadjusted EBITDA
+  % margin for PepsiCo? ..."}</code></pre></div>
+    <div class="card"><span class="eyebrow">Response (planned shape)</span>
+<pre><code>{"request_id": "…",
+ "answer": "PepsiCo's FY2022 unadjusted EBITDA margin
+   was 16.5% [4] …",
+ "outcome": "answered", "verified": true,
+ "sources": [{"n": 1, "kind": "xbrl",
+   "label": "XBRL · PEP FY2022 revenue",
+   "url": "https://www.sec.gov/Archives/edgar/data/77476/…"}, …],
+ "tool_calls": [{"name": "get_financials", "args": {…}}, …],
+ "rounds": 2, "latency_ms": 12490, "trace_id": null}</code></pre></div>
+  </div>
+</section>
+
+<!-- ============ plan ============ -->
+<section id="plan" data-title="Build plan">
+  <span class="eyebrow">What I'll build, in order</span>
+  <h2>The build plan, one commit per step</h2>
+  <p>Branch <code>m4-interfaces</code>. After each step, tests and ruff pass and the step is committed.</p>
+  <div class="card"><div class="steps">
+    <div class="step"><span class="sn">0</span><div class="sb"><h3>Dependencies</h3><p><code>uv add fastapi "uvicorn[standard]" streamlit</code>. All three are in the CLAUDE.md stack.</p><span class="files">pyproject.toml · uv.lock</span></div></div>
+    <div class="step"><span class="sn">1</span><div class="sb"><h3>App, schemas and <code>/health</code></h3><p><code>create_app()</code> with a <code>lifespan</code> that creates the model clients once; per-request DB session dependency; Pydantic schemas; <code>/health</code> with a DB check. Tests with <code>TestClient</code>.</p><span class="files"><b>new</b> src/filinglens/api/main.py · api/schemas.py · tests/test_api.py</span></div></div>
+    <div class="step"><span class="sn">2</span><div class="sb"><h3><code>POST /ask</code></h3><p>Agent built per request (7 ms), <code>def</code> endpoint in the threadpool, error mapping (422/502/503), request ID and latency. <code>ask()</code> in <code>graph.py</code> is split so the stream can reuse the result-building code. Tests run the real graph with the fake LLM via <code>dependency_overrides</code>.</p><span class="files">api/main.py · agent/graph.py · tests/test_api.py</span></div></div>
+    <div class="step"><span class="sn">3</span><div class="sb"><h3><code>POST /ask/stream</code></h3><p>SSE from <code>agent.stream(stream_mode=["updates", "values"])</code>: one readable <code>step</code> event per node, then <code>result</code>; <code>error</code> mid-stream. OpenAPI documents the event stream.</p><span class="files">api/main.py · <b>new</b> api/events.py · tests/test_api.py</span></div></div>
+    <div class="step"><span class="sn">4</span><div class="sb"><h3>Python client</h3><p><code>FilingLensClient</code> with <code>health()</code>, <code>ask()</code> and <code>ask_stream()</code> (an SSE parser yielding typed events). Tested against <code>httpx.MockTransport</code>. The UI uses only this.</p><span class="files"><b>new</b> src/filinglens/api/client.py · tests/test_client.py · config.py (<code>API_URL</code>)</span></div></div>
+    <div class="step"><span class="sn">5</span><div class="sb"><h3>Streamlit UI</h3><p>Chat layout, live step list in <code>st.status</code>, answer, verified badge, sources as links, tool calls in an expander, API status in the sidebar, three example questions. Smoke-tested with <code>AppTest</code>.</p><span class="files"><b>new</b> ui/app.py · tests/test_ui.py</span></div></div>
+    <div class="step"><span class="sn">6</span><div class="sb"><h3>Real run and docs</h3><p>Start uvicorn, call <code>/health</code>, <code>/ask</code> and <code>/ask/stream</code> on real questions, and measure the API's overhead and time to the first event. ADR-010 (sync agent in a threadpool, SSE step events), <code>docs/m4-results.md</code>, README, CLAUDE.md.</p><span class="files">docs/adr/010-api-design.md · docs/m4-results.md · README.md · CLAUDE.md</span></div></div>
+    <div class="step"><span class="sn">7</span><div class="sb"><h3>The M4.2 page</h3><p>What was built, real request and response, a real event stream, and the live Swagger UI generated from our <code>openapi.json</code>.</p><span class="files">docs/claude/FilingLens M4.2 API.html</span></div></div>
+  </div></div>
+</section>
+
+<!-- ============ toolbox ============ -->
+<section id="toolbox" data-title="Toolbox: what M4 uses">
+  <span class="eyebrow">Libraries, services and alternatives</span>
+  <h2>What M4 uses, and what it doesn't</h2>
+  <div class="toolbox">
+    <div class="card tb"><h3>FastAPI <span class="status need">add in step 0</span></h3><dl>
+      <dt>Problem</dt><dd>Flask-era APIs validated by hand and documented in wikis.</dd>
+      <dt>Known use</dt><dd>Released in 2018 by Sebastián Ramírez; used at Microsoft, Uber and Netflix, and the default choice for Python ML services.</dd>
+      <dt>For us</dt><dd>Pydantic schemas we already use everywhere, <code>Depends</code>, <code>lifespan</code>, and free OpenAPI.</dd>
+    </dl></div>
+    <div class="card tb"><h3>Uvicorn <span class="status need">add in step 0</span></h3><dl>
+      <dt>Problem</dt><dd>ASGI apps need an ASGI server, like WSGI apps need gunicorn.</dd>
+      <dt>Known use</dt><dd>The standard server behind FastAPI, usually run under gunicorn or in containers in production.</dd>
+      <dt>For us</dt><dd><code>uvicorn filinglens.api.main:app --reload</code>, already in the CLAUDE.md commands.</dd>
+    </dl></div>
+    <div class="card tb"><h3>Streamlit <span class="status need">add in step 0</span></h3><dl>
+      <dt>Problem</dt><dd>Python people needed UIs without front-end skills.</dd>
+      <dt>Known use</dt><dd>LLM demos everywhere; built-in chat and status widgets.</dd>
+      <dt>For us</dt><dd>The demo UI, talking only to the API.</dd>
+    </dl></div>
+    <div class="card tb"><h3>httpx <span class="status have">already installed</span></h3><dl>
+      <dt>Problem</dt><dd><code>requests</code> has no async support and no HTTP/2.</dd>
+      <dt>Known use</dt><dd>The HTTP client inside the OpenAI and Anthropic Python SDKs.</dd>
+      <dt>For us</dt><dd>Already powers the EDGAR client; now also the FilingLens client and its SSE reader.</dd>
+    </dl></div>
+    <div class="card tb"><h3>sse-starlette <span class="status later">not needed yet</span></h3><dl>
+      <dt>Problem</dt><dd>Plain streaming responses don't send keep-alive pings or notice disconnects quickly.</dd>
+      <dt>Known use</dt><dd>A common add-on for FastAPI chat backends.</dd>
+      <dt>For us</dt><dd>Our longest stream is ~30 s, under typical proxy idle timeouts. Add it only if a proxy cuts connections.</dd>
+    </dl></div>
+    <div class="card tb"><h3>LangGraph Platform / LangServe <span class="status later">not picked</span></h3><dl>
+      <dt>Problem</dt><dd>Every team wrapped its graph in the same FastAPI boilerplate.</dd>
+      <dt>Known use</dt><dd>LangChain's hosted server for graphs (threads, background runs, streaming endpoints out of the box).</dd>
+      <dt>For us</dt><dd>It would hide exactly what this project is meant to show (the API design). Writing the 150 lines ourselves is the point.</dd>
+    </dl></div>
+    <div class="card tb"><h3>Langfuse <span class="status later">M6</span></h3><dl>
+      <dt>Problem</dt><dd>One API request = 5 LLM calls + tools; logs don't show which one was slow or wrong.</dd>
+      <dt>Known use</dt><dd>Open-source LLM tracing, like Datadog APM for prompts and tool calls.</dd>
+      <dt>For us</dt><dd><code>trace_id</code> is in the response schema from day one, filled when Langfuse lands.</dd>
+    </dl></div>
+    <div class="card tb"><h3>Docker Compose for api + ui <span class="status later">M6</span></h3><dl>
+      <dt>Problem</dt><dd>“Works on my machine” demos.</dd>
+      <dt>Known use</dt><dd>The usual way to run a multi-service app locally and in small deploys.</dd>
+      <dt>For us</dt><dd>Postgres already runs in Compose. The API and UI containers join it in M6, with <code>/health</code> as the health check.</dd>
+    </dl></div>
+  </div>
+</section>
+
+<!-- ============ measure ============ -->
+<section id="measure" data-title="How we'll know M4 worked">
+  <span class="eyebrow">Definition of done</span>
+  <h2>How we'll know M4 worked</h2>
+  <div class="tscroll"><table>
+    <thead><tr><th>Check</th><th>Target</th><th>Result</th><th>Why</th></tr></thead>
+    <tbody class="tnum">
+      <tr><td>Same answers as the agent</td><td>identical code path</td><td><i>after M4</i></td><td>The API wraps <code>run_agent()</code>; no new eval run is needed because the agent doesn't change. One real question checks it.</td></tr>
+      <tr><td>API overhead per request</td><td>&lt; 50 ms</td><td><i>after M4</i></td><td>Session + agent build (7 ms) + JSON. Compared with the 12.5 s agent time, it should be invisible.</td></tr>
+      <tr><td>Time to first event on <code>/ask/stream</code></td><td>≈ the guard's time (1–2 s)</td><td><i>after M4</i></td><td>The user should see progress almost at once.</td></tr>
+      <tr><td>Error mapping</td><td>422 / 502 / 503 / error event</td><td><i>after M4</i></td><td>Tested, not hoped.</td></tr>
+      <tr><td>Tests, no API calls</td><td>all paths</td><td><i>after M4</i></td><td>Fake LLM, MockTransport, AppTest.</td></tr>
+      <tr><td>Demo</td><td>3 example questions in the UI</td><td><i>after M4</i></td><td>A number, a text answer and a refusal.</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note">Empty cells are filled from real runs on the M4.2 page.</p>
+</section>
+
+<!-- ============ quiz ============ -->
+<section id="quiz" data-title="Interview questions">
+  <span class="eyebrow">Practice</span>
+  <h2>Interview questions on M4</h2>
+  <div class="quiz">
+    <details><summary>Your agent takes 14 seconds. How do you serve it over HTTP without blocking other users?</summary><p>The agent is synchronous, so the endpoint is a plain <code>def</code> and FastAPI runs it in a threadpool; the event loop stays free. Each request gets its own DB session and agent instance; model clients are shared because they're thread-safe and expensive to create (1.25 s for us vs 7 ms per agent). For more scale: an async agent with <code>ainvoke</code> and async DB sessions, or a job queue with Celery and polling for very long tasks.</p></details>
+    <details><summary>SSE or websockets for streaming agent progress?</summary><p>SSE: the data flows one way (server → client), it's plain HTTP so proxies and load balancers handle it, and it's what the OpenAI and Anthropic APIs use. Websockets are for two-way, long-lived sessions such as collaborative editing or voice. One SSE caveat: the browser's <code>EventSource</code> only does GET, so with a POST body you read the stream with fetch or httpx.</p></details>
+    <details><summary>Why stream agent steps instead of tokens?</summary><p>Most of an agent's time is in several shorter LLM calls and tools, not one long generation, so “what is it doing now” is the useful signal. And our answer passes a grounding check that may reject the first draft; streaming draft tokens would show numbers that get withdrawn. Steps live, final text once checked. Token streaming for the final answer is a later option.</p></details>
+    <details><summary>How do you test an API whose core is an LLM?</summary><p>Swap the agent dependency for one built on a scripted fake LLM (<code>dependency_overrides</code>), so tests exercise the real graph, tools, schemas and SSE encoding without network calls. Test the error mapping by making the fake raise. Keep real-model checks in the eval, which runs separately and is versioned.</p></details>
+    <details><summary>What status code for “Should I buy AMD?”</summary><p>200 with <code>outcome: "refused"</code>. The system worked correctly; a refusal is a valid answer. Errors are for failures: 422 bad input, 502 when the model provider fails, 503 when the database is down.</p></details>
+    <details><summary>An error happens after you've started streaming. What does the client get?</summary><p>The 200 status and headers are already sent, so you can't change the status. You send an <code>event: error</code> with a message, and the client must handle it. That's why the event types (step, result, error) are part of the documented contract.</p></details>
+    <details><summary>Why have a separate Python client if Streamlit could call the agent directly?</summary><p>So the UI proves the API works and stays replaceable. The client holds the HTTP and SSE parsing in one tested place. Any other consumer (a notebook, a Slack bot, an MCP server) reuses it, and the UI has no access to the database or keys.</p></details>
+    <details><summary>What would you add before putting this on the internet?</summary><p>Authentication and per-key rate limits (each request costs money), request timeouts and a max concurrency, CORS rules if a browser front end calls it, tracing (Langfuse) and structured logs with the request ID, input size caps (already 2,000 characters), and a health check wired to the orchestrator.</p></details>
+  </div>
+</section>
+
+</div>
+
+<!-- ============ Ask Claude ============ -->
+<button class="askfab" id="askFab" type="button" aria-controls="drawer" aria-expanded="false">Ask Claude</button>
+<aside class="drawer" id="drawer" hidden aria-label="Ask Claude about this page">
+  <header><h3>Ask Claude</h3><button class="btn" id="askClear" type="button">New chat</button><button class="btn" id="askClose" type="button" aria-label="Close">✕</button></header>
+  <div class="ctxline">Reading: <b id="ctxName">Overview</b>. Claude sees this section plus a project brief.</div>
+  <div class="chat" id="chat">
+    <div class="bubble cl" id="askIntro"><p>Ask anything about M4: FastAPI with an agent behind it, streaming, the API contract, Streamlit, or an interview question. Answers use your own Claude account.</p></div>
+    <div class="sugg" id="sugg"></div>
+  </div>
+  <form class="composer" id="askForm">
+    <label class="eyebrow" for="askInput">Your question</label>
+    <textarea id="askInput" placeholder="e.g. Why is /ask a def endpoint and not async def?"></textarea>
+    <div class="bar"><small id="askNote">Enter to send · Shift+Enter for a new line</small><button class="btn" id="askStop" type="button" hidden>Stop</button><button class="btn primary" id="askSend" type="submit">Send</button></div>
+  </form>
+</aside>
+
+<script>
+(function () {
+  "use strict";
+  /* ---------------- nav highlight + current section ---------------- */
+  var navLinks = Array.prototype.slice.call(document.querySelectorAll("nav.toc a"));
+  var current = { id: "top", title: "Overview" };
+  var tracked = Array.prototype.slice.call(document.querySelectorAll("[data-title]"));
+  function setCurrent(el) {
+    current = { id: el.id, title: el.getAttribute("data-title") };
+    var ctx = document.getElementById("ctxName");
+    if (ctx && !pinned) ctx.textContent = current.title;
+    var top = el.closest("section, header.masthead") || el;
+    navLinks.forEach(function (a) { a.classList.toggle("on", a.getAttribute("href") === "#" + top.id); });
+  }
+  var pinned = false;
+  if ("IntersectionObserver" in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) { if (e.isIntersecting) setCurrent(e.target); });
+    }, { rootMargin: "-30% 0px -60% 0px" });
+    tracked.forEach(function (el) { io.observe(el); });
+  }
+
+  /* ---------------- timeline (real PepsiCo run) ---------------- */
+  var SEGS = [
+    { c: "guard", ms: 1243, l: "guard 1.2s" }, { c: "llm", ms: 3565, l: "plan 3.6s" }, { c: "tool", ms: 24, l: "" },
+    { c: "llm", ms: 1692, l: "plan 1.7s" }, { c: "tool", ms: 1, l: "" }, { c: "llm", ms: 2071, l: "plan 2.1s" },
+    { c: "llm", ms: 3896, l: "answer 3.9s" }
+  ];
+  var tlBar = document.getElementById("tlBar");
+  SEGS.forEach(function (s) {
+    var d = document.createElement("div");
+    d.className = "seg " + s.c; d.style.flex = s.ms + " 0 0"; d.textContent = s.l;
+    d.title = s.l || (s.ms + " ms, our code");
+    tlBar.appendChild(d);
+  });
+
+  /* ---------------- watch a request ---------------- */
+  var PEP_Q = "What is the FY2022 unadjusted EBITDA % margin for PepsiCo? Calculate unadjusted EBITDA using unadjusted operating income and D&A (from cash flow statement).";
+  var PEP_A = "PepsiCo's FY2022 unadjusted EBITDA margin was 16.5% [4], calculated using operating income of $11,512 million [2] plus D&A of $2,763 million [3], divided by revenue of $86,392 million [1].";
+  var W = [
+    { id: "pep", label: "PepsiCo EBITDA margin", sub: "numbers + math · 12.5 s", q: PEP_Q, ev: [
+      { t: 1.243, d: { node: "guard", verdict: "ok" }, ui: "Checked the question: in scope" },
+      { t: 4.808, d: { node: "plan", round: 1, tool_calls: [{ name: "get_financials", args: { ticker: "PEP", fiscal_years: [2022], metrics: ["revenue", "operating_income", "depreciation_amortization"] } }] }, ui: "Fetching XBRL: PEP FY2022 revenue, operating income, D&A" },
+      { t: 4.832, d: { node: "tools", results: [{ name: "get_financials", status: "success" }] }, ui: "Got 3 values from PepsiCo's 10-K" },
+      { t: 6.524, d: { node: "plan", round: 2, tool_calls: [{ name: "calculate", args: { expression: "((11512 + 2763) / 86392) * 100" } }] }, ui: "Calculating ((11512 + 2763) / 86392) * 100" },
+      { t: 6.525, d: { node: "tools", results: [{ name: "calculate", status: "success" }] }, ui: "= 16.5235" },
+      { t: 8.596, d: { node: "plan", round: 2, tool_calls: [] }, ui: "Enough data, writing the answer" },
+      { t: 12.492, d: { node: "answer", attempt: 1 }, ui: "Answer written" },
+      { t: 12.492, d: { node: "check", verified: true, problems: [] }, ui: "Checked: every number traces to a source" }
+    ], result: { outcome: "answered", verified: true, answer: PEP_A, sources: "[1] XBRL · PEP FY2022 revenue · [2] operating_income · [3] depreciation_amortization · [4] calculate", rounds: 2, latency_ms: 12492 } },
+    { id: "adv", label: "Should I buy AMD?", sub: "refuse · 1.8 s", q: "Should I buy AMD stock based on its FY2022 results?", ev: [
+      { t: 1.828, d: { node: "guard", verdict: "advice" }, ui: "Checked the question: investment advice" },
+      { t: 1.828, d: { node: "refuse" }, ui: "Refused (fixed text, no tools)" }
+    ], result: { outcome: "refused", verified: true, answer: "I can't give investment advice, such as whether to buy, sell or hold a stock. I can tell you what a company reported in its SEC filings: for example its revenue, margins, debt or what management said drove the results.", sources: "", rounds: 0, latency_ms: 1828 } },
+    { id: "tsla", label: "Tesla revenue", sub: "not found · 9.3 s", q: "What was Tesla's revenue in FY2022?", ev: [
+      { t: 1.338, d: { node: "guard", verdict: "ok" }, ui: "Checked the question: in scope" },
+      { t: 9.327, d: { node: "plan", round: 0, tool_calls: [] }, ui: "No tool calls: Tesla isn't one of the 10 companies" },
+      { t: 9.327, d: { node: "not_found" }, ui: "Not found (fixed text)" }
+    ], result: { outcome: "not_found", verified: true, answer: "Not found in the filings.", sources: "", rounds: 0, latency_ms: 9327 } }
+  ];
+
+  var wCur = W[0], streaming = true, raf = 0, startAt = 0, shown = -1, done = false;
+  var mock = document.getElementById("wMock"), wire = document.getElementById("wWire"), clock = document.getElementById("wClock");
+  var wNote = document.getElementById("wNote");
+  var scenBox = document.getElementById("wScen");
+  W.forEach(function (s) {
+    var b = document.createElement("button"); b.type = "button";
+    b.setAttribute("aria-pressed", s === wCur ? "true" : "false");
+    var l = document.createElement("span"); l.textContent = s.label;
+    var sm = document.createElement("small"); sm.textContent = s.sub;
+    b.appendChild(l); b.appendChild(sm);
+    b.addEventListener("click", function () {
+      wCur = s;
+      Array.prototype.forEach.call(scenBox.children, function (c) { c.setAttribute("aria-pressed", c === b ? "true" : "false"); });
+      reset();
+    });
+    scenBox.appendChild(b);
+  });
+  function setMode(st) {
+    streaming = st;
+    document.getElementById("mStream").setAttribute("aria-pressed", st ? "true" : "false");
+    document.getElementById("mPlain").setAttribute("aria-pressed", st ? "false" : "true");
+    reset();
+  }
+  document.getElementById("mStream").addEventListener("click", function () { setMode(true); });
+  document.getElementById("mPlain").addEventListener("click", function () { setMode(false); });
+
+  function total() { return wCur.ev[wCur.ev.length - 1].t; }
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+  function sseBlock(name, data, fresh) {
+    var wrap = el("div", fresh ? "fresh" : "");
+    wrap.appendChild(el("span", "ev", "event: " + name + "\n"));
+    wrap.appendChild(document.createTextNode("data: " + JSON.stringify(data) + "\n\n"));
+    return wrap;
+  }
+  function resultData() {
+    var r = wCur.result;
+    return { request_id: "3f9c…", answer: r.answer, outcome: r.outcome, verified: r.verified, sources: r.sources ? "[…]" : [], rounds: r.rounds, latency_ms: r.latency_ms, trace_id: null };
+  }
+
+  function draw(elapsed) {
+    var evs = wCur.ev, n = 0;
+    while (n < evs.length && evs[n].t <= elapsed) n++;
+    var finished = elapsed >= total();
+    clock.textContent = Math.min(elapsed, total()).toFixed(1) + " s";
+    if (n - 1 === shown && finished === done) return;
+    shown = n - 1; done = finished;
+
+    mock.textContent = "";
+    mock.appendChild(el("div", "q", wCur.q));
+    wire.textContent = "";
+    if (streaming) {
+      var st = el("div", "status");
+      for (var i = 0; i < n; i++) st.appendChild(el("div", "", evs[i].ui));
+      if (!finished) st.appendChild(el("div", "run", n === 0 ? "Sending…" : "Working…"));
+      mock.appendChild(st);
+      wire.appendChild(el("span", "dim", "HTTP/1.1 200 OK\ncontent-type: text/event-stream\n\n"));
+      for (var j = 0; j < n; j++) wire.appendChild(sseBlock("step", Object.assign({}, evs[j].d, { elapsed_ms: Math.round(evs[j].t * 1000) }), j === n - 1 && !finished));
+      if (finished) wire.appendChild(sseBlock("result", resultData(), true));
+    } else if (!finished) {
+      mock.appendChild(el("div", "spin", "Waiting for the response…"));
+      wire.appendChild(el("span", "dim", "(nothing received yet: the server answers when the agent is done)"));
+    } else {
+      wire.appendChild(el("span", "dim", "HTTP/1.1 200 OK\ncontent-type: application/json\n\n"));
+      wire.appendChild(el("div", "fresh", JSON.stringify(resultData(), null, 1)));
+    }
+    if (finished) {
+      var r = wCur.result;
+      mock.appendChild(el("div", "ans", r.answer));
+      if (r.outcome === "answered") mock.appendChild(el("span", "badge", "verified · " + (r.latency_ms / 1000).toFixed(1) + " s"));
+      else mock.appendChild(el("span", "badge", r.outcome.replace("_", " ") + " · " + (r.latency_ms / 1000).toFixed(1) + " s"));
+      if (r.sources) mock.appendChild(el("small", "files", r.sources));
+    }
+    wire.scrollTop = wire.scrollHeight;
+  }
+
+  function tick(now) {
+    var speed = Number(document.getElementById("wSpeed").value);
+    var elapsed = (now - startAt) / 1000 * speed;
+    draw(elapsed);
+    if (elapsed < total()) raf = requestAnimationFrame(tick); else { raf = 0; document.getElementById("wPlay").textContent = "Replay"; }
+  }
+  function reset() {
+    if (raf) cancelAnimationFrame(raf); raf = 0; shown = -2; done = false;
+    document.getElementById("wPlay").textContent = "Play";
+    draw(0);
+    var first = wCur.ev[0].t;
+    wNote.textContent = streaming
+      ? "With streaming, the first event arrives after " + first.toFixed(1) + " s (the guard). Each later event lands when its node finishes."
+      : "Without streaming, the user sees nothing for the full " + total().toFixed(1) + " s, then everything at once. Same agent, same total time.";
+  }
+  document.getElementById("wPlay").addEventListener("click", function () {
+    if (raf) cancelAnimationFrame(raf);
+    shown = -2; done = false; startAt = performance.now();
+    document.getElementById("wPlay").textContent = "Playing…";
+    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) { draw(total()); document.getElementById("wPlay").textContent = "Replay"; return; }
+    raf = requestAnimationFrame(tick);
+  });
+  document.getElementById("wSkip").addEventListener("click", function () { if (raf) cancelAnimationFrame(raf); raf = 0; shown = -2; draw(total()); document.getElementById("wPlay").textContent = "Replay"; });
+  reset();
+
+  /* ---------------- Ask Claude ---------------- */
+  var BRIEF = [
+    "PROJECT: FilingLens, a portfolio project. An AI analyst for SEC 10-K filings: exact numbers from SEC XBRL data + management explanations from 10-K text, every claim cited. No investment advice.",
+    "READER: an experienced Python backend developer (FastAPI, Postgres, SQLAlchemy, Docker, Celery, Redis, Kubernetes) who is new to AI engineering and is preparing to explain this project in job interviews. They know FastAPI well; explain what is different when an LLM agent sits behind it.",
+    "STACK: Python 3.12, uv, Postgres 16 + pgvector, SQLAlchemy (sync), LangChain + LangGraph, answer/plan model gpt-6-luna (OpenAI), guard/judge model claude-haiku-5-5, embeddings text-embedding-3-small. M4 adds FastAPI + uvicorn + Streamlit.",
+    "M3 (DONE, measured): LangGraph agent guard -> plan <-> tools (max 4 rounds) -> answer -> check (code grounding check, one rewrite), refuse and not_found exits with fixed texts. Tools: search_filings, get_financials (XBRL, USD millions), calculate (AST whitelist). Tools are bound to a DB session: make_tools(session, embedder). 16/20 on FinanceBench subset vs M2 RAG 13/20 and closed-book 11/20; mean 13.9 s, max 29.1 s, 4.9 LLM calls per question; behaviour checks 8/8.",
+    "MEASURED FOR M4 (2026-11-04): PepsiCo question node timings: guard 1,243 ms, plan 3,565 ms, get_financials 24 ms, plan 1,692 ms, calculate 1 ms, plan 2,071 ms, answer 3,896 ms, check <1 ms; total 12.5 s. 'Should I buy AMD?' refused at 1.8 s; Tesla not_found at 9.3 s (planner spent 8 s). Creating model clients costs 1,251 ms; build_agent from existing clients 6-7 ms; imports 593 ms.",
+    "M4 PLAN (not built yet): FastAPI app with lifespan creating model clients once; per-request DB session and agent via Depends; GET /health (DB check, counts, model names); POST /ask (def endpoint -> threadpool; returns request_id, answer, outcome, verified, sources, tool_calls, rounds, latency_ms, trace_id null until Langfuse in M6); POST /ask/stream (SSE via StreamingResponse; agent.stream(stream_mode=['updates','values']); step events per node, then result, or error); errors 422/502/503; Python client (httpx, SSE parser) used by the Streamlit UI; tests with dependency_overrides + scripted FakeLLM, httpx.MockTransport, Streamlit AppTest. Decision: stream steps, not tokens, because the check may reject a draft. M4 results are NOT measured yet."
+  ].join("\n");
+  var RULES = "You are a patient AI-engineering tutor embedded in a study page about milestone M4 of the reader's project. Answer the reader's question directly and briefly, in plain words; define any jargon the first time; use a backend analogy when it helps; use the project's real data from the brief or the page excerpt when an example helps, but do not force examples onto simple questions. Never invent measured results: anything about M4's API performance is planned, not measured. If asked an interview question, give a model answer they could say out loud in 30-60 seconds. Use short paragraphs or bullet lists; no headings. Markdown allowed: **bold**, `code`, bullet lines starting with '- ', and fenced code blocks.\n\nPROJECT BRIEF:\n" + BRIEF;
+
+  var SUGG = {
+    "c-api": ["What should an LLM API response always include?", "Why put trace_id in the schema before Langfuse exists?"],
+    "c-sync": ["What happens if /ask is async def and calls the sync agent?", "When would I switch to a fully async agent?"],
+    "c-sse": ["SSE vs websockets vs polling?", "Show me the raw bytes of one SSE event"],
+    "c-modes": ["What do stream_mode updates, values and messages return?", "Why not stream the answer tokens?"],
+    "c-openapi": ["How are tool schemas and OpenAPI the same idea?", "How do I document a text/event-stream response in FastAPI?"],
+    "c-life": ["Why can't the agent be a global?", "Are LangChain model clients thread-safe?"],
+    "c-ui": ["Why shouldn't Streamlit call the agent directly?", "How does Streamlit's rerun model work?"],
+    "c-fail": ["Why 502 and not 500 for an OpenAI outage?", "How do dependency_overrides work in tests?"],
+    "default": ["Explain M4 in 5 sentences", "Quiz me with one interview question", "What's the hardest part of M4?"]
+  };
+
+  var drawer = document.getElementById("drawer"), fab = document.getElementById("askFab");
+  var chat = document.getElementById("chat"), input = document.getElementById("askInput");
+  var sendBtn = document.getElementById("askSend"), stopBtn = document.getElementById("askStop"), note = document.getElementById("askNote");
+  var sampleFn = null, sampleState = "pending", turns = [], ctl = null, busy = false, askCtx = null;
+
+  (async function () {
+    try { sampleFn = (window.claude && window.claude.use) ? await window.claude.use("sample") : null; } catch (e) { sampleFn = null; }
+    sampleState = sampleFn ? "ready" : "absent";
+    if (!sampleFn) setUnavailable("Ask Claude works when this page is opened on claude.ai. Opened as a local file, it can't reach Claude.");
+  })();
+
+  function setUnavailable(msg) {
+    sendBtn.disabled = true; input.disabled = true; note.textContent = msg;
+  }
+
+  function sectionText(id) {
+    var el = document.getElementById(id) || document.getElementById("top");
+    var t = (el.innerText || el.textContent || "").replace(/\n{3,}/g, "\n\n");
+    return t.slice(0, 7000);
+  }
+
+  function renderSugg(key) {
+    var box = document.getElementById("sugg"); box.textContent = "";
+    (SUGG[key] || SUGG["default"]).forEach(function (q) {
+      var b = document.createElement("button"); b.type = "button"; b.textContent = q;
+      b.addEventListener("click", function () { input.value = q; send(); });
+      box.appendChild(b);
+    });
+  }
+
+  function openDrawer(ctxId) {
+    pinned = !!ctxId;
+    askCtx = ctxId ? { id: ctxId, title: document.getElementById(ctxId).getAttribute("data-title") } : null;
+    document.getElementById("ctxName").textContent = (askCtx || current).title;
+    renderSugg(ctxId || "default");
+    drawer.hidden = false; fab.hidden = true; fab.setAttribute("aria-expanded", "true");
+    if (!input.disabled) input.focus();
+  }
+  function closeDrawer() { drawer.hidden = true; fab.hidden = false; fab.setAttribute("aria-expanded", "false"); pinned = false; fab.focus(); }
+  fab.addEventListener("click", function () { openDrawer(null); });
+  document.getElementById("askClose").addEventListener("click", closeDrawer);
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !drawer.hidden) closeDrawer(); });
+  Array.prototype.forEach.call(document.querySelectorAll(".askbtn"), function (b) {
+    b.addEventListener("click", function () { openDrawer(b.getAttribute("data-ask")); });
+  });
+  document.getElementById("askClear").addEventListener("click", function () {
+    if (ctl) ctl.abort();
+    turns = [];
+    Array.prototype.forEach.call(chat.querySelectorAll(".bubble:not(#askIntro)"), function (n) { n.remove(); });
+  });
+
+  function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+  function inline(s) {
+    return esc(s).replace(/`([^`]+)`/g, "<code>$1</code>").replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>");
+  }
+  function md(text) {
+    var out = [], lines = text.split("\n"), i = 0, para = [];
+    function flush() { if (para.length) { out.push("<p>" + para.map(inline).join("<br>") + "</p>"); para = []; } }
+    while (i < lines.length) {
+      var ln = lines[i];
+      if (/^```/.test(ln)) {
+        flush(); var code = []; i++;
+        while (i < lines.length && !/^```/.test(lines[i])) { code.push(lines[i]); i++; }
+        out.push("<pre><code>" + esc(code.join("\n")) + "</code></pre>"); i++; continue;
+      }
+      if (/^\s*[-*] /.test(ln)) {
+        flush(); var items = [];
+        while (i < lines.length && /^\s*[-*] /.test(lines[i])) { items.push("<li>" + inline(lines[i].replace(/^\s*[-*] /, "")) + "</li>"); i++; }
+        out.push("<ul>" + items.join("") + "</ul>"); continue;
+      }
+      if (/^\s*$/.test(ln)) { flush(); i++; continue; }
+      para.push(ln.replace(/^#+\s*/, "")); i++;
+    }
+    flush();
+    return out.join("");
+  }
+
+  function bubble(cls, html) {
+    var b = document.createElement("div"); b.className = "bubble " + cls; b.innerHTML = html;
+    chat.appendChild(b); chat.scrollTop = chat.scrollHeight; return b;
+  }
+
+  var ERR = {
+    not_granted: "Claude access wasn't allowed for this page, so Ask Claude is off for this visit.",
+    sampling_disabled: "Claude isn't available for this account.",
+    rate_limited: "Too many questions at once or a usage limit was reached. Wait a bit and send again.",
+    session_expired: "Your claude.ai session expired. Sign in again, then resend.",
+    refused: "Claude declined that one. Try rephrasing the question.",
+    empty_completion: "Claude returned nothing. Try a shorter or more specific question.",
+    prompt_too_large: "That was too much text at once. Start a new chat and ask again."
+  };
+  var FATAL = { not_granted: 1, sampling_disabled: 1, not_declared: 1, capability_disabled: 1, capability_removed: 1 };
+
+  async function send() {
+    var q = input.value.trim();
+    if (!q || busy || !sampleFn) return;
+    busy = true; input.value = "";
+    bubble("me", esc(q));
+    var ctx = askCtx || current;
+    turns.push({ role: "user", content: q });
+    var head = { role: "user", content: RULES + "\n\nTHE READER IS ON THIS PART OF THE PAGE: \"" + ctx.title + "\". Its text:\n" + sectionText(ctx.id) };
+    var out = bubble("cl", "<p>Thinking…</p>");
+    ctl = new AbortController();
+    sendBtn.disabled = true; stopBtn.hidden = false;
+    try {
+      var res = await sampleFn([head].concat(turns.slice(-12)), {
+        cache: false, signal: ctl.signal,
+        onText: function (u) { out.innerHTML = md(u.text); chat.scrollTop = chat.scrollHeight; }
+      });
+      out.innerHTML = md(res.text) + (res.truncated ? "<p><i>Cut short. Ask for a narrower part.</i></p>" : "");
+      turns.push({ role: "assistant", content: res.text });
+    } catch (e) {
+      var code = e && e.code;
+      if (code === "cancelled") {
+        if (e.text) { out.innerHTML = md(e.text); turns.push({ role: "assistant", content: e.text }); } else { out.remove(); turns.pop(); }
+      } else {
+        turns.pop();
+        if (e && e.text && code !== "refused") out.innerHTML = md(e.text) + "<p><i>Interrupted.</i></p>"; else out.remove();
+        bubble("err", esc(ERR[code] || "Something went wrong reaching Claude. Send the question again."));
+        if (FATAL[code]) { sampleFn = null; setUnavailable("Ask Claude is off for this visit."); }
+      }
+    } finally {
+      busy = false; stopBtn.hidden = true; if (sampleFn) sendBtn.disabled = false;
+      ctl = null;
+    }
+  }
+  document.getElementById("askForm").addEventListener("submit", function (e) { e.preventDefault(); send(); });
+  input.addEventListener("keydown", function (e) { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } });
+  stopBtn.addEventListener("click", function () { if (ctl) ctl.abort(); });
+})();
+</script>
