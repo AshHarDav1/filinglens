@@ -123,9 +123,8 @@ uv run python -m filinglens.ingestion.load_facts --from-subset eval/financebench
 uv run python -m filinglens.agent.graph "What is AMD's FY2022 quick ratio?"  # ask the M3 agent once
 uv run python eval/run_eval.py --mode agent --name agent-x               # agent on the 20 [--subset eval/financebench_10k.jsonl]
 uv run python eval/run_behaviour.py --name behaviour-x                  # refusals, not-found, injection (rules, no judge)
-# later:
-uv run uvicorn filinglens.api.main:app --reload
-uv run streamlit run ui/app.py
+uv run uvicorn filinglens.api.main:app --reload [--port 8010]   # API; Swagger UI at /docs (port 8000 is busy here: use 8010)
+API_URL=http://localhost:8010 uv run streamlit run ui/app.py     # demo UI at http://localhost:8501 (or set API_URL in .env)
 ```
 
 ## Conventions
@@ -186,7 +185,10 @@ uv run streamlit run ui/app.py
     XBRL + calculate), lost 2; mean 13.9 s, max 29.1 s, ~3x M2's tokens; behaviour 8/8 (`2026-11-04-behaviour-m3`)
   - [ ] for M5, choose on the 31 dev questions: Verizon `debt_current` concept priority (−379 vs −229), plan rule
     "as of FY X" compares with FY X−1 (Adobe); then the 51-question run for all three systems
-- [ ] **M4 Interfaces:** FastAPI (streaming), Streamlit UI, MCP server
+- [x] **M4 Interfaces:** FastAPI (streaming), Streamlit UI (results: `docs/m4-results.md`); MCP server moved to M6
+  - [x] `api/main.py` (`/health`, `/ask`, `/ask/stream`), `api/schemas.py`, `api/events.py` (SSE step events),
+    `api/client.py` (Python client + SSE parser), `ui/app.py` (Streamlit); 152 tests (fake LLM, MockTransport, AppTest)
+  - [x] measured: API overhead 19 ms per `/ask`; first stream event ~1 s (the guard); UI verified against the real API
 - [ ] **M5 Quality:** eval on the full subset, one measured improvement (e.g. hybrid vs vector-only, chunk size, reranking)
 - [ ] **M6 Ship:** Langfuse tracing, Docker Compose for everything, CI, deploy, README with architecture and results, 2-minute demo
 
@@ -198,7 +200,8 @@ real values), plus interview questions. This overrides "AI parts: let me try fir
 
 Update the checkboxes and the "Current step" line as we go.
 
-**Current step:** M4: FastAPI (`/ask`, `/ask/stream`, `/health`) over the M3 agent, then the Streamlit UI.
+**Current step:** M5: choose the Verizon debt and Adobe comparison-year fixes on the 31 dev questions, confirm on
+the 20, then the 51-question run for closed-book, M2 RAG and the agent.
 
 ## Architecture decisions (full text in docs/adr/; record new ones there)
 
@@ -212,3 +215,5 @@ Update the checkboxes and the "Current step" line as we go.
 - ADR-008: vector search stays the default; hybrid search and section routers are tested options (held-out check).
 - ADR-009: agent design: typed tools (text for the LLM, artifact for code), Haiku guard, fixed refusal/not-found
   texts, answer from numbered sources, grounding check in code with one rewrite.
+- ADR-010: API design: sync agent in FastAPI's threadpool, model clients once and a fresh agent per request, SSE
+  step events (not tokens) on `/ask/stream`, 422/502/503 error mapping, Streamlit as a thin client.
